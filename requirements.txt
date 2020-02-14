@@ -1,0 +1,11 @@
+jupyter==1.0.0
+jupyterlab==1.2.6
+numpy==1.18.1
+pandas==1.0.1
+scipy==1.4.1
+sklearn==0.0
+torch==1.4.0
+torchtext==0.5.0
+torchvision==0.5.0
+tqdm==4.42.1
+transformers==2.4.1

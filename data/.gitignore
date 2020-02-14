@@ -1,0 +1,6 @@
+# Ignore all other examples
+*
+
+# Only leave a example
+!.gitignore
+!example.txt
