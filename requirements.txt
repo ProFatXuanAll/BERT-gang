@@ -1,7 +1,9 @@
+autopep8==1.5
 jupyter==1.0.0
 jupyterlab==1.2.6
 numpy==1.18.1
 pandas==1.0.1
+pylint==2.4.4
 scipy==1.4.1
 sklearn==0.0
 torch==1.4.0
