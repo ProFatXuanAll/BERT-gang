@@ -37,8 +37,14 @@ data
 
 ```py
 {
-  'input_ids': [101, 146, 1176, 4629, 194, 1358, 119, 102, 146, 1176, 6363, 119, 102],
+  # output tensor from model
+  # shape: (seq_len, hid_dim)
+  'output_embeds': [[0.0, ...,] [0.0,...], ...],
+
+  # segment indicator
   'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+
+  # token boundary indicator
   'token_bound_ids': [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1]
 }
 ```
