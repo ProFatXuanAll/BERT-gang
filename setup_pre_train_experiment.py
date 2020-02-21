@@ -8,7 +8,9 @@ import os
 import bertgang
 
 pre_train_experiment_no = 1
-path = f'{os.path.dirname(os.path.abspath(__name__))}/data/pre_train_experiment/{pre_train_experiment_no}'
+
+path = (os.path.dirname(os.path.abspath(__name__))
+    + f'/data/pre_train_experiment/{pre_train_experiment_no}')
 
 if os.path.exists(path):
     if not os.path.isdir(path):
@@ -34,12 +36,20 @@ config = bertgang.bertgang_config.PreTrainConfig(
     num_attention_heads=12,
     num_hidden_groups=1,
     num_hidden_layers=6,
+    path=path,
     teachers=['bert', 'roberta', 'albert', ],
     type_vocab_size=2,
     vocab_size=30000
 )
-config.save_pretrained(path)
 
-tokenizer = bertgang.bertgang_tokenizer.Tokenizer.from_pretrained('albert-base-v2')
+config.save_pretrained(config.path)
+
+tokenizer = (bertgang
+             .bertgang_tokenizer
+             .Tokenizer
+             .from_pretrained(bertgang
+                              .bertgang_config
+                              .VALID_TEACHERS['albert']['version']))
+# TODO: This method does not work.
 tokenizer.learn_from_teachers(config)
-tokenizer.save_pretrained(path)
+tokenizer.save_pretrained(config.path)
