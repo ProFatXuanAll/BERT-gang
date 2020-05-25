@@ -1,5 +1,9 @@
+# Ingore data
+data
+
 # Editor config
 .vscode
+*.swp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
