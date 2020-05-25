@@ -30,10 +30,10 @@ EX_PATH = os.path.abspath(
 )
 
 BATCH_SIZE = 32
-ACCUMULATION_STEP = 4
+ACCUMULATION_STEP = 8
 EPOCH = 3
 LEARNING_RATE = 3e-5
-LOG_STEP = 8
+LOG_STEP = 100
 SEED = 777
 
 if not os.path.exists(EX_PATH):

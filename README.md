@@ -60,7 +60,10 @@ data
 
 ```sh
 # download
-wget https://cims.nyu.edu/~sbowman/multinli/multinli_1.0.zip ./data/fine_tune_data/mnli.zip
+wget https://cims.nyu.edu/~sbowman/multinli/multinli_1.0.zip
+
+# move to data folder
+mv multinli_1.0.zip ./data/fine_tune_data/mnli.zip
 
 # extract
 unzip ./data/fine_tune_data/mnli.zip -d ./data/fine_tune_data/mnli
