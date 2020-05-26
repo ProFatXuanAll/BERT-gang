@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import gc
 import numpy as np
 import os
 import torch
@@ -20,7 +19,7 @@ from transformers import BertConfig, BertModel, BertTokenizer
 import dataset
 import bert_fine_tune
 
-EXPERIMENT_NO = 1
+EXPERIMENT_NO = 0
 BATCH_SIZE = 32
 ACCUMULATION_STEP = 8
 EPOCH = 3
