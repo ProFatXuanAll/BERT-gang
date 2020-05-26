@@ -20,24 +20,33 @@ from transformers import BertConfig, BertModel, BertTokenizer
 import dataset
 import bert_fine_tune
 
-EX_NO = 0
-
-DATA_PATH = os.path.abspath(
-    f'{os.path.abspath(__file__)}/../../data/fine_tune_data'
-)
-EX_PATH = os.path.abspath(
-    f'{os.path.abspath(__file__)}/../../data/fine_tune_experiment/mnli/ex_{EX_NO}'
-)
-
+EXPERIMENT_NO = 1
 BATCH_SIZE = 32
 ACCUMULATION_STEP = 8
 EPOCH = 3
 LEARNING_RATE = 3e-5
-LOG_STEP = 100
+LOG_STEP = 1000
 SEED = 777
 
-if not os.path.exists(EX_PATH):
-    os.makedirs(EX_PATH)
+PATH = {}
+PATH['data'] = os.path.abspath(
+    f'{os.path.abspath(__file__)}/../../data'
+)
+PATH['fine_tune_data'] = os.path.abspath(
+    f'{PATH["data"]}/fine_tune_data'
+)
+PATH['experiment'] = os.path.abspath(
+    f'{PATH["data"]}/fine_tune_experiment/mnli/experiment_{EXPERIMENT_NO}'
+)
+PATH['log'] = os.path.abspath(f'{PATH["experiment"]}/log')
+PATH['checkpoint'] = os.path.abspath(f'{PATH["experiment"]}/checkpoint')
+
+if not os.path.exists(PATH['experiment']):
+    os.makedirs(PATH['experiment'])
+if not os.path.exists(PATH['log']):
+    os.makedirs(PATH['log'])
+if not os.path.exists(PATH['checkpoint']):
+    os.makedirs(PATH['checkpoint'])
 
 device = torch.device('cpu')
 
@@ -53,24 +62,29 @@ if torch.cuda.is_available():
 
 config = BertConfig.from_pretrained('bert-base-cased')
 tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-model = bert_fine_tune.BertFineTuneModel(in_features=config.hidden_size,
-                                         out_features=dataset.MNLI.num_label(),
-                                         pretrained_version='bert-base-cased')
+model = bert_fine_tune.BertFineTuneModel(
+    in_features=config.hidden_size,
+    out_features=dataset.MNLI.num_label(),
+    pretrained_version='bert-base-cased'
+)
 model = model.to(device)
 
 train_dataset = dataset.MNLI('train')
 collate_fn = dataset.MNLI.create_collate_fn(tokenizer)
-train_dataloader = torch.utils.data.DataLoader(train_dataset,
-                                               batch_size=BATCH_SIZE // ACCUMULATION_STEP,
-                                               collate_fn=collate_fn,
-                                               shuffle=True)
+train_dataloader = torch.utils.data.DataLoader(
+    train_dataset,
+    batch_size=BATCH_SIZE // ACCUMULATION_STEP,
+    collate_fn=collate_fn,
+    shuffle=True
+)
 
-writer = torch.utils.tensorboard.SummaryWriter(f'{EX_PATH}/log')
+writer = torch.utils.tensorboard.SummaryWriter(PATH['log'])
 
 optimizer = torch.optim.AdamW(model.parameters(),
                               lr=LEARNING_RATE)
 objective = nn.CrossEntropyLoss()
 
+print(f'======MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO}======')
 step_counter = 0
 for epoch in range(EPOCH):
     print(f'======EPOCH {epoch}======')
@@ -99,6 +113,8 @@ for epoch in range(EPOCH):
         accumulation_loss += loss / ACCUMULATION_STEP
         step_counter += 1
 
+        actual_step = step_counter // ACCUMULATION_STEP
+
         if step_counter % ACCUMULATION_STEP == 0:
             accumulation_loss.backward()
 
@@ -106,16 +122,16 @@ for epoch in range(EPOCH):
 
             writer.add_scalar('loss',
                               accumulation_loss.item(),
-                              step_counter // ACCUMULATION_STEP)
+                              actual_step)
 
             accumulation_loss.detach()
             del accumulation_loss
             accumulation_loss = 0
 
-        if (step_counter // ACCUMULATION_STEP) % LOG_STEP == 0:
+        if actual_step % LOG_STEP == 0:
             torch.save(
                 model.state_dict(),
-                f'{EX_PATH}/checkpoint_{step_counter // ACCUMULATION_STEP}.pt'
+                f'{PATH["checkpoint"]}/{actual_step}.pt'
             )
 
         loss.detach()
@@ -134,5 +150,5 @@ for epoch in range(EPOCH):
 writer.close()
 torch.save(
     model.state_dict(),
-    f'{EX_PATH}/checkpoint_{step_counter // ACCUMULATION_STEP}.pt'
+    f'{PATH["checkpoint"]}/{actual_step}.pt'
 )
