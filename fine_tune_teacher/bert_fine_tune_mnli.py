@@ -64,7 +64,8 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
 model = bert_fine_tune.BertFineTuneModel(
     in_features=config.hidden_size,
     out_features=dataset.MNLI.num_label(),
-    pretrained_version='bert-base-cased'
+    pretrained_version='bert-base-cased',
+    dropout_prob=config.hidden_dropout_prob
 )
 model = model.to(device)
 

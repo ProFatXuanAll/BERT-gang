@@ -14,9 +14,11 @@ class BertFineTuneModel(nn.Module):
     def __init__(self,
                  in_features,
                  out_features,
-                 pretrained_version):
+                 pretrained_version,
+                 dropout_prob):
         super(BertFineTuneModel, self).__init__()
         self.BertLayer = BertModel.from_pretrained(pretrained_version)
+        self.dropout = nn.Dropout(dropout_prob)
         self.linear_layer = nn.Linear(in_features=in_features,
                                       out_features=out_features)
 
@@ -27,6 +29,7 @@ class BertFineTuneModel(nn.Module):
         output = self.BertLayer(input_ids=input_ids,
                                 attention_mask=attention_mask,
                                 token_type_ids=token_type_ids)
-
-        return F.softmax(self.linear_layer(output[1]),
+        pooled_output = output[1]
+        pooled_output = self.dropout(pooled_output)
+        return F.softmax(self.linear_layer(pooled_output),
                          dim=1)
