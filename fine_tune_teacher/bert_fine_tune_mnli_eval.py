@@ -65,7 +65,8 @@ for checkpoint in all_checkpoint:
     model = bert_fine_tune.BertFineTuneModel(
         in_features=config.hidden_size,
         out_features=dataset.MNLI.num_label(),
-        pretrained_version='bert-base-cased'
+        pretrained_version='bert-base-cased',
+        dropout_prob=config.hidden_dropout_prob
     )
     model.load_state_dict(torch.load(f'{PATH["checkpoint"]}/{checkpoint}'))
     model = model.to(device)
