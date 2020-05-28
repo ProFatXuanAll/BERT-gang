@@ -14,7 +14,7 @@ import torch.utils
 import torch.utils.data
 import torch.utils.tensorboard
 from tqdm import tqdm
-from transformers import BertConfig, BertModel, BertTokenizer
+from transformers import BertConfig, BertModel, BertTokenizer, get_linear_schedule_with_warmup
 
 import dataset
 import bert_fine_tune
@@ -24,6 +24,11 @@ BATCH_SIZE = 32
 ACCUMULATION_STEP = 8
 EPOCH = 3
 LEARNING_RATE = 3e-5
+BETA1 = 0.9
+BETA2 = 0.999
+EPS = 1e-8
+WEIGHT_DECAY = 0.01
+WARMUP_STEP = 10000
 LOG_STEP = 1000
 SEED = 777
 
@@ -80,8 +85,18 @@ train_dataloader = torch.utils.data.DataLoader(
 
 writer = torch.utils.tensorboard.SummaryWriter(PATH['log'])
 
-optimizer = torch.optim.AdamW(model.parameters(),
-                              lr=LEARNING_RATE)
+optimizer = torch.optim.AdamW(
+    model.parameters(),
+    lr=LEARNING_RATE,
+    betas=(BETA1, BETA2),
+    eps=EPS,
+    weight_decay=WEIGHT_DECAY
+)
+scheduler = get_linear_schedule_with_warmup(
+    optimizer,
+    num_warmup_steps=WARMUP_STEP,
+    num_training_steps=int(np.ceil(len(train_dataset) / BATCH_SIZE)) * EPOCH
+)
 objective = nn.CrossEntropyLoss()
 
 print(f'======MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO}======')
@@ -119,6 +134,7 @@ for epoch in range(EPOCH):
             accumulation_loss.backward()
 
             optimizer.step()
+            scheduler.step()
 
             writer.add_scalar('loss',
                               accumulation_loss.item(),

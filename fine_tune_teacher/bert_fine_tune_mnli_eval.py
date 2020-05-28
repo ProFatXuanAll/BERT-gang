@@ -61,6 +61,12 @@ all_checkpoint = sorted(
 )
 
 print(f'======MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO} EVALUATION======')
+train_max_acc = 0
+train_max_acc_checkpoint = None
+dev_matched_max_acc = 0
+dev_matched_max_acc_checkpoint = None
+dev_mismatched_max_acc = 0
+dev_mismatched_max_acc_checkpoint = None
 for checkpoint in all_checkpoint:
     model = bert_fine_tune.BertFineTuneModel(
         in_features=config.hidden_size,
@@ -108,4 +114,27 @@ for checkpoint in all_checkpoint:
             int(re.match(checkpoint_pattern, checkpoint).group(1))
         )
 
+        if file_name == 'train':
+            train_acc = accuracy_score(all_label, all_pred_label)
+            if train_max_acc <= train_acc:
+                train_max_acc = train_acc
+                train_max_acc_checkpoint = checkpoint
+
+        if file_name == 'dev_matched':
+            dev_matched_acc = accuracy_score(all_label, all_pred_label)
+            if dev_matched_max_acc <= dev_matched_acc:
+                dev_matched_max_acc = dev_matched_acc
+                dev_matched_max_acc_checkpoint = checkpoint
+
+        if file_name == 'dev_mismatched':
+            dev_mismatched_acc = accuracy_score(all_label, all_pred_label)
+            if dev_mismatched_max_acc <= dev_mismatched_acc:
+                dev_mismatched_max_acc = dev_mismatched_acc
+                dev_mismatched_max_acc_checkpoint = checkpoint
+
 writer.close()
+print(f'======FINISH MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO} EVALUATION======')
+print(f'dev matched best checkpoint: {dev_matched_max_acc_checkpoint}')
+print(f'dev matched best accuracy: {dev_matched_max_acc}')
+print(f'dev mismatched best checkpoint: {dev_mismatched_max_acc_checkpoint}')
+print(f'dev mismatched best accuracy: {dev_mismatched_max_acc}')
