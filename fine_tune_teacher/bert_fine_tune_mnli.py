@@ -19,7 +19,7 @@ from transformers import BertConfig, BertModel, BertTokenizer
 import dataset
 import bert_fine_tune
 
-EXPERIMENT_NO = 3
+EXPERIMENT_NO = 0
 BATCH_SIZE = 32
 ACCUMULATION_STEP = 8
 EPOCH = 3

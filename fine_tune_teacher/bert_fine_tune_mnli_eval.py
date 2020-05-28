@@ -20,7 +20,7 @@ from transformers import BertConfig, BertModel, BertTokenizer
 import dataset
 import bert_fine_tune
 
-EXPERIMENT_NO = 3
+EXPERIMENT_NO = 0
 BATCH_SIZE = 32
 SEED = 777
 
@@ -70,6 +70,7 @@ for checkpoint in all_checkpoint:
     )
     model.load_state_dict(torch.load(f'{PATH["checkpoint"]}/{checkpoint}'))
     model = model.to(device)
+    model.eval()
 
     for file_name in ['train', 'dev_matched', 'dev_mismatched']:
         eval_dataloader = torch.utils.data.DataLoader(
