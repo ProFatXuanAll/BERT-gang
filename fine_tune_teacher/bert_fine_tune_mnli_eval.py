@@ -20,7 +20,7 @@ from transformers import BertConfig, BertModel, BertTokenizer
 import dataset
 import bert_fine_tune
 
-EXPERIMENT_NO = 0
+EXPERIMENT_NO = 3
 BATCH_SIZE = 32
 SEED = 777
 
@@ -32,7 +32,7 @@ PATH['fine_tune_data'] = os.path.abspath(
     f'{PATH["data"]}/fine_tune_data'
 )
 PATH['experiment'] = os.path.abspath(
-    f'{PATH["data"]}/fine_tune_experiment/mnli/experiment_{EXPERIMENT_NO}'
+    f'{PATH["data"]}/fine_tune_experiment/mnli/bert_experiment_{EXPERIMENT_NO}'
 )
 PATH['log'] = os.path.abspath(f'{PATH["experiment"]}/log')
 PATH['checkpoint'] = os.path.abspath(f'{PATH["experiment"]}/checkpoint')

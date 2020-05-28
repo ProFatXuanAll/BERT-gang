@@ -14,7 +14,13 @@ import torch.utils
 import torch.utils.data
 
 DATA_PATH = os.path.abspath(
-    f'{os.path.abspath(__file__)}/../../data/fine_tune_data'
+    f'{os.path.abspath(__file__)}/../../data'
+)
+FINE_TUNE_DATA_PATH = os.path.abspath(
+    f'{DATA_PATH}/fine_tune_data'
+)
+FINE_TUNE_DISTILLATION_DATA_PATH = os.path.abspath(
+    f'{DATA_PATH}/fine_tune_distillation_data'
 )
 
 class MNLI(torch.utils.data.Dataset):
@@ -72,7 +78,7 @@ class MNLI(torch.utils.data.Dataset):
         and put it in the path 'project_root/data/fine_tune_data/mnli/'.
         """
 
-        mnli_file_path = f'{DATA_PATH}/mnli/{file_name}.jsonl'
+        mnli_file_path = f'{FINE_TUNE_DATA_PATH}/mnli/{file_name}.jsonl'
         with open(mnli_file_path) as mnli_jsonl_file:
             jsonlines = mnli_jsonl_file.read()
 
@@ -136,3 +142,64 @@ class MNLI(torch.utils.data.Dataset):
                     label)
 
         return collate_fn
+
+    def add_soft_target(self, index, soft_target):
+        """This function should only be used on 'train.jsonl'.
+
+        Usage:
+            index = 0
+            dataset = MNLI('train')
+            pred = model(dataset[index])
+            dataset.add_soft_target(index=index,
+                                    soft_target=pred)
+        """
+        self.data[index]['soft_target'] = soft_target
+
+    def save_distillation_data(self, teacher_name, experiment_no):
+        output_path = f'{FINE_TUNE_DISTILLATION_DATA_PATH}/mnli'
+        output_file_path = f'{output_path}/{teacher_name}_experiment_{experiment_no}.jsonl'
+
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+
+        with open(output_file_path, 'w') as mnli_jsonl_file:
+            for index in range(len(self.data)):
+                mnli_jsonl_file.write(f'{json.dumps(self.data[index])}\n')
+
+class MNLIDistillation(torch.utils.data.Dataset):
+
+    @staticmethod
+    def read_data(teacher_name, experiment_no):
+        """Read MNLI Distillation data into structure.
+
+        MNLI Distillation data must be calculate previously,
+        and put it in the path
+        'project_root/data/fine_tune_distillation_data/mnli/'.
+        """
+        mnli_path = f'{FINE_TUNE_DISTILLATION_DATA_PATH}/mnli'
+        mnli_file_path = f'{mnli_path}/{teacher_name}_experiment_{experiment_no}.jsonl'
+
+        with open(mnli_file_path, 'r') as mnli_jsonl_file:
+            jsonlines = mnli_jsonl_file.read()
+
+        data = []
+        for jsonline in jsonlines.split('\n'):
+            # Skip empty line.
+            if jsonline == '':
+                continue
+
+            data.append(json.loads(jsonline))
+
+        return data
+
+    def __init__(self, teacher_name, experiment_no):
+        self.data = MNLIDistillation.read_data(
+            teacher_name,
+            experiment_no
+        )
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        return self.data[index]
