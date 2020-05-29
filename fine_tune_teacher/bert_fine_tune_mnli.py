@@ -85,12 +85,22 @@ train_dataloader = torch.utils.data.DataLoader(
 
 writer = torch.utils.tensorboard.SummaryWriter(PATH['log'])
 
+no_decay = ['bias', 'LayerNorm.weight']
+optimizer_grouped_parameters = [
+    {
+        'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)],
+        'weight_decay': WEIGHT_DECAY,
+    },
+    {
+        'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)],
+        'weight_decay': 0.0,
+    },
+]
 optimizer = torch.optim.AdamW(
-    model.parameters(),
+    optimizer_grouped_parameters,
     lr=LEARNING_RATE,
     betas=(BETA1, BETA2),
-    eps=EPS,
-    weight_decay=WEIGHT_DECAY
+    eps=EPS
 )
 scheduler = get_linear_schedule_with_warmup(
     optimizer,

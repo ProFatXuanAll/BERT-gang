@@ -134,6 +134,8 @@ for checkpoint in all_checkpoint:
 
 writer.close()
 print(f'======FINISH MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO} EVALUATION======')
+print(f'train best checkpoint: {train_max_acc_checkpoint}')
+print(f'train best accuracy: {train_max_acc}')
 print(f'dev matched best checkpoint: {dev_matched_max_acc_checkpoint}')
 print(f'dev matched best accuracy: {dev_matched_max_acc}')
 print(f'dev mismatched best checkpoint: {dev_mismatched_max_acc_checkpoint}')
