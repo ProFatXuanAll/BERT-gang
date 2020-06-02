@@ -2,9 +2,16 @@
 
 ## BERT
 
-|ex_no|train acc|dev max matched acc|dev max matched acc checkpoint|dev max mismatched acc|dev max mismatched acc checkpoint|model_version|epoch|lr|batch|beta1|beta2|eps|l2 weight decay|remove weight decay on bias and LayerNorm|linear schedular|warm up step|dropout|seed|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|0|0.856631755828857|0.7968415690269995|25000|0.8091944670463792|29000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|False|False|0|0.1|777|
-|1|0.903957724571228|0.8266938359653592|35000|0.8332994304312449|33000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|False|True|10000|0.1|777|
-|2|0|0|0|0|0|bert-base-cased|3|4e-5|32|0.9|0.999|1e-8|0.01|False|True|10000|0.1|777|
-|3|0|0|0|0|0|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|0.1|777|
+|ex_no|train acc|dev max matched acc|dev max matched acc checkpoint|dev max mismatched acc|dev max mismatched acc checkpoint|model_version|epoch|lr|batch|beta1|beta2|eps|l2 weight decay|remove weight decay on bias and LayerNorm|linear schedular|warm up step|dropout|max_grad_norm|seed|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|0|0.856631755828857|0.7968415690269995|25000|0.8091944670463792|29000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|False|False|0|0.1|inf|777|
+|1|0.903957724571228|0.8266938359653592|35000|0.8332994304312449|33000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|False|True|10000|0.1|inf|777|
+|2|0|0.8183392766174223|35000|0.8263832384052074|36816|bert-base-cased|3|4e-5|32|0.9|0.999|1e-8|0.01|False|True|10000|0.1|inf|777|
+|3|0.9051851021894465|0.8273051451859399|36000|0.8354353132628153|35000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|0.1|inf|777|
+|4|0.8992849539854648|0.8242485990830362|36000|0.8272986167615948|36000|bert-base-cased|3|4e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|0.1|inf|777|
+|5|0.9053251574985612|0.825776872134488|33000|0.8375711960943857|35000|bert-base-cased|3|2e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|0.1|inf|777|
+|6|0.9045077437853639|0.8285277636271013|33000|0.8360455655004069|35000|bert-base-uncased|3|3e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|0.1|inf|777|
+|7|0.9029009274207923|0.8302598064187469|36000|0.83533360455655|36000|bert-base-uncased|3|2e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|0.1|inf|777|
+|8||||||bert-base-uncased|3|4e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|0.1|inf|777|
+|9|0.8965958920504606|0.817524197656648|36816|0.8235353946297803|34000|bert-base-uncased|3|5e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|0.1|inf|777|
+|10||||||bert-base-uncased|3|3e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|0.1|1.0|777|

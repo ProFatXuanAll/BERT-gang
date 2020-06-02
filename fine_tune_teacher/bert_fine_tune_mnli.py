@@ -24,6 +24,7 @@ BATCH_SIZE = 32
 ACCUMULATION_STEP = 8
 EPOCH = 3
 LEARNING_RATE = 3e-5
+MAX_GRAD_NORM = 1.0
 BETA1 = 0.9
 BETA2 = 0.999
 EPS = 1e-8
@@ -142,6 +143,11 @@ for epoch in range(EPOCH):
 
         if step_counter % ACCUMULATION_STEP == 0:
             accumulation_loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(),
+                MAX_GRAD_NORM
+            )
 
             optimizer.step()
             scheduler.step()
