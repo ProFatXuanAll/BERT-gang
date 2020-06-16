@@ -23,6 +23,7 @@ FINE_TUNE_DISTILLATION_DATA_PATH = os.path.abspath(
     f'{DATA_PATH}/fine_tune_distillation_data'
 )
 
+
 class MNLI(torch.utils.data.Dataset):
     """Load MultiNLI dataset.
 
@@ -165,6 +166,7 @@ class MNLI(torch.utils.data.Dataset):
         with open(output_file_path, 'w') as mnli_jsonl_file:
             for index in range(len(self.data)):
                 mnli_jsonl_file.write(f'{json.dumps(self.data[index])}\n')
+
 
 class MNLIDistillation(torch.utils.data.Dataset):
 

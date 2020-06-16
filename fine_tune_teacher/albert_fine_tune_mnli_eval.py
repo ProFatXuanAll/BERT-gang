@@ -13,10 +13,10 @@ import torch.utils.data
 import torch.utils.tensorboard
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
-from transformers import BertConfig, BertTokenizer
+from transformers import AlbertConfig, AlbertTokenizer
 
 import dataset
-import bert_fine_tune
+import albert_fine_tune
 
 EXPERIMENT_NO = 0
 BATCH_SIZE = 32
@@ -30,7 +30,7 @@ PATH['fine_tune_data'] = os.path.abspath(
     f'{PATH["data"]}/fine_tune_data'
 )
 PATH['experiment'] = os.path.abspath(
-    f'{PATH["data"]}/fine_tune_experiment/mnli/bert_experiment_{EXPERIMENT_NO}'
+    f'{PATH["data"]}/fine_tune_experiment/mnli/albert_experiment_{EXPERIMENT_NO}'
 )
 PATH['log'] = os.path.abspath(f'{PATH["experiment"]}/log')
 PATH['checkpoint'] = os.path.abspath(f'{PATH["experiment"]}/checkpoint')
@@ -47,8 +47,8 @@ if torch.cuda.is_available():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-config = BertConfig.from_pretrained('bert-base-cased')
-tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+config = AlbertConfig.from_pretrained('albert-base-v2')
+tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
 
 writer = torch.utils.tensorboard.SummaryWriter(PATH['log'])
 
@@ -59,7 +59,7 @@ all_checkpoint = sorted(
         re.match(checkpoint_pattern, checkpoint).group(1))
 )
 
-print(f'======MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO} EVALUATION======')
+print(f'======MNLI ALBERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO} EVALUATION======')
 train_max_acc = 0
 train_max_acc_checkpoint = None
 dev_matched_max_acc = 0
@@ -67,10 +67,10 @@ dev_matched_max_acc_checkpoint = None
 dev_mismatched_max_acc = 0
 dev_mismatched_max_acc_checkpoint = None
 for checkpoint in all_checkpoint:
-    model = bert_fine_tune.BertFineTuneModel(
+    model = albert_fine_tune.AlbertFineTuneModel(
         in_features=config.hidden_size,
         out_features=dataset.MNLI.num_label(),
-        pretrained_version='bert-base-cased',
+        pretrained_version='albert-base-v2',
         dropout_prob=config.hidden_dropout_prob
     )
     model.load_state_dict(torch.load(f'{PATH["checkpoint"]}/{checkpoint}'))
@@ -133,7 +133,7 @@ for checkpoint in all_checkpoint:
 
 writer.close()
 print(
-    f'======FINISH MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO} EVALUATION======')
+    f'======FINISH MNLI ALBERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO} EVALUATION======')
 print(f'train best checkpoint: {train_max_acc_checkpoint}')
 print(f'train best accuracy: {train_max_acc}')
 print(f'dev matched best checkpoint: {dev_matched_max_acc_checkpoint}')

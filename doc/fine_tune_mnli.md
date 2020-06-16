@@ -1,5 +1,28 @@
 # Fine-tune MNLI
 
+## Get Data
+
+```sh
+# download
+wget https://cims.nyu.edu/~sbowman/multinli/multinli_1.0.zip
+
+# move to data folder
+mv multinli_1.0.zip ./data/fine_tune_data/mnli.zip
+
+# extract
+unzip ./data/fine_tune_data/mnli.zip -d ./data/fine_tune_data/mnli
+
+# format file names
+mv ./data/fine_tune_data/mnli/multinli_1.0/multinli_1.0_dev_matched.jsonl ./data/fine_tune_data/mnli/dev_matched.jsonl
+mv ./data/fine_tune_data/mnli/multinli_1.0/multinli_1.0_dev_mismatched.jsonl ./data/fine_tune_data/mnli/dev_mismatched.jsonl
+mv ./data/fine_tune_data/mnli/multinli_1.0/multinli_1.0_train.jsonl ./data/fine_tune_data/mnli/train.jsonl
+
+# remove redundant files
+rm -rf ./data/fine_tune_data/mnli/__MACOSX
+rm -rf ./data/fine_tune_data/mnli/multinli_1.0
+rm ./data/fine_tune_data/mnli.zip
+```
+
 ## BERT
 
 |ex_no|train acc|dev max matched acc|dev max matched acc checkpoint|dev max mismatched acc|dev max mismatched acc checkpoint|model_version|epoch|lr|batch|beta1|beta2|eps|l2 weight decay|remove weight decay on bias and LayerNorm|linear schedular|warm up step|training step|dropout|max_grad_norm|max_seq_length|seed|

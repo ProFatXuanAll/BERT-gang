@@ -59,7 +59,8 @@ model.load_state_dict(torch.load(PATH['best_checkpoint']))
 model = model.to(device)
 model.eval()
 
-print(f'======MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO} CONSTRUCT DISTILLATION DATA======')
+print(
+    f'======MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO} CONSTRUCT DISTILLATION DATA======')
 
 train_dataset = dataset.MNLI('train')
 collate_fn = dataset.MNLI.create_collate_fn(tokenizer)

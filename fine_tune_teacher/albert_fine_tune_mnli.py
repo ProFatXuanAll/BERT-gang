@@ -14,23 +14,24 @@ import torch.utils
 import torch.utils.data
 import torch.utils.tensorboard
 from tqdm import tqdm
-from transformers import BertConfig, BertTokenizer, get_linear_schedule_with_warmup
+from transformers import AlbertConfig, AlbertTokenizer, get_linear_schedule_with_warmup
 
 import dataset
-import bert_fine_tune
+import albert_fine_tune
 
 EXPERIMENT_NO = 0
-BATCH_SIZE = 32
-ACCUMULATION_STEP = 8
+BATCH_SIZE = 128
+ACCUMULATION_STEP = 128
 EPOCH = 3
+DROPOUT = 0.1
 LEARNING_RATE = 3e-5
 MAX_GRAD_NORM = 1.0
 BETA1 = 0.9
 BETA2 = 0.999
 EPS = 1e-8
 WEIGHT_DECAY = 0.01
-WARMUP_STEP = 10000
-LOG_STEP = 1000
+WARMUP_STEP = 1000
+LOG_STEP = 100
 SEED = 777
 
 PATH = {}
@@ -41,7 +42,7 @@ PATH['fine_tune_data'] = os.path.abspath(
     f'{PATH["data"]}/fine_tune_data'
 )
 PATH['experiment'] = os.path.abspath(
-    f'{PATH["data"]}/fine_tune_experiment/mnli/bert_experiment_{EXPERIMENT_NO}'
+    f'{PATH["data"]}/fine_tune_experiment/mnli/albert_experiment_{EXPERIMENT_NO}'
 )
 PATH['log'] = os.path.abspath(f'{PATH["experiment"]}/log')
 PATH['checkpoint'] = os.path.abspath(f'{PATH["experiment"]}/checkpoint')
@@ -65,13 +66,13 @@ if torch.cuda.is_available():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-config = BertConfig.from_pretrained('bert-base-cased')
-tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-model = bert_fine_tune.BertFineTuneModel(
+config = AlbertConfig.from_pretrained('albert-base-v2')
+tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2')
+model = albert_fine_tune.AlbertFineTuneModel(
     in_features=config.hidden_size,
     out_features=dataset.MNLI.num_label(),
-    pretrained_version='bert-base-cased',
-    dropout_prob=config.hidden_dropout_prob
+    pretrained_version='albert-base-v2',
+    dropout_prob=DROPOUT
 )
 model = model.to(device)
 
@@ -110,7 +111,7 @@ scheduler = get_linear_schedule_with_warmup(
 )
 objective = nn.CrossEntropyLoss()
 
-print(f'======MNLI BERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO}======')
+print(f'======MNLI ALBERT FINE-TUNE EXPERIMENT {EXPERIMENT_NO}======')
 step_counter = 0
 for epoch in range(EPOCH):
     print(f'======EPOCH {epoch}======')
