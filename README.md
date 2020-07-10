@@ -4,6 +4,8 @@ Using Knowledge Distillation to learn from BERT-like models.
 
 ## Setup
 
+You need `python3.8+` to run all the code.
+
 ```sh
 # clone the project
 git clone https://github.com/ProFatXuanAll/BERT-gang

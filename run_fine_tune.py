@@ -16,11 +16,7 @@ import logging
 
 import fine_tune
 
-# Filter out message not begin with name 'fine_tune'.
-root_logger = logging.getLogger()
-for handler in root_logger.handlers:
-    handler.addFilter(logging.Filter('fine_tune'))
-
+# Get main logger.
 logger = logging.getLogger('fine_tune.train')
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
@@ -28,6 +24,9 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+# Filter out message not begin with name 'fine_tune'.
+for handler in logging.getLogger().handlers:
+    handler.addFilter(logging.Filter('fine_tune'))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -1,9 +1,9 @@
-"""Run fine-tune evaluation.
+"""Run fine-tune model soft-target generation.
 
 Usage:
-    python run_fine_tune_eval.py ...
+    python run_fine_tune_gen_soft_target.py ...
 
-Run `python run_fine_tune_eval.py -h` for help,
+Run `python run_fine_tune_gen_soft_target.py -h` for help,
 or see doc/fine_tune_*.md for more information.
 """
 
@@ -17,7 +17,7 @@ import logging
 import fine_tune
 
 # Get main logger.
-logger = logging.getLogger('fine_tune.eval')
+logger = logging.getLogger('fine_tune.gen_soft_target')
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
     datefmt="%Y/%m/%d %H:%M:%S",
@@ -60,12 +60,19 @@ if __name__ == "__main__":
         required=True,
         type=str,
     )
+    parser.add_argument(
+        '--ckpt',
+        default=0,
+        help='Which checkpoint to generate soft target.',
+        required=True,
+        type=int,
+    )
 
     # Optional parameters.
     parser.add_argument(
         '--batch_size',
         default=0,
-        help='Evaluation batch size.',
+        help='Soft target batch size.',
         type=int,
     )
 
@@ -92,10 +99,8 @@ if __name__ == "__main__":
         task=args.task,
     )
 
-    max_acc, max_acc_ckpt = fine_tune.util.evaluation(
+    fine_tune.util.gen_soft_target(
+        ckpt=args.ckpt,
         config=config,
         dataset=dataset
     )
-
-    logger.info('max accuracy:            %f', max_acc)
-    logger.info('max accuracy checkpoint: %s', max_acc_ckpt)

@@ -133,8 +133,7 @@ def evaluation(
                 _
         ) in mini_batch_iterator:
 
-            # Mini-batch Cross-Entropy loss.
-            # Use `model(...)` to do forward pass.
+            # Mini-batch prediction.
             pred_label = model(
                 input_ids=input_ids.to(config.device),
                 token_type_ids=token_type_ids.to(config.device),

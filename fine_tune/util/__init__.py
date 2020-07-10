@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 # my own modules
 
 from fine_tune.util.evaluation import evaluation
+from fine_tune.util.gen_soft_target import gen_soft_target
 from fine_tune.util.task import load_dataset
 from fine_tune.util.task import load_dataset_by_config
 from fine_tune.util.optimizer import load_optimizer
