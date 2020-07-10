@@ -1,4 +1,4 @@
-"""Helper function for fine-tuning model.
+r"""Helper function for fine-tuning model.
 
 Usage:
     fine_tune.util.train(...)
@@ -48,7 +48,7 @@ def train(
             transformers.BertTokenizer,
         ]
 ):
-    """Fine-tune model on task specific dataset.
+    r"""Fine-tune model on task specific dataset.
 
     Args:
         config:

@@ -1,4 +1,4 @@
-"""Helper function for evaluating fine-tuned model.
+r"""Helper function for evaluating fine-tuned model.
 
 Usage:
     fine_tune.util.eval(...)
@@ -43,7 +43,7 @@ def evaluation(
             fine_tune.task.MNLI,
         ],
 ) -> Tuple[int, str]:
-    """Evaluate fine-tuned model on task specific dataset.
+    r"""Evaluate fine-tuned model on task specific dataset.
 
     Args:
         config:

@@ -1,4 +1,4 @@
-"""All utililties.
+r"""All utililties.
 
 All utilities files in this module must be renamed in this very file.
 This help to avoid unnecessary import structure (we prefer using

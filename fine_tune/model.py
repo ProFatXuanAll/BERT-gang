@@ -1,4 +1,4 @@
-"""Fine-tune teacher models.
+r"""Fine-tune teacher models.
 
 Usage:
     model = fine_tune.model.TeacherAlbert(...)
@@ -21,7 +21,7 @@ from transformers import AlbertModel, BertModel
 
 
 class TeacherAlbert(nn.Module):
-    """Fine-tune ALBERT model as teacher model.
+    r"""Fine-tune ALBERT model as teacher model.
 
     Args:
         dropout:
@@ -110,7 +110,7 @@ class TeacherAlbert(nn.Module):
 
 
 class TeacherBert(nn.Module):
-    """Fine-tune BERT model as teacher model.
+    r"""Fine-tune BERT model as teacher model.
 
     Args:
         dropout:

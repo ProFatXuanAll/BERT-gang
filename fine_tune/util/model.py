@@ -1,4 +1,4 @@
-"""Helper function for loading model.
+r"""Helper function for loading model.
 
 Usage:
     model = fine_tune.util.load_teacher_model(...)
@@ -35,7 +35,7 @@ def load_teacher_model(
     fine_tune.model.TeacherAlbert,
     fine_tune.model.TeacherBert,
 ]:
-    """Load teacher model.
+    r"""Load teacher model.
 
     Args:
         device:
@@ -87,7 +87,7 @@ def load_teacher_model_by_config(
     fine_tune.model.TeacherAlbert,
     fine_tune.model.TeacherBert,
 ]:
-    """Load teacher model.
+    r"""Load teacher model.
 
     Args:
         config:

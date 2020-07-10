@@ -1,4 +1,4 @@
-"""Configuration for fine-tune experiments.
+r"""Configuration for fine-tune experiments.
 
 Usage:
     teacher_config = TeacherConfig(...params)
@@ -30,7 +30,7 @@ import fine_tune.path
 
 
 class TeacherConfig:
-    """Configuration for fine-tune teacher model.
+    r"""Configuration for fine-tune teacher model.
 
     All teacher model will be optimized with AdamW.
     Optimization will be paired with linear warmup scheduler.
@@ -344,7 +344,7 @@ class TeacherConfig:
 
     @property
     def betas(self) -> Tuple[float, float]:
-        """Optimizer AdamW's parameter `betas`.
+        r"""Optimizer AdamW's parameter `betas`.
 
         Returns:
             A tuple contain two values, `self.beta1, self.beta2`.
@@ -353,7 +353,7 @@ class TeacherConfig:
 
     @property
     def device(self) -> torch.device:
-        """Get running model device.
+        r"""Get running model device.
 
         If `self.num_gpu == 0`, then run model on CPU.
         Else run model on CUDA device.
@@ -366,8 +366,7 @@ class TeacherConfig:
         return torch.device('cuda')
 
     def save(self) -> None:
-        """Save configuration into json file.
-        """
+        r"""Save configuration into json file."""
         file_path = TeacherConfig.file_path(
             experiment=self.experiment,
             task=self.task,
@@ -391,7 +390,7 @@ class TeacherConfig:
             task: str = '',
             teacher: str = ''
     ):
-        """Load configuration from json file.
+        r"""Load configuration from json file.
 
         Args:
         experiment:
@@ -415,7 +414,7 @@ class TeacherConfig:
             task: str = '',
             teacher: str = ''
     ) -> str:
-        """Return formatted experiment name.
+        r"""Return formatted experiment name.
 
         Args:
             experiment:
@@ -436,7 +435,7 @@ class TeacherConfig:
             task: str = '',
             teacher: str = ''
     ) -> str:
-        """Return formatted config file name.
+        r"""Return formatted config file name.
 
         Args:
             experiment:

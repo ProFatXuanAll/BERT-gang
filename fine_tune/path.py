@@ -1,4 +1,4 @@
-"""Path constant shared by all files."""
+r"""Path constant shared by all files."""
 
 # built-in modules
 

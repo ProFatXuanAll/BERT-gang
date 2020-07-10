@@ -1,4 +1,4 @@
-"""Helper function for generating soft-target from fine-tuned model.
+r"""Helper function for generating soft-target from fine-tuned model.
 
 Usage:
     fine_tune.util.gen_soft_target(...)
@@ -38,7 +38,7 @@ def gen_soft_target(
             fine_tune.task.MNLI,
         ],
 ):
-    """Generate fine-tuned model soft-target on task specific dataset.
+    r"""Generate fine-tuned model soft-target on task specific dataset.
 
     Args:
         ckpt:

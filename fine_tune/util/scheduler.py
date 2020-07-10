@@ -1,4 +1,4 @@
-"""Helper function for loading scheduler.
+r"""Helper function for loading scheduler.
 
 Usage:
     scheduler = fine_tune.util.load_scheduler(...)
@@ -37,7 +37,7 @@ def load_scheduler(
         optimizer: torch.optim.AdamW,
         warmup_step: int
 ) -> torch.optim.lr_scheduler.LambdaLR:
-    """Load linear warmup scheduler.
+    r"""Load linear warmup scheduler.
 
     Args:
         dataset:
@@ -67,7 +67,7 @@ def load_scheduler_by_config(
         ],
         optimizer: torch.optim.AdamW,
 ) -> torch.optim.lr_scheduler.LambdaLR:
-    """Load linear warmup scheduler.
+    r"""Load linear warmup scheduler.
 
     Args:
         config:

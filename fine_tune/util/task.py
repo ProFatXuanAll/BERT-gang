@@ -1,4 +1,4 @@
-"""Helper function for loading dataset.
+r"""Helper function for loading dataset.
 
 Usage:
     dataset = fine_tune.util.load_dataset(...)
@@ -26,7 +26,7 @@ def load_dataset(
 ) -> Union[
     fine_tune.task.MNLI,
 ]:
-    """Load task specific dataset.
+    r"""Load task specific dataset.
 
     Args:
         dataset:
@@ -47,7 +47,7 @@ def load_dataset_by_config(
 ) -> Union[
     fine_tune.task.MNLI,
 ]:
-    """Load task specific dataset.
+    r"""Load task specific dataset.
 
     Args:
         config:

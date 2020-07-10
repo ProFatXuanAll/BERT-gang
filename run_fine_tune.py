@@ -1,4 +1,4 @@
-"""Run fine-tune training.
+r"""Run fine-tune training.
 
 Usage:
     python run_fine_tune.py ...

@@ -1,4 +1,4 @@
-"""Fine-tune experiment tools.
+r"""Fine-tune experiment tools.
 
 Usage:
     config = fine_tune.config.TeacherConfig(...)
@@ -16,5 +16,6 @@ from __future__ import unicode_literals
 
 import fine_tune.config
 import fine_tune.model
+import fine_tune.objective
 import fine_tune.task
 import fine_tune.util

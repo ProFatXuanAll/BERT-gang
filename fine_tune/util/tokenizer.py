@@ -1,4 +1,4 @@
-"""Helper function for loading tokenizer.
+r"""Helper function for loading tokenizer.
 
 Usage:
     tokenizer = fine_tune.util.load_tokenizer(...)
@@ -32,7 +32,7 @@ def load_tokenizer(
     transformers.AlbertTokenizer,
     transformers.BertTokenizer,
 ]:
-    """Load tokenizer.
+    r"""Load tokenizer.
 
     Args:
         pretrained_version:
@@ -63,7 +63,7 @@ def load_tokenizer_by_config(
     transformers.AlbertTokenizer,
     transformers.BertTokenizer,
 ]:
-    """Load tokenizer.
+    r"""Load tokenizer.
 
     Args:
         config:

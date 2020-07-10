@@ -1,4 +1,4 @@
-"""Helper function for loading optimizer.
+r"""Helper function for loading optimizer.
 
 Usage:
     optimizer = fine_tune.util.load_optimizer(...)
@@ -37,7 +37,7 @@ def load_optimizer(
         ],
         weight_decay: float
 ) -> torch.optim.AdamW:
-    """Load AdamW optimizer.
+    r"""Load AdamW optimizer.
 
     Args:
         betas:
@@ -87,7 +87,7 @@ def load_optimizer_by_config(
             fine_tune.model.TeacherBert,
         ]
 ) -> torch.optim.AdamW:
-    """Load AdamW optimizer.
+    r"""Load AdamW optimizer.
 
     Args:
         config:

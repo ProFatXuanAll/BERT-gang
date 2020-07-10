@@ -1,4 +1,4 @@
-"""Helper function for setting random seed.
+r"""Helper function for setting random seed.
 
 Usage:
     fine_tune.util.set_seed(...)
@@ -27,7 +27,7 @@ import fine_tune.task
 
 
 def set_seed(num_gpu: int, seed: int):
-    """Set random seed for experiment reproducibility.
+    r"""Set random seed for experiment reproducibility.
 
     Args:
         num_gpu:
@@ -48,7 +48,7 @@ def set_seed(num_gpu: int, seed: int):
 def set_seed_by_config(
         config: fine_tune.config.TeacherConfig
 ):
-    """Set random seed for experiment reproducibility.
+    r"""Set random seed for experiment reproducibility.
 
     Args:
         config:

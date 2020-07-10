@@ -1,4 +1,4 @@
-"""Run fine-tune model soft-target generation.
+r"""Run fine-tune model soft-target generation.
 
 Usage:
     python run_fine_tune_gen_soft_target.py ...

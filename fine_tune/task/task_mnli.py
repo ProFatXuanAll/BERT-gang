@@ -1,4 +1,4 @@
-"""All fine-tune dataset must go to this file.
+r"""All fine-tune dataset must go to this file.
 
 Usage:
     dataset = MNLI('train')
@@ -43,7 +43,7 @@ logger = logging.getLogger('fine_tune.task')
 
 
 class MNLISample(TypedDict):
-    """MNLI Sample structure.
+    r"""MNLI Sample structure.
 
     We structured sample as `transformers` model input.
     `soft_target` is only used when perform distillation,
@@ -76,7 +76,7 @@ CollateFn = Callable[
 
 
 class MNLI(torch.utils.data.Dataset):
-    """Load MultiNLI dataset.
+    r"""Load MultiNLI dataset.
 
     Usage:
         train_data = MNLI('train')
@@ -129,7 +129,7 @@ class MNLI(torch.utils.data.Dataset):
             logger.info('Load MNLI distillation %s finished', dataset)
 
     def __len__(self) -> int:
-        """Return dataset size.
+        r"""Return dataset size.
 
         Primary used by `torch.util.data.Dataloader`.
 
@@ -139,7 +139,7 @@ class MNLI(torch.utils.data.Dataset):
         return len(self.dataset)
 
     def __getitem__(self, index: int) -> MNLISample:
-        """Return sample by index.
+        r"""Return sample by index.
 
         Args:
             index:
@@ -152,7 +152,7 @@ class MNLI(torch.utils.data.Dataset):
 
     @staticmethod
     def label_encoder(label: str) -> int:
-        """Encode label into number.
+        r"""Encode label into number.
 
         Args:
             label:
@@ -170,7 +170,7 @@ class MNLI(torch.utils.data.Dataset):
 
     @staticmethod
     def label_decoder(label_id: int) -> str:
-        """Decode number into label.
+        r"""Decode number into label.
 
         Args:
             label_id:
@@ -193,7 +193,7 @@ class MNLI(torch.utils.data.Dataset):
 
     @staticmethod
     def num_class() -> int:
-        """Return number of classes.
+        r"""Return number of classes.
 
         Number of classes is corresponded to number of different labels.
         See `MNLI.allow_labels` for label details.
@@ -205,7 +205,7 @@ class MNLI(torch.utils.data.Dataset):
 
     @staticmethod
     def load(dataset: str) -> List[MNLISample]:
-        """Load MNLI dataset into memory.
+        r"""Load MNLI dataset into memory.
 
         MNLI dataset must be downloaded previously,
         and put it in the path 'project_root/data/fine_tune/mnli/'.
@@ -273,7 +273,7 @@ class MNLI(torch.utils.data.Dataset):
 
     @staticmethod
     def load_distill(formatted_experiment_name: str) -> List[MNLISample]:
-        """Load MNLI distillation dataset into memory.
+        r"""Load MNLI distillation dataset into memory.
 
         MNLI distillation dataset must be saved previously,
         and put it in the path
@@ -323,7 +323,7 @@ class MNLI(torch.utils.data.Dataset):
             max_seq_len: int,
             tokenizer: transformers.PreTrainedTokenizer
     ) -> CollateFn:
-        """Create `collate_fn` for `torch.utils.data.Dataloader`.
+        r"""Create `collate_fn` for `torch.utils.data.Dataloader`.
 
         Usage:
             dataset = MNLI('train')
@@ -383,7 +383,7 @@ class MNLI(torch.utils.data.Dataset):
             index: int,
             soft_target: List[float],
     ):
-        """Update soft target by index.
+        r"""Update soft target by index.
 
         This function should only be used on 'train.jsonl'.
 
@@ -407,7 +407,7 @@ class MNLI(torch.utils.data.Dataset):
             self,
             formatted_experiment_name: str
     ):
-        """Save soft target for distillation.
+        r"""Save soft target for distillation.
 
         Args:
             formatted_experiment_name:
