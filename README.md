@@ -13,6 +13,14 @@ cd BERT-gang
 
 # create data folder
 mkdir data data/fine_tune_data
+
+# create virtual environment
+python3.8 -m venv venv
+source venv/bin/activate
+pip install -U pip setuptools wheel
+
+# install dependencies
+pip install -r requirements.txt
 ```
 
 ## Pre-train data

@@ -7,44 +7,149 @@
 wget https://cims.nyu.edu/~sbowman/multinli/multinli_1.0.zip
 
 # move to data folder
-mv multinli_1.0.zip ./data/fine_tune_data/mnli.zip
+mv multinli_1.0.zip ./data/fine_tune/mnli.zip
 
 # extract
-unzip ./data/fine_tune_data/mnli.zip -d ./data/fine_tune_data/mnli
+unzip ./data/fine_tune/mnli.zip -d ./data/fine_tune/mnli
 
 # format file names
-mv ./data/fine_tune_data/mnli/multinli_1.0/multinli_1.0_dev_matched.jsonl ./data/fine_tune_data/mnli/dev_matched.jsonl
-mv ./data/fine_tune_data/mnli/multinli_1.0/multinli_1.0_dev_mismatched.jsonl ./data/fine_tune_data/mnli/dev_mismatched.jsonl
-mv ./data/fine_tune_data/mnli/multinli_1.0/multinli_1.0_train.jsonl ./data/fine_tune_data/mnli/train.jsonl
+mv ./data/fine_tune/mnli/multinli_1.0/multinli_1.0_dev_matched.jsonl ./data/fine_tune/mnli/dev_matched.jsonl
+mv ./data/fine_tune/mnli/multinli_1.0/multinli_1.0_dev_mismatched.jsonl ./data/fine_tune/mnli/dev_mismatched.jsonl
+mv ./data/fine_tune/mnli/multinli_1.0/multinli_1.0_train.jsonl ./data/fine_tune/mnli/train.jsonl
 
 # remove redundant files
-rm -rf ./data/fine_tune_data/mnli/__MACOSX
-rm -rf ./data/fine_tune_data/mnli/multinli_1.0
-rm ./data/fine_tune_data/mnli.zip
+rm -rf ./data/fine_tune/mnli/__MACOSX
+rm -rf ./data/fine_tune/mnli/multinli_1.0
+rm ./data/fine_tune/mnli.zip
 ```
 
 ## BERT
 
-|ex_no|train acc|dev max matched acc|dev max matched acc checkpoint|dev max mismatched acc|dev max mismatched acc checkpoint|model_version|epoch|lr|batch|beta1|beta2|eps|l2 weight decay|remove weight decay on bias and LayerNorm|linear schedular|warm up step|training step|dropout|max_grad_norm|max_seq_length|seed|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|0|0.856631755828857|0.7968415690269995|25000|0.8091944670463792|29000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|False|False|0|epochs times batch size|0.1|inf|batch max|777|
-|1|0.903957724571228|0.8266938359653592|35000|0.8332994304312449|33000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|False|True|10000|epochs times batch size|0.1|inf|batch max|777|
-|2|0|0.8183392766174223|35000|0.8263832384052074|36816|bert-base-cased|3|4e-5|32|0.9|0.999|1e-8|0.01|False|True|10000|epochs times batch size|0.1|inf|batch max|777|
-|3|0.9051851021894465|0.8273051451859399|36000|0.8354353132628153|35000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|inf|batch max|777|
-|4|0.8992849539854648|0.8242485990830362|36000|0.8272986167615948|36000|bert-base-cased|3|4e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|inf|batch max|777|
-|5|0.9053251574985612|0.825776872134488|33000|0.8375711960943857|35000|bert-base-cased|3|2e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|inf|batch max|777|
-|6|0.9045077437853639|0.8285277636271013|33000|0.8360455655004069|35000|bert-base-uncased|3|3e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|inf|batch max|777|
-|7|0.9029009274207923|0.8302598064187469|36000|0.83533360455655|36000|bert-base-uncased|3|2e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|inf|batch max|777|
-|8|0.8992849539854648|0.8242485990830362|36000|0.8272986167615948|36000|bert-base-uncased|3|4e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|inf|batch max|777|
-|9|0.8965958920504606|0.817524197656648|36816|0.8235353946297803|34000|bert-base-uncased|3|5e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|inf|batch max|777|
-|10|0.8931989141893854|0.8252674477840041|36816|0.8290276647681042|36816|bert-base-uncased|3|3e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|1.0|batch max|777|
-|11|0.9033210933481367|0.8263881813550688|45000|0.8299430431244914|46000|bert-base-uncased|4|3e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|1.0|batch max|777|
-|12|0.9128728654297661|0.8297503820682629|58000|0.8317737998372661|56000|bert-base-uncased|5|3e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|1.0|batch max|777|
-|13|0.90187215751384|0.8191543555781966|48000|0.8281122864117169|49088|bert-base-uncased|4|4e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|1.0|batch max|777|
-|14|0.908976781376209|0.8271013754457464|45000|0.834926769731489|49088|bert-base-uncased|4|2e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|1.0|batch max|777|
-|15|0.9078767105846163|0.8232297503820682|46000|0.8271969080553295|47000|bert-base-uncased|4|2e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|1.0|batch max|42|
-|16|0.899246757082979|0.8222109016811003|48000|0.8278071602929211|43000|bert-base-uncased|4|2e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|80000|0.1|1.0|batch max|777|
-|17|0.8934586531262891|0.8229240957717779|49000|0.8270951993490643|49000|bert-base-uncased|4|2e-5|32|0.9|0.999|1e-8|0.01|True|True|20000|80000|0.1|1.0|batch max|777|
-|18|0.909824752611395|0.8275089149261334|46000|0.8317737998372661|49088|bert-base-uncased|4|2e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|epochs times batch size|0.1|1.0|128|777|
-|19|0.8995548787630315|0.8205807437595517|46000|0.8277054515866559|49088|bert-base-uncased|4|2e-5|32|0.9|0.999|1e-8|0.01|True|True|10000|80000|0.1|1.0|128|777|
-|20|0.8931428920657394|0.8198675496688742|48000|0.8264849471114727|49088|bert-base-uncased|4|2e-5|32|0.9|0.999|1e-8|0.01|True|True|20000|80000|0.1|1.0|128|777|
+### BERT Fine-Tune Script
+
+```sh
+python run_fine_tune.py \
+--experiment 1                         \
+--teacher bert                         \
+--pretrained_version bert-base-uncased \
+--task mnli                            \
+--dataset train                        \
+--num_class 3                          \
+--accumulation_step 1                  \
+--batch_size 32                        \
+--beta1 0.9                            \
+--beta2 0.999                          \
+--checkpoint_step 1000                 \
+--dropout 0.1                          \
+--epoch 3                              \
+--eps 1e-8                             \
+--learning_rate 3e-5                   \
+--max_norm 1.0                         \
+--max_seq_len 128                      \
+--num_gpu 1                            \
+--seed 42                              \
+--warmup_step  10000                   \
+--weight_decay 0.01
+```
+
+### BERT Fine-Tune Evaluation Scripts
+
+```sh
+# train
+python run_fine_tune_eval.py \
+--experiment 1               \
+--teacher bert               \
+--task mnli                  \
+--dataset train              \
+--batch_size 64
+
+# dev_matched
+python run_fine_tune_eval.py \
+--experiment 1               \
+--teacher bert               \
+--task mnli                  \
+--dataset dev_matched        \
+--batch_size 64
+
+# dev_mismatched
+python run_fine_tune_eval.py \
+--experiment 1               \
+--teacher bert               \
+--task mnli                  \
+--dataset dev_mismatched     \
+--batch_size 64
+```
+
+### BERT Experiment Results
+
+|ex|train acc|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|encoder|epoch|lr|batch|beta1|beta2|eps|l2 weight decay|warmup step|training step|dropout|max_norm|max_seq_len|seed|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|1|0.903957|0.826693|35000|0.833299|33000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|10000|total|0.1|1.0|512|42|
+|3|0.905185|0.827305|36000|0.835435|35000|bert-base-cased|3|3e-5|32|0.9|0.999|1e-8|0.01|10000|total|0.1|1.0|512|42|
+|5|0.905325|0.825776|33000|0.837571|35000|bert-base-cased|3|2e-5|32|0.9|0.999|1e-8|0.01|10000|total|0.1|1.0|512|42|
+|6|0.904507|0.828527|33000|0.836045|35000|bert-base-uncased|3|3e-5|32|0.9|0.999|1e-8|0.01|10000|total|0.1|1.0|512|42|
+|7|0.902900|0.830259|36000|0.835333|36000|bert-base-uncased|3|2e-5|32|0.9|0.999|1e-8|0.01|10000|total|0.1|1.0|512|42|
+
+## ALBERT
+
+### ALBERT Fine-Tune Script
+
+```sh
+python run_fine_tune.py             \
+--experiment 1                      \
+--teacher albert                    \
+--pretrained_version albert-base-v2 \
+--task mnli                         \
+--dataset train                     \
+--num_class 3                       \
+--accumulation_step 8               \
+--batch_size 128                    \
+--beta1 0.9                         \
+--beta2 0.999                       \
+--checkpoint_step 1000              \
+--dropout 0.1                       \
+--epoch 3                           \
+--eps 1e-8                          \
+--learning_rate 3e-5                \
+--max_norm 1.0                      \
+--max_seq_len 512                   \
+--num_gpu 1                         \
+--seed 42                           \
+--warmup_step  1000                 \
+--weight_decay 0.01
+```
+
+### ALBERT Fine-Tune Evaluation Scripts
+
+```sh
+# train
+python run_fine_tune_eval.py \
+--experiment 1               \
+--teacher albert             \
+--task mnli                  \
+--dataset train              \
+--batch_size 128
+
+# dev_matched
+python run_fine_tune_eval.py \
+--experiment 1               \
+--teacher albert             \
+--task mnli                  \
+--dataset dev_matched        \
+--batch_size 128
+
+# dev_mismatched
+python run_fine_tune_eval.py \
+--experiment 1               \
+--teacher albert             \
+--task mnli                  \
+--dataset dev_mismatched     \
+--batch_size 128
+```
+
+### ALBERT Experiment Results
+
+|ex|train acc|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|encoder|epoch|lr|batch|accumlation step|beta1|beta2|eps|l2 weight decay|warmup step|training step|dropout|max_norm|max_seq_len|seed|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|0|0.890685|0.841874|8900|0.849877|9100|albert-base-v2|3|3e-5|128|8|0.9|0.999|1e-8|0.01|1000|total|0.1|1.0|512|42|
+|1|0.890402|0.839836|8200|0.845809|9100|albert-base-v2|3|3e-5|128|8|0.9|0.999|1e-8|0.01|1000|total|0|1.0|512|42|
