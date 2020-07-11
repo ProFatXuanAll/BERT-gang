@@ -43,7 +43,10 @@ def load_dataset(
 
 
 def load_dataset_by_config(
-        config: fine_tune.config.TeacherConfig
+        config: Union[
+            fine_tune.config.StudentConfig,
+            fine_tune.config.TeacherConfig,
+        ]
 ) -> Union[
     fine_tune.task.MNLI,
 ]:
@@ -51,7 +54,7 @@ def load_dataset_by_config(
 
     Args:
         config:
-            `fine_tune.config.TeacherConfig` which contains attributes `task`
+            Configuration object which contains attributes `task`
             and `dataset`.
 
     Returns:

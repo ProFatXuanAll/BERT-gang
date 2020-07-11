@@ -38,12 +38,16 @@ import fine_tune.util
 
 @torch.no_grad()
 def evaluation(
-        config: fine_tune.config.TeacherConfig,
+        config: Union[
+            fine_tune.config.StudentConfig,
+            fine_tune.config.TeacherConfig,
+        ],
         dataset: Union[
             fine_tune.task.MNLI,
         ],
+        is_distill: bool
 ) -> Tuple[int, str]:
-    r"""Evaluate fine-tuned model on task specific dataset.
+    r"""Evaluate model on task specific dataset.
 
     Args:
         config:
@@ -51,26 +55,40 @@ def evaluation(
             for experiment setup.
         dataset:
             Task specific dataset.
+        is_distill:
+            Whether to evaluate student model.
 
     Returns:
         Max accuracy and its repective checkpoint.
     """
 
     # Get experiment name and path.
-    experiment_name = fine_tune.config.TeacherConfig.format_experiment_name(
-        experiment=config.experiment,
-        task=config.task,
-        teacher=config.teacher
-    )
+    if is_distill:
+        experiment_name = fine_tune.config.StudentConfig.format_experiment_name(
+            experiment=config.experiment,
+            student=config.student,
+            task=config.task
+        )
+    else:
+        experiment_name = fine_tune.config.TeacherConfig.format_experiment_name(
+            experiment=config.experiment,
+            task=config.task,
+            teacher=config.teacher
+        )
     experiment_path = '{}/{}'.format(
         fine_tune.path.FINE_TUNE_EXPERIMENT,
         experiment_name
     )
 
     # Create tokenizer.
-    tokenizer = fine_tune.util.load_tokenizer_by_config(
-        config=config
-    )
+    if is_distill:
+        tokenizer = fine_tune.util.load_student_tokenizer_by_config(
+            config=config
+        )
+    else:
+        tokenizer = fine_tune.util.load_teacher_tokenizer_by_config(
+            config=config
+        )
 
     # Create dataloader.
     dataloader = torch.utils.data.DataLoader(
@@ -104,12 +122,18 @@ def evaluation(
 
     # Record max accuracy and its respective checkpoint.
     max_acc = 0
-    max_acc_ckpt = '0.ckpt'
+    max_acc_ckpt = '-----.ckpt'
 
     for ckpt in all_ckpts:
-        model = fine_tune.util.load_teacher_model_by_config(
-            config=config
-        )
+        if is_distill:
+            model = fine_tune.util.load_student_model_by_config(
+                config=config,
+                tokenizer=tokenizer
+            )
+        else:
+            model = fine_tune.util.load_teacher_model_by_config(
+                config=config
+            )
         model.load_state_dict(torch.load(
             f'{experiment_path}/{ckpt}'
         ))
@@ -138,7 +162,7 @@ def evaluation(
                 input_ids=input_ids.to(config.device),
                 token_type_ids=token_type_ids.to(config.device),
                 attention_mask=attention_mask.to(config.device)
-            ).to('cpu').argmax(dim=-1)
+            ).argmax(dim=-1).to('cpu')
 
             all_label.extend(label.tolist())
             all_pred_label.extend(pred_label.tolist())

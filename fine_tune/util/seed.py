@@ -14,6 +14,8 @@ from __future__ import unicode_literals
 
 import random
 
+from typing import Union
+
 # 3rd party modules
 
 import numpy as np
@@ -46,13 +48,16 @@ def set_seed(num_gpu: int, seed: int):
 
 
 def set_seed_by_config(
-        config: fine_tune.config.TeacherConfig
+        config: Union[
+            fine_tune.config.StudentConfig,
+            fine_tune.config.TeacherConfig,
+        ]
 ):
     r"""Set random seed for experiment reproducibility.
 
     Args:
         config:
-            `fine_tune.config.TeacherConfig` which contains attributes `seed`
+            Configuration object which contains attributes `seed`
             and `num_gpu`.
     """
     set_seed(

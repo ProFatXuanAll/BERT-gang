@@ -17,7 +17,7 @@ import logging
 import fine_tune
 
 # Get main logger.
-logger = logging.getLogger('fine_tune.eval')
+logger = logging.getLogger('fine_tune.distill.eval')
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
     datefmt="%Y/%m/%d %H:%M:%S",
@@ -40,9 +40,9 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument(
-        '--teacher',
+        '--student',
         default='',
-        help="Teacher model's name.",
+        help="Student model's name.",
         required=True,
         type=str,
     )
@@ -71,10 +71,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    config = fine_tune.config.TeacherConfig.load(
+    config = fine_tune.config.StudentConfig.load(
         experiment=args.experiment,
-        task=args.task,
-        teacher=args.teacher
+        student=args.student,
+        task=args.task
     )
 
     # Change batch size for faster evaluation.
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     max_acc, max_acc_ckpt = fine_tune.util.evaluation(
         config=config,
         dataset=dataset,
-        is_distill=False,
+        is_distill=True
     )
 
     logger.info('max accuracy:            %f', max_acc)

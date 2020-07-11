@@ -32,6 +32,8 @@ def load_optimizer(
         eps: float,
         learning_rate: float,
         model: Union[
+            fine_tune.model.StudentAlbert,
+            fine_tune.model.StudentBert,
             fine_tune.model.TeacherAlbert,
             fine_tune.model.TeacherBert,
         ],
@@ -81,8 +83,13 @@ def load_optimizer(
 
 
 def load_optimizer_by_config(
-        config: fine_tune.config.TeacherConfig,
+        config: Union[
+            fine_tune.config.StudentConfig,
+            fine_tune.config.TeacherConfig,
+        ],
         model: Union[
+            fine_tune.model.StudentAlbert,
+            fine_tune.model.StudentBert,
             fine_tune.model.TeacherAlbert,
             fine_tune.model.TeacherBert,
         ]
@@ -91,7 +98,7 @@ def load_optimizer_by_config(
 
     Args:
         config:
-            `fine_tune.config.TeacherConfig` which contains attributes
+            Configuration object which contains attributes
             `learning_rate`, `betas`, `eps` and `weight_decay`.
         model:
             Source parameters to be optimized.

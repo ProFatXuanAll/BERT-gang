@@ -40,11 +40,19 @@ def load_scheduler(
     r"""Load linear warmup scheduler.
 
     Args:
+        batch_size:
+            Training batch size.
+            Used for calculating total training step.
         dataset:
             Fine-tune task specific dataset.
-            Used to calculate total training step.
+            Used for calculating total training step.
+        epoch:
+            Number of training epochs.
+            Used for calculating total training step.
         optimizer:
             AdamW optimizer.
+        warmup_step:
+            Linear scheduler warmup step.
 
     Returns:
         Linear warmup scheduler implemented by hugginface.
@@ -61,7 +69,10 @@ def load_scheduler(
 
 
 def load_scheduler_by_config(
-        config: fine_tune.config.TeacherConfig,
+        config: Union[
+            fine_tune.config.StudentConfig,
+            fine_tune.config.TeacherConfig,
+        ],
         dataset: Union[
             fine_tune.task.MNLI,
         ],
@@ -71,7 +82,7 @@ def load_scheduler_by_config(
 
     Args:
         config:
-            `fine_tune.config.TeacherConfig` which contains attributes
+            Configuration object which contains attributes
             `batch_size`, `epoch` and `warmup_step`.
         dataset:
             Fine-tune task specific dataset.

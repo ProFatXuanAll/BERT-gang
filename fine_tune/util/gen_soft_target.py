@@ -65,7 +65,7 @@ def gen_soft_target(
     )
 
     # Create tokenizer.
-    tokenizer = fine_tune.util.load_tokenizer_by_config(
+    tokenizer = fine_tune.util.load_teacher_tokenizer_by_config(
         config=config
     )
 

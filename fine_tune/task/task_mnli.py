@@ -56,9 +56,9 @@ class MNLISample(TypedDict):
 
 
 CollateFnReturn = Tuple[
+    torch.LongTensor,
     torch.FloatTensor,
-    torch.FloatTensor,
-    torch.FloatTensor,
+    torch.LongTensor,
     torch.LongTensor,
     torch.FloatTensor,
 ]

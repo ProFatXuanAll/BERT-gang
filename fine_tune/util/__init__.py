@@ -26,10 +26,14 @@ from fine_tune.util.optimizer import load_optimizer
 from fine_tune.util.optimizer import load_optimizer_by_config
 from fine_tune.util.seed import set_seed
 from fine_tune.util.seed import set_seed_by_config
+from fine_tune.util.model import load_student_model
+from fine_tune.util.model import load_student_model_by_config
 from fine_tune.util.model import load_teacher_model
 from fine_tune.util.model import load_teacher_model_by_config
-from fine_tune.util.tokenizer import load_tokenizer
-from fine_tune.util.tokenizer import load_tokenizer_by_config
+from fine_tune.util.tokenizer import load_student_tokenizer
+from fine_tune.util.tokenizer import load_student_tokenizer_by_config
+from fine_tune.util.tokenizer import load_teacher_tokenizer
+from fine_tune.util.tokenizer import load_teacher_tokenizer_by_config
 from fine_tune.util.train import train
 from fine_tune.util.scheduler import load_scheduler
 from fine_tune.util.scheduler import load_scheduler_by_config
