@@ -14,8 +14,7 @@ git clone https://github.com/ProFatXuanAll/BERT-gang
 cd BERT-gang
 
 # create data folder
-mkdir data data/fine_tune_data
-
+mkdir data data/fine_tune
 # create virtual environment
 python3.8 -m venv venv
 source venv/bin/activate
