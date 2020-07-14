@@ -69,8 +69,20 @@ def evaluation(
             student=config.student,
             task=config.task
         )
+        eval_name = fine_tune.config.StudentConfig.format_evaluation_name(
+            dataset=config.dataset,
+            experiment=config.experiment,
+            student=config.student,
+            task=config.task
+        )
     else:
         experiment_name = fine_tune.config.TeacherConfig.format_experiment_name(
+            experiment=config.experiment,
+            task=config.task,
+            teacher=config.teacher
+        )
+        eval_name = fine_tune.config.TeacherConfig.format_evaluation_name(
+            dataset=config.dataset,
             experiment=config.experiment,
             task=config.task,
             teacher=config.teacher
@@ -105,7 +117,7 @@ def evaluation(
     writer = torch.utils.tensorboard.SummaryWriter(
         '{}/{}'.format(
             fine_tune.path.LOG,
-            experiment_name
+            eval_name
         )
     )
 
@@ -177,7 +189,7 @@ def evaluation(
 
         # Log accuracy.
         writer.add_scalar(
-            f'{config.task}-{config.dataset}/accuracy',
+            f'{config.task}/{config.dataset}/accuracy',
             acc,
             int(re.match(ckpt_pattern, ckpt).group(1))
         )

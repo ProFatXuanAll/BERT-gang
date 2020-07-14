@@ -201,7 +201,7 @@ def train(
 
                 # log loss
                 writer.add_scalar(
-                    f'{config.task}-{config.dataset}/Loss',
+                    f'{config.task}/{config.dataset}/Loss',
                     accumulation_loss.item(),
                     actual_step
                 )
