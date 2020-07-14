@@ -39,7 +39,7 @@ def load_dataset(
         `fine_tune.task.MNLI`:
             If `config.task` is 'mnli'.
         `fine_tune.task.BoolQ`:
-            If `config.task` is 'boolq'/
+            If `config.task` is 'boolq'.
     """
     if task == 'mnli':
         return fine_tune.task.MNLI(dataset)
