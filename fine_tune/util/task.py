@@ -25,6 +25,7 @@ def load_dataset(
         task: str,
 ) -> Union[
     fine_tune.task.MNLI,
+    fine_tune.task.BoolQ
 ]:
     r"""Load task specific dataset.
 
@@ -37,10 +38,13 @@ def load_dataset(
     Returns:
         `fine_tune.task.MNLI`:
             If `config.task` is 'mnli'.
+        `fine_tune.task.BoolQ`:
+            If `config.task` is 'boolq'/
     """
     if task == 'mnli':
         return fine_tune.task.MNLI(dataset)
-
+    elif task == 'boolq':
+        return fine_tune.task.BoolQ(dataset)
 
 def load_dataset_by_config(
         config: Union[
