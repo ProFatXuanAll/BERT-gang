@@ -19,3 +19,4 @@ from __future__ import unicode_literals
 # my own modules
 
 from fine_tune.task.task_mnli import MNLI
+from fine_tune.task.task_boolq import BoolQ
