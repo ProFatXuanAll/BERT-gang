@@ -64,3 +64,12 @@ python3.8 run_fine_tune_eval.py \
 --dataset val           \
 --batch_size 64
 ```
+
+### BERT Fine-tune Experiment Results
+|ex|train acc|val acc|val acc ckpt|encoder|epoch|lr|batch|accum step|beta1|beta2|eps|weight decay|warmup step|dropout|max_norm|max_seq_len|seed|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|1|0.868457|0.717125|1000.ckpt|bert-base-uncased|10|1e-5|32|8|0.9|0.999|1e-08|0.01|10000|0.1|1.0|128|42|
+|2|0.871857|0.696942|2946.ckpt|bert-base-cased|10|1e-5|32|8|0.9|0.999|1e-8|0.01|10000|0.1|1.0|128|42|
+|3|0.658004|0.587768|2945.ckpt|bert-base-uncased|10|1e-5|32|8|0.9|0.999|1e-8|0.01|10000|0.1|1.0|512|42|
+|4|0.814151|0.704587|1473.ckpt|bert-base-uncased|10|1e-5|64|32|0.9|0.999|1e-8|0.01|10000|0.1|1.0|512|42|
+|5|0.864750|0.697859|1473.ckpt|bert-base-uncased|10|1e-5|64|16|0.9|0.999|1e-8|0.01|10000|0.1|1.0|128|42|
