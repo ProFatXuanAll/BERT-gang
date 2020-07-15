@@ -35,22 +35,22 @@ class TeacherAlbert(nn.Module):
         allow_pretrained_version:
             Currently supported pre-trained ALBERT checkpoints.
             Must be updated when adding more supported pre-trained model.
-        pretrain_version_hidden_dim:
-            Hidden dimension for each pre-trained ALBERT model.
+            (key, values) = (pre-trained model name, hidden_dimension)
 
     Raises:
         ValueError:
             If `pretraind_version` is not in `allow_pretrained_version`
     """
 
-    allow_pretrained_version = [
-        'albert-base-v1',
-        'albert-base-v2',
-    ]
-
-    pretrain_version_hidden_dim = {
-        'albert-base-v1': 768,
-        'albert-base-v2': 768,
+    allow_pretrained_version = {
+        'albert-base-v1' : 768,
+        'albert-base-v2' : 768,
+        'albert-large-v1' : 1024,
+        'albert-xlarge-v1' : 2048,
+        'albert-xxlarge-v1' : 4096,
+        'albert-large-v2' : 1024,
+        'albert-xlarge-v2' : 2048,
+        'alber-xxlarge-v2' : 4096
     }
 
     def __init__(
@@ -68,7 +68,7 @@ class TeacherAlbert(nn.Module):
                 ''.join(
                     map(
                         lambda option: f'\n\t- "{option}"',
-                        TeacherAlbert.allow_pretrained_version
+                        TeacherAlbert.allow_pretrained_version.keys()
                     )
                 )
             )
@@ -76,7 +76,7 @@ class TeacherAlbert(nn.Module):
         self.encoder = AlbertModel.from_pretrained(pretrained_version)
         self.dropout = nn.Dropout(dropout)
         self.linear_layer = nn.Linear(
-            in_features=TeacherAlbert.pretrain_version_hidden_dim[
+            in_features=TeacherAlbert.allow_pretrained_version[
                 pretrained_version
             ],
             out_features=num_class,
@@ -124,23 +124,22 @@ class TeacherBert(nn.Module):
         allow_pretrained_version:
             Currently supported pre-trained BERT checkpoints.
             Must be updated when adding more supported pre-trained model.
-        pretrain_version_hidden_dim:
-            Hidden dimension for each pre-trained BERT model.
+            (key, value) = (pre-trained model name, hidden_dimension)
 
     Raises:
         ValueError:
             If `pretraind_version` is not in `allow_pretrained_version`
     """
 
-    allow_pretrained_version = (
-        'bert-base-cased',
-        'bert-base-uncased',
-    )
-
-    pretrain_version_hidden_dim = {
-        'bert-base-cased': 768,
-        'bert-base-uncased': 768,
+    allow_pretrained_version = {
+        'bert-base-cased' : 768,
+        'bert-base-uncased' : 768,
+        'bert-large-cased' : 1024,
+        'bert-large-uncased' : 1024,
+        'bert-large-uncased-whole-word-masking' : 1024,
+        'bert-large-cased-whole-word-masking' : 1024
     }
+
 
     def __init__(
             self,
@@ -157,7 +156,7 @@ class TeacherBert(nn.Module):
                 ''.join(
                     map(
                         lambda option: f'\n\t- "{option}"',
-                        TeacherBert.allow_pretrained_version
+                        TeacherBert.allow_pretrained_version.keys()
                     )
                 )
             )
@@ -165,7 +164,7 @@ class TeacherBert(nn.Module):
         self.encoder = BertModel.from_pretrained(pretrained_version)
         self.dropout = nn.Dropout(dropout)
         self.linear_layer = nn.Linear(
-            in_features=TeacherBert.pretrain_version_hidden_dim[
+            in_features=TeacherBert.allow_pretrained_version[
                 pretrained_version
             ],
             out_features=num_class,
