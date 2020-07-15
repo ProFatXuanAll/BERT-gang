@@ -82,13 +82,17 @@ python3.8 run_fine_tune_eval.py \
 
 ### BERT Fine-Tune Experiment Results
 
-|ex|train acc|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|encoder|epoch|lr|batch|accum step|beta1|beta2|eps|weight decay|warmup step|dropout|max_norm|max_seq_len|seed|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|1|0.903957|0.826693|35000|0.833299|33000|bert-base-cased|3|3e-5|32|1|0.9|0.999|1e-8|0.01|10000|0.1|1.0|512|42|
-|3|0.905185|0.827305|36000|0.835435|35000|bert-base-cased|3|3e-5|32|1|0.9|0.999|1e-8|0.01|10000|0.1|1.0|512|42|
-|5|0.905325|0.825776|33000|0.837571|35000|bert-base-cased|3|2e-5|32|1|0.9|0.999|1e-8|0.01|10000|0.1|1.0|512|42|
-|6|0.904507|0.828527|33000|0.836045|35000|bert-base-uncased|3|3e-5|32|1|0.9|0.999|1e-8|0.01|10000|0.1|1.0|512|42|
-|7|0.902900|0.830259|36000|0.835333|36000|bert-base-uncased|3|2e-5|32|1|0.9|0.999|1e-8|0.01|10000|0.1|1.0|512|42|
+- Shared configuration
+
+|beta1|beta2|eps|max_norm|weight_decay|
+|-|-|-|-|-|
+|0.9|0.999|1e-8|1.0|0.01|
+
+- Individual configuration
+
+|ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|dropout|encoder|epoch|lr|max_seq_len|seed|warmup step|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|2|0.907571|61360|0.835150|61000|0.839199|61360|1|32|0.1|bert-base-uncased|5|3e-5|512|42|10000|
 
 ### BERT Fine-Tune Soft-Target Generation Scripts
 
@@ -221,10 +225,17 @@ python3.8 run_fine_tune_eval.py \
 
 ### ALBERT Experiment Results
 
-|ex|train acc|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|encoder|epoch|lr|batch|accum step|beta1|beta2|eps|weight decay|warmup step|dropout|max_norm|max_seq_len|seed|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|0|0.890685|0.841874|8900|0.849877|9100|albert-base-v2|3|3e-5|128|8|0.9|0.999|1e-8|0.01|1000|0.1|1.0|512|42|
-|1|0.890402|0.839836|8200|0.845809|9100|albert-base-v2|3|3e-5|128|8|0.9|0.999|1e-8|0.01|1000|0|1.0|512|42|
+- Shared configuration
+
+|beta1|beta2|eps|max_norm|weight_decay|
+|-|-|-|-|-|
+|0.9|0.999|1e-8|1.0|0.01|
+
+- Individual configuration
+
+|ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|dropout|encoder|epoch|lr|max_seq_len|seed|warmup step|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|1|0|0|0|0|0|0|4|128|0.1|albert-base-v2|5|3e-5|512|42|1000|
 
 ### ALBERT Fine-Tune Soft-Target Generation Scripts
 
