@@ -235,7 +235,7 @@ python3.8 run_fine_tune_eval.py \
 
 |ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|dropout|encoder|epoch|lr|max_seq_len|seed|warmup step|
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|1|0|0|0|0|0|0|4|128|0.1|albert-base-v2|5|3e-5|512|42|1000|
+|1|0.845292|15340|0.820377|15340|0.831672|15340|4|128|0.1|albert-base-v2|5|3e-5|512|42|1000|
 
 ### ALBERT Fine-Tune Soft-Target Generation Scripts
 
