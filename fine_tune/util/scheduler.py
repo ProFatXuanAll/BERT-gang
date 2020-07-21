@@ -75,6 +75,7 @@ def load_scheduler_by_config(
         ],
         dataset: Union[
             fine_tune.task.MNLI,
+            fine_tune.task.BoolQ
         ],
         optimizer: torch.optim.AdamW,
 ) -> torch.optim.lr_scheduler.LambdaLR:

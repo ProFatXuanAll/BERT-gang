@@ -582,6 +582,7 @@ class StudentConfig:
 
     allow_tasks = (
         'mnli',
+        'boolq'
     )
 
     allow_students = (
