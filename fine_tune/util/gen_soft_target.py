@@ -36,6 +36,7 @@ def gen_soft_target(
         config: fine_tune.config.TeacherConfig,
         dataset: Union[
             fine_tune.task.MNLI,
+            fine_tune.task.BoolQ
         ],
 ):
     r"""Generate fine-tuned model soft-target on task specific dataset.

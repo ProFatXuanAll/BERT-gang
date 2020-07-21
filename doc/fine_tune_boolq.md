@@ -78,3 +78,14 @@ python3.8 run_fine_tune_eval.py \
 |8|0.623104|0.621713|2945.ckpt|ber-large-cased|10|1e-5|32|32|0.9|0.999|1e-08|0.01|10000|0.1|1.0|256|42|
 |9|0.623104|0.690826|1473.ckpt|bert-large-cased|10|1e-5|64|32|0.9|0.999|1e-08|0.01|10000|0.1|1.0|256|42|
 |10|0.801209|0.720183|2946.ckpt|ber-large-cased|10|1e-5|32|16|0.9|0.999|1e-08|0.01|10000|0.1|1.0|256|42|
+
+### BERT Fine-Tune Soft-Target Generation Scripts
+```sh
+python3.8 run_fine_tune_gen_soft_target.py \
+--experiment 1                             \
+--teacher bert                             \
+--task boolq                                \
+--dataset train                            \
+--ckpt 0                                   \
+--batch_size 64
+```

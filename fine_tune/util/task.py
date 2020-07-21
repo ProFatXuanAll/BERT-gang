@@ -53,6 +53,7 @@ def load_dataset_by_config(
         ]
 ) -> Union[
     fine_tune.task.MNLI,
+    fine_tune.task.BoolQ
 ]:
     r"""Load task specific dataset.
 
