@@ -80,6 +80,9 @@ if __name__ == "__main__":
     # Change batch size for faster evaluation.
     if args.batch_size:
         config.batch_size = args.batch_size
+    if args.dataset:
+        config.dataset = args.dataset
+
 
     logger.info(config)
 

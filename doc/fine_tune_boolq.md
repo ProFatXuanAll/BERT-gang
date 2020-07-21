@@ -139,7 +139,8 @@ python3.8 run_fine_tune_distill_eval.py \
 --dataset val                         \
 --batch_size 64
 ```
-
-
-
+### BERT Fine-tune Distillation Experiment Results
+|ex|train acc|val acc|val acc ckpt|student|num_hidden_layer|dim_model|dim_FFN|num_attn_head|epoch|lr|batch|accum step|beta1|beta2|eps|weight decay|warmup step|dropout|max_norm|max_seq_len|seed|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|1|0.623104|0.621713|2950.ckpt|BERT|6|768|3072|16|10|1e-5|32|1|0.9|0.999|1e-8|0.01|10000|0.1|1.0|256|42|
 
