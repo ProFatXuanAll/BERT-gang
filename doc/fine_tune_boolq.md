@@ -120,3 +120,26 @@ python3.8 run_fine_tune_distill.py     \
 --warmup_step  10000                   \
 --weight_decay 0.01
 ```
+
+### BERT Fine-Tune Distillation Evaluation Scripts
+```sh
+# train
+python3.8 run_fine_tune_distill_eval.py \
+--experiment 1                          \
+--student bert                          \
+--task boolq                             \
+--dataset train                         \
+--batch_size 64
+
+# validation
+python3.8 run_fine_tune_distill_eval.py \
+--experiment 1                          \
+--student bert                          \
+--task boolq                             \
+--dataset val                         \
+--batch_size 64
+```
+
+
+
+

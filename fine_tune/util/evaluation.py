@@ -44,6 +44,7 @@ def evaluation(
         ],
         dataset: Union[
             fine_tune.task.MNLI,
+            fine_tune.task.BoolQ
         ],
         is_distill: bool
 ) -> Tuple[int, str]:
