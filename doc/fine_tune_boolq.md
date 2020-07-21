@@ -96,7 +96,7 @@ python3.8 run_fine_tune_distill.py     \
 --experiment 1                         \
 --student bert                         \
 --task boolq                           \
---dataset ex7-teacher-bert-task-boolq  \
+--dataset ex-7-teacher-bert-task-boolq  \
 --num_class 2                          \
 --accumulation_step 1                  \
 --batch_size 32                        \
