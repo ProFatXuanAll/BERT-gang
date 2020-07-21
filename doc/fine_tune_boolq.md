@@ -74,7 +74,7 @@ python3.8 run_fine_tune_eval.py \
 |4|0.814151|0.704587|1473.ckpt|bert-base-uncased|10|1e-5|64|32|0.9|0.999|1e-8|0.01|10000|0.1|1.0|512|42|
 |5|0.864750|0.697859|1473.ckpt|bert-base-uncased|10|1e-5|64|16|0.9|0.999|1e-8|0.01|10000|0.1|1.0|128|42|
 |6|0.675719|0.651682|2945.ckpt|bert-large-uncased|10|1e-5|32|32|0.9|0.999|1e-8|0.01|10000|0.1|1.0|128|42|
-|7|0.836109|0.764832|2946.ckpt|bert-large-uncased|10|1e-5|32|16|0.9|0.999|1e-08|0.01|10000|0.1|1.0|256|42|
+|**7**|0.836109|**0.764832**|2946.ckpt|bert-large-uncased|10|1e-5|32|16|0.9|0.999|1e-08|0.01|10000|0.1|1.0|256|42|
 |8|0.623104|0.621713|2945.ckpt|ber-large-cased|10|1e-5|32|32|0.9|0.999|1e-08|0.01|10000|0.1|1.0|256|42|
 |9|0.623104|0.690826|1473.ckpt|bert-large-cased|10|1e-5|64|32|0.9|0.999|1e-08|0.01|10000|0.1|1.0|256|42|
 |10|0.801209|0.720183|2946.ckpt|ber-large-cased|10|1e-5|32|16|0.9|0.999|1e-08|0.01|10000|0.1|1.0|256|42|
@@ -88,4 +88,35 @@ python3.8 run_fine_tune_gen_soft_target.py \
 --dataset train                            \
 --ckpt 0                                   \
 --batch_size 64
+```
+
+### BERT Fine-Tune Distillation Scripts
+```sh
+python3.8 run_fine_tune_distill.py     \
+--experiment 1                         \
+--student bert                         \
+--task boolq                           \
+--dataset ex7-teacher-bert-task-boolq  \
+--num_class 2                          \
+--accumulation_step 1                  \
+--batch_size 32                        \
+--beta1 0.9                            \
+--beta2 0.999                          \
+--checkpoint_step 200                 \
+--d_emb 768                            \
+--d_ff 3072                            \
+--d_model 768                          \
+--dropout 0.1                          \
+--epoch 3                              \
+--eps 1e-8                             \
+--learning_rate 1e-5                   \
+--max_norm 1.0                         \
+--max_seq_len 256                      \
+--num_attention_heads 16               \
+--num_gpu 1                            \
+--num_hidden_layers 6                  \
+--seed 42                              \
+--type_vocab_size 2                    \
+--warmup_step  10000                   \
+--weight_decay 0.01
 ```
