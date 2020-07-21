@@ -43,7 +43,7 @@ def soft_target_loss(
         See Hinton, G. (2014). Distilling the Knowledge in a Neural Network.
     """
 
-    loss = pred * soft_target.log()
+    loss = soft_target * pred.log()
     loss = -loss.sum(dim=-1)
 
     return loss.mean()
