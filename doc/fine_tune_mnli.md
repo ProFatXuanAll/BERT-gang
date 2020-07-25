@@ -90,9 +90,9 @@ python3.8 run_fine_tune_eval.py \
 
 - Individual configuration
 
-|ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|dropout|encoder|epoch|lr|max_seq_len|seed|warmup step|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|2|0.907571|61360|0.835150|61000|0.839199|61360|1|32|0.1|bert-base-uncased|5|3e-5|512|42|10000|
+|ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|dropout|ckpt step|encoder|epoch|lr|max_seq_len|seed|warmup step|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|2|0.907571|61360|0.835150|61000|0.839199|61360|1|32|0.1|1000|bert-base-uncased|5|3e-5|512|42|10000|
 
 ### BERT Fine-Tune Soft-Target Generation Scripts
 
@@ -233,9 +233,10 @@ python3.8 run_fine_tune_eval.py \
 
 - Individual configuration
 
-|ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|dropout|encoder|epoch|lr|max_seq_len|seed|warmup step|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|1|0.845292|15340|0.820377|15340|0.831672|15340|4|128|0.1|albert-base-v2|5|3e-5|512|42|1000|
+|ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|ckpt step|dropout|encoder|epoch|lr|max_seq_len|seed|warmup step|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|1|0.845292|15340|0.820377|15340|0.831672|15340|4|128|1000|0.1|albert-base-v2|5|3e-5|512|42|1000|
+|2|0.845292|15340|0.820377|15340|0.831672|15340|4|128|500|0.1|albert-base-v2|5|3e-5|512|42|1000|
 
 ### ALBERT Fine-Tune Soft-Target Generation Scripts
 
