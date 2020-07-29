@@ -1,6 +1,8 @@
-r"""Helper function for loading scheduler.
+r"""Helper functions for loading scheduler.
 
 Usage:
+    import fine_tune
+
     scheduler = fine_tune.util.load_scheduler(...)
     scheduler = fine_tune.util.load_scheduler_by_config(...)
 """
@@ -12,11 +14,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from typing import Union
-
 # 3rd party modules
 
-import numpy as np
 import torch
 import torch.optim
 import transformers
@@ -24,80 +23,51 @@ import transformers
 # my own modules
 
 import fine_tune.config
-import fine_tune.model
-import fine_tune.task
 
 
 def load_scheduler(
-        batch_size: int,
-        dataset: Union[
-            fine_tune.task.MNLI,
-        ],
-        epoch: int,
         optimizer: torch.optim.AdamW,
+        total_step: int,
         warmup_step: int
 ) -> torch.optim.lr_scheduler.LambdaLR:
     r"""Load linear warmup scheduler.
 
     Args:
-        batch_size:
-            Training batch size.
-            Used for calculating total training step.
-        dataset:
-            Fine-tune task specific dataset.
-            Used for calculating total training step.
-        epoch:
-            Number of training epochs.
-            Used for calculating total training step.
         optimizer:
-            AdamW optimizer.
+            `torch.optim.AdamW` optimizer.
+        total_step:
+            Total number of step to perform training.
         warmup_step:
             Linear scheduler warmup step.
 
     Returns:
-        Linear warmup scheduler implemented by hugginface.
+        Linear warmup scheduler provided by `transformers` package.
     """
-    scheduler = transformers.get_linear_schedule_with_warmup(
+    return transformers.get_linear_schedule_with_warmup(
         optimizer,
         num_warmup_steps=warmup_step,
-        num_training_steps=int(
-            np.ceil(len(dataset) / batch_size)
-        ) * epoch
+        num_training_steps=total_step
     )
-
-    return scheduler
 
 
 def load_scheduler_by_config(
-        config: Union[
-            fine_tune.config.StudentConfig,
-            fine_tune.config.TeacherConfig,
-        ],
-        dataset: Union[
-            fine_tune.task.MNLI,
-            fine_tune.task.BoolQ
-        ],
+        config: fine_tune.config.BaseConfig,
         optimizer: torch.optim.AdamW,
 ) -> torch.optim.lr_scheduler.LambdaLR:
     r"""Load linear warmup scheduler.
 
     Args:
         config:
-            Configuration object which contains attributes
-            `batch_size`, `epoch` and `warmup_step`.
-        dataset:
-            Fine-tune task specific dataset.
-            Used to calculate total training step.
+            Configuration object which contains attributes `total_step` and
+            `warmup_step`.
         optimizer:
-            AdamW optimizer.
+            `torch.optim.AdamW` optimizer.
 
     Returns:
         Same as `fine_tune.util.load_scheduler`.
     """
     return load_scheduler(
-        batch_size=config.batch_size,
-        dataset=dataset,
-        epoch=config.epoch,
         optimizer=optimizer,
+        total_step=config.total_step,
         warmup_step=config.warmup_step
     )

@@ -1,9 +1,9 @@
-r"""Helper functions for evaluating fine-tuned model.
+r"""Helper functions for generating logits from fine-tuned model.
 
 Usage:
     import fine_tune
 
-    acc = fine_tune.util.evaluation(...)
+    fine_tune.util.gen_logits(...)
 """
 
 # built-in modules
@@ -18,10 +18,8 @@ from __future__ import unicode_literals
 import torch
 import torch.utils
 import torch.utils.data
-import torch.utils.tensorboard
 import transformers
 
-from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 
 # my own modules
@@ -29,16 +27,18 @@ from tqdm import tqdm
 import fine_tune.config
 import fine_tune.task
 import fine_tune.model
+import fine_tune.path
+import fine_tune.util
 
 
 @torch.no_grad()
-def evaluation(
+def gen_logits(
         config: fine_tune.config.BaseConfig,
         dataset: fine_tune.task.Dataset,
         model: fine_tune.model.Model,
         tokenizer: transformers.PreTrainedTokenizer
-) -> float:
-    r"""Evaluate model on task specific dataset.
+):
+    r"""Generate fine-tuned model logits on task specific dataset.
 
     Args:
         config:
@@ -47,18 +47,22 @@ def evaluation(
         dataset:
             Task specific dataset.
         model:
-            Model which will be evaluated on `dataset`.
+            Model which will generate logits on `dataset`.
         tokenizer:
             Tokenizer paired with `model`.
-
-    Returns:
-        Accuracy.
     """
     # Evaluation mode.
     model.eval()
 
     # Model running device.
     device = config.device
+
+    # Get experiment name and model name.
+    experiment_name = fine_tune.config.BaseConfig.experiment_name(
+        experiment=config.experiment,
+        model=config.model,
+        task=config.task
+    )
 
     # Create dataloader.
     dataloader = torch.utils.data.DataLoader(
@@ -68,41 +72,37 @@ def evaluation(
             max_seq_len=config.max_seq_len,
             tokenizer=tokenizer
         ),
-        shuffle=True
+        shuffle=False
     )
 
-    # Record label and prediction for calculating accuracy.
-    all_label = []
-    all_pred_label = []
+    # Sample index for updating logits.
+    sample_index = 0
 
-    # Evaluate through mini-batch loop.
-    mini_batch_iterator = tqdm(dataloader)
-
+    # Generate logits through mini-batch loop.
     for (
             input_ids,
             attention_mask,
             token_type_ids,
-            label,
+            _,
             _
-    ) in mini_batch_iterator:
+    ) in tqdm(dataloader):
 
-        # Mini-batch prediction.
-        pred_label = model.predict(
+        # Get mini-batch logits.
+        batch_logits = model(
             input_ids=input_ids.to(device),
             token_type_ids=token_type_ids.to(device),
             attention_mask=attention_mask.to(device)
-        ).argmax(dim=-1).to('cpu')
+        ).to('cpu').tolist()
 
-        all_label.extend(label.tolist())
-        all_pred_label.extend(pred_label.tolist())
+        # Update logits.
+        for index, logits in enumerate(batch_logits):
+            dataset.update_logits(
+                index=index + sample_index,
+                logits=logits
+            )
 
-    # Calculate accuracy.
-    acc = accuracy_score(all_label, all_pred_label)
+        # Shift sample index.
+        sample_index += len(batch_logits)
 
-    # Show accuracy.
-    mini_batch_iterator.set_description(f'accuracy: {acc:.6f}')
-
-    # Release IO resources.
-    mini_batch_iterator.close()
-
-    return acc
+    # Save logits.
+    dataset.save_for_distill(experiment_name)

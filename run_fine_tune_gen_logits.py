@@ -1,10 +1,10 @@
-r"""Run fine-tune evaluation.
+r"""Run fine-tune model logits generation.
 
 Usage:
-    python run_fine_tune_eval.py ...
+    python run_fine_tune_gen_logits.py ...
 
-Run `python run_fine_tune_eval.py -h` for help, or see 'doc/fine_tune_*.md' for
-more information.
+Run `python run_fine_tune_gen_logits.py -h` for help, or see
+'doc/fine_tune_*.md' for more information.
 """
 
 # built-in modules
@@ -12,21 +12,17 @@ more information.
 import argparse
 import logging
 import os
-import re
 
-# 3rd-party modules.
+# 3rd-party modules
 
 import torch
-import torch.utils
-import torch.utils.data
-import torch.utils.tensorboard
 
 # my own modules
 
 import fine_tune
 
 # Get main logger.
-logger = logging.getLogger('fine_tune.eval')
+logger = logging.getLogger('fine_tune.gen_logits')
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
     datefmt='%Y/%m/%d %H:%M:%S',
@@ -44,34 +40,40 @@ if __name__ == '__main__':
     # Required parameters.
     parser.add_argument(
         '--experiment',
-        help='Name of the previous experiment to evalutate.',
+        help='Name of the previous experiment to generate logits.',
         required=True,
         type=str,
     )
     parser.add_argument(
         '--model',
-        help='Name of the model to evaluate.',
+        help='Name of the model to generate logits.',
         required=True,
         type=str,
     )
     parser.add_argument(
         '--task',
-        help='Name of the fine-tune task.',
+        help='Name of fine-tune task to generate logits on.',
         required=True,
         type=str,
     )
     parser.add_argument(
         '--dataset',
-        help='Dataset name of the fine-tune task.',
+        help='Dataset name of the fine-tune task to generate logits on.',
         required=True,
         type=str,
+    )
+    parser.add_argument(
+        '--ckpt',
+        help='Model checkpoint to generate logits.',
+        required=True,
+        type=int,
     )
 
     # Optional parameters.
     parser.add_argument(
         '--batch_size',
         default=0,
-        help='Evaluation batch size.',
+        help='Generate logits batch size.',
         type=int,
     )
 
@@ -95,11 +97,11 @@ if __name__ == '__main__':
             task=args.task
         )
 
-    # Change batch size for faster evaluation.
+    # Change batch size for faster generation.
     if args.batch_size:
         config.batch_size = args.batch_size
 
-    # Set evaluation dataset.
+    # Set dataset to generate logits on.
     config.dataset = args.dataset
 
     # Log configuration.
@@ -110,7 +112,7 @@ if __name__ == '__main__':
         config=config
     )
 
-    # Load fine-tune / distillation dataset.
+    # Load dataset for generating logits.
     dataset = fine_tune.util.load_dataset_by_config(
         config=config
     )
@@ -133,75 +135,25 @@ if __name__ == '__main__':
             tokenizer=tokenizer
         )
 
-    # Get experiment name and path.
+    # Get experiment name and model name.
     experiment_name = fine_tune.config.BaseConfig.experiment_name(
         experiment=config.experiment,
         model=config.model,
         task=config.task
     )
-    experiment_dir = os.path.join(
+    model_name = os.path.join(
         fine_tune.path.FINE_TUNE_EXPERIMENT,
-        experiment_name
+        experiment_name,
+        f'model-{args.ckpt}.pt'
     )
 
-    # Get all checkpoint file names.
-    ckpt_pattern = r'model-(\d+)\.pt'
-    all_ckpts = sorted(map(
-        lambda file_name: int(re.match(ckpt_pattern, file_name).group(1)),
-        filter(
-            lambda file_name: re.match(ckpt_pattern, file_name),
-            os.listdir(experiment_dir)
-        ),
-    ))
+    # Load model from checkpoint.
+    model.load_state_dict(torch.load(model_name))
 
-    # Create tensorboard's `SummaryWriter`.
-    writer = torch.utils.tensorboard.SummaryWriter(
-        os.path.join(
-            fine_tune.path.LOG,
-            experiment_name
-        )
+    # Generate logits.
+    fine_tune.util.gen_logits(
+        config=config,
+        dataset=dataset,
+        model=model,
+        tokenizer=tokenizer
     )
-
-    # Record maximum accuracy and its respective checkpoint.
-    max_acc = 0.0
-    max_acc_ckpt = 0
-
-    # Evaluate every checkpoints.
-    for ckpt in all_ckpts:
-
-        # Clean all gradient.
-        model.zero_grad()
-
-        # Load model from checkpoint.
-        model.load_state_dict(torch.load(os.path.join(
-            experiment_dir,
-            f'model-{ckpt}.pt'
-        )))
-
-        # Calculate accuracy.
-        acc = fine_tune.util.evaluation(
-            config=config,
-            dataset=dataset,
-            model=model,
-            tokenizer=tokenizer
-        )
-
-        # Update max accuracy.
-        if max_acc <= acc:
-            max_acc = acc
-            max_acc_ckpt = ckpt
-
-        # Log accuracy.
-        writer.add_scalar(
-            f'{config.task}/{config.dataset}/{config.model}/accuracy',
-            acc,
-            ckpt
-        )
-
-    # Release IO resources.
-    writer.flush()
-    writer.close()
-
-    # Log maximum accuracy.
-    logger.info('max accuracy:            %f', max_acc)
-    logger.info('max accuracy checkpoint: %d', max_acc_ckpt)

@@ -4,7 +4,7 @@ Using Knowledge Distillation to learn from BERT-like models.
 
 ## Setup
 
-You need `python3.8+` to run all the code.
+You need `Ubuntu18.04+` and `python3.8+` to run all the code.
 
 ```sh
 # clone the project
@@ -15,6 +15,7 @@ cd BERT-gang
 
 # create data folder
 mkdir data data/fine_tune
+
 # create virtual environment
 python3.8 -m venv venv
 source venv/bin/activate
@@ -24,41 +25,11 @@ pip install -U pip setuptools wheel
 pip install -r requirements.txt
 ```
 
-## Pre-train data
+## Profiling
 
-- Directory structure
-
-```text
-data
-╠═ .gitignore
-╠═ example.txt
-╚═ pre-train
-   ╠═ 1
-   ║ ╠═ original.pickle
-   ║ ╠═ albert.pickle
-   ║ ╠═ bert.pickle
-   ║ ╚═ roberta.pickle
-   ╠═ 2
-   ║ ╠═ original.pickle
-   ║ ╠═ albert.pickle
-   ║ ╠═ bert.pickle
-   ║ ╚═ roberta.pickle
-   ╚═ ...
-```
-
-- `original.pickle` files structure
-
-```py
-{
-  'segment_a': 'Example segment 1.',
-  'segment_b': 'Example segment 2.',
-}
-```
-
-- `albert.pickle`, `bert.pickle`, `roberta.pickle` files structure
-
-```py
-# output tensor from model
-# shape: (seq_len, hid_dim)
-[[0.0, ...,] [0.0,...], ...]
-```
+- Use `htop` to monitor CPU and memory usage.
+  - You need to install `htop` first by `apt-get install htop`.
+- Use `nvidia-smi` to monitor GPU and memory usage.
+  - You need to install `cuda` driver first.
+  - Required `cuda10+`.
+- Use `tensorboard --logdir='./data/fine_tune_experiment/log'` to monitor loss, learning rate and accuracy.

@@ -1,6 +1,8 @@
-r"""Helper function for setting random seed.
+r"""Helper functions for setting random seed.
 
 Usage:
+    import fine_tune
+
     fine_tune.util.set_seed(...)
     fine_tune.util.set_seed_by_config(...)
 """
@@ -14,8 +16,6 @@ from __future__ import unicode_literals
 
 import random
 
-from typing import Union
-
 # 3rd party modules
 
 import numpy as np
@@ -24,18 +24,16 @@ import torch
 # my own modules
 
 import fine_tune.config
-import fine_tune.model
-import fine_tune.task
 
 
 def set_seed(num_gpu: int, seed: int):
-    r"""Set random seed for experiment reproducibility.
+    r"""Control random seed for experiment reproducibility.
 
     Args:
         num_gpu:
             Number of GPUs used to run experiment.
         seed:
-            An integer stands for random seed.
+            Random seed value to be initialized.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -48,17 +46,14 @@ def set_seed(num_gpu: int, seed: int):
 
 
 def set_seed_by_config(
-        config: Union[
-            fine_tune.config.StudentConfig,
-            fine_tune.config.TeacherConfig,
-        ]
+        config: fine_tune.config.BaseConfig
 ):
-    r"""Set random seed for experiment reproducibility.
+    r"""Control random seed for experiment reproducibility.
 
     Args:
         config:
-            Configuration object which contains attributes `seed`
-            and `num_gpu`.
+            Configuration object which contains attributes `seed` and
+            `num_gpu`.
     """
     set_seed(
         num_gpu=config.num_gpu,

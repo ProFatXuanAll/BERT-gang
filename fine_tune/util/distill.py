@@ -1,9 +1,9 @@
-r"""Helper functions for training model.
+r"""Helper functions for knowledge distillation.
 
 Usage:
     import fine_tune
 
-    fine_tune.util.train(...)
+    fine_tune.util.distill(...)
 """
 
 # built-in modules
@@ -18,7 +18,6 @@ import os
 # 3rd party modules
 
 import torch
-import torch.nn as nn
 import torch.utils
 import torch.utils.data
 import torch.utils.tensorboard
@@ -34,7 +33,7 @@ import fine_tune.model
 import fine_tune.path
 
 
-def train(
+def distill(
         config: fine_tune.config.BaseConfig,
         dataset: fine_tune.task.Dataset,
         model: fine_tune.model.Model,
@@ -42,7 +41,7 @@ def train(
         scheduler: torch.optim.lr_scheduler.LambdaLR,
         tokenizer: transformers.PreTrainedTokenizer,
 ):
-    r"""Fine-tune or distill model on task specific dataset.
+    r"""Perform knowledge distillation model on logits dataset.
 
     Args:
         config:
@@ -51,7 +50,8 @@ def train(
         dataset:
             Task specific dataset.
         model:
-            Model which will be fine-tuned on `dataset`.
+            Model which will perform distillation on previously generated
+            logits `dataset`.
         optimizer:
             `torch.optim.AdamW` optimizer.
         schduler:
@@ -98,8 +98,8 @@ def train(
         )
     )
 
-    # Use cross-entropy as objective.
-    objective = nn.CrossEntropyLoss()
+    # Use both hard-target and soft-target as objective.
+    objective = fine_tune.objective.distill_loss
 
     # Accumulation step counter.
     accum_step = 0
@@ -123,18 +123,19 @@ def train(
                 attention_mask,
                 token_type_ids,
                 label,
-                _
+                logits
         ) in dataloader:
 
-            # Mini-batch Cross-Entropy loss.
+            # Mini-batch hard-target + soft-target loss.
             # Use `model(...)` to do forward pass.
             accum_loss += objective(
-                input=model(
+                hard_target=label.to(device),
+                student_logits=model(
                     input_ids=input_ids.to(device),
                     token_type_ids=token_type_ids.to(device),
                     attention_mask=attention_mask.to(device)
                 ),
-                target=label.to(device)
+                teacher_logits=logits.to(device)
             )
 
             # Increment accumulation step.
