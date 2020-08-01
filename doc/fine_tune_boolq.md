@@ -38,14 +38,14 @@ python3.8 run_fine_tune.py     \
 --ckpt_step 200               \
 --dropout 0.1                  \
 --eps 1e-8                     \
---log_step 50                  \
+--log_step 500                 \
 --lr 1e-5                      \
 --max_norm 1.0                 \
 --max_seq_len 200              \
 --num_gpu 1                    \
 --seed 42                      \
---total_step 5892            \
---warmup_step  589           \
+--total_step 36816             \
+--warmup_step  10000           \
 --weight_decay 0.01
 ```
 

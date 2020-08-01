@@ -50,8 +50,7 @@ def load_dataset(
         return fine_tune.task.BoolQ(dataset)
 
     raise ValueError(
-        f'`task` {task} is not supported.\n' +
-        'Supported options:' +
+        f'`task` {task} is not supported.\nSupported options:' +
         ''.join(list(map(
             lambda option: f'\n\t--task {option}',
             [

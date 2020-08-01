@@ -28,7 +28,6 @@ import fine_tune.config
 import fine_tune.task
 import fine_tune.model
 import fine_tune.path
-import fine_tune.util
 
 
 @torch.no_grad()
