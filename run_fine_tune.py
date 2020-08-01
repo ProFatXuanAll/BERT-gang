@@ -168,6 +168,12 @@ if __name__ == '__main__':
         help="Optimizer AdamW's parameter `weight_decay`.",
         type=float,
     )
+    parser.add_argument(
+        '--amp',
+        default=False,
+        help="Use automatic mixed precision during training.",
+        action='store_true'
+    )
 
     # Parse arguments.
     args = parser.parse_args()
@@ -237,11 +243,24 @@ if __name__ == '__main__':
     )
 
     # Fine-tune model.
-    fine_tune.util.train(
-        config=config,
-        dataset=dataset,
-        model=model,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        tokenizer=tokenizer
-    )
+    print(args.amp)
+    if args.amp:
+        # Use automatic mixed precision training
+        print('Use amp train')
+        fine_tune.util.amp_train(
+            config=config,
+            dataset=dataset,
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            tokenizer=tokenizer
+        )
+    else:
+        fine_tune.util.train(
+            config=config,
+            dataset=dataset,
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            tokenizer=tokenizer
+        )

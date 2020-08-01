@@ -25,28 +25,29 @@ rm ./data/fine_tune/BoolQ.zip
 ```sh
 # Fine-tune on BoolQ.
 python3.8 run_fine_tune.py     \
---experiment 2                 \
+--experiment test2                 \
 --model bert                   \
 --ptrain_ver bert-base-uncased \
 --task boolq                   \
 --dataset train                \
 --num_class 2                  \
---accum_step 1                 \
---batch_size 16                \
+--accum_step 2                 \
+--batch_size 32                \
 --beta1 0.9                    \
 --beta2 0.999                  \
---ckpt_step 200               \
+--ckpt_step 500               \
 --dropout 0.1                  \
 --eps 1e-8                     \
 --log_step 500                 \
 --lr 1e-5                      \
 --max_norm 1.0                 \
---max_seq_len 200              \
+--max_seq_len 256              \
 --num_gpu 1                    \
 --seed 42                      \
 --total_step 5892            \
 --warmup_step  589           \
---weight_decay 0.01
+--weight_decay 0.01 \
+--amp
 ```
 
 ### BERT Fine-tune Evaluation Scripts
