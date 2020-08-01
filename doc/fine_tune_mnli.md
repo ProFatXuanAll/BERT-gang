@@ -98,7 +98,7 @@ python3.8 run_fine_tune_eval.py \
 
 |ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|ckpt step|dropout|encoder|log step|lr|max_seq_len|seed|total step|warmup step|
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|1|0|0|0|0|0|0|1|32|1000|0.1|bert-base-uncased|500|3e-5|128|42|100000|10000|
+|1|0|0|0.846256|95000|0.848047|71000|1|32|1000|0.1|bert-base-uncased|500|3e-5|128|42|100000|10000|
 
 ### BERT Fine-Tune Logits Generation Scripts
 
@@ -253,7 +253,7 @@ python3.8 run_fine_tune_eval.py \
 
 |ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|ckpt step|dropout|encoder|log step|lr|max_seq_len|seed|total step|warmup step|
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|1|0|0|0|0|0|0|8|128|500|0.1|albert-base-v2|250|3e-5|512|42|10000|1000|
+|1|0|0|0.848395|5500|0.851810|6500|8|128|500|0.1|albert-base-v2|250|3e-5|192|42|10000|1000|
 
 ### ALBERT Fine-Tune Logits Generation Scripts
 

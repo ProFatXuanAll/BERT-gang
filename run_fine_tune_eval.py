@@ -193,7 +193,7 @@ if __name__ == '__main__':
 
         # Log accuracy.
         writer.add_scalar(
-            f'{config.task}/{config.dataset}/{config.model}/accuracy',
+            f'{config.task}/{config.dataset}/accuracy',
             acc,
             ckpt
         )

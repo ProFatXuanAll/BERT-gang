@@ -101,7 +101,8 @@ def train(
     # Use cross-entropy as objective.
     objective = nn.CrossEntropyLoss()
 
-    # Accumulation step counter.
+    # Step and accumulation step counter.
+    step = 0
     accum_step = 0
     total_accum_step = config.total_step * config.accum_step
 
@@ -111,7 +112,7 @@ def train(
     # `tqdm` CLI Logger. We will manually update progress bar.
     cli_logger = tqdm(
         desc=f'loss: {0:.6f}',
-        total=config.total_step * config.accum_step
+        total=config.total_step
     )
 
     # Total update times: `config.total_step`.
@@ -165,18 +166,18 @@ def train(
                     f'loss: {accum_loss.item():.6f}'
                 )
 
-                # Calculate actual training step.
-                step = accum_step // config.accum_step
+                # Increment actual step.
+                step += 1
 
                 # Log loss and learning rate for each `config.log_step` step.
                 if step % config.log_step == 0:
                     writer.add_scalar(
-                        f'{config.task}/{config.dataset}/{config.model}/loss',
+                        f'{config.task}/{config.dataset}/loss',
                         accum_loss.item(),
                         step
                     )
                     writer.add_scalar(
-                        f'{config.task}/{config.dataset}/{config.model}/lr',
+                        f'{config.task}/{config.dataset}/lr',
                         optimizer.state_dict()['param_groups'][0]['lr'],
                         step
                     )
@@ -187,15 +188,11 @@ def train(
                 # Clean up gradient.
                 optimizer.zero_grad()
 
-                # Save model and optimizer for each `config.ckpt_step` step.
+                # Save model for each `config.ckpt_step` step.
                 if step % config.ckpt_step == 0:
                     torch.save(
                         model.state_dict(),
                         os.path.join(experiment_dir, f'model-{step}.pt')
-                    )
-                    torch.save(
-                        optimizer.state_dict(),
-                        os.path.join(experiment_dir, f'optimizer-{step}.pt')
                     )
 
             # Stop training condition.

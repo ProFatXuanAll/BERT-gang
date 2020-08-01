@@ -69,6 +69,7 @@ def load_student_model(
             BERT-like models token type embedding range.
         vocab_size:
             Vocabulary dimension.
+
     Raises:
         ValueError:
             If `model` does not supported.
@@ -107,8 +108,7 @@ def load_student_model(
         ).to(device)
 
     raise ValueError(
-        f'`model` {model} is not supported.\n' +
-        'Supported options:' +
+        f'`model` {model} is not supported.\nSupported options:' +
         ''.join(list(map(
             lambda option: f'\n\t--model {option}',
             [

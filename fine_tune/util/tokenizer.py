@@ -63,8 +63,7 @@ def load_teacher_tokenizer(
         )
 
     raise ValueError(
-        f'`model` {model} is not supported.\n' +
-        'Supported options:' +
+        f'`model` {model} is not supported.\nSupported options:' +
         ''.join(list(map(
             lambda option: f'\n\t--model {option}',
             [

@@ -68,7 +68,7 @@ def evaluation(
             max_seq_len=config.max_seq_len,
             tokenizer=tokenizer
         ),
-        shuffle=True
+        shuffle=False
     )
 
     # Record label and prediction for calculating accuracy.
