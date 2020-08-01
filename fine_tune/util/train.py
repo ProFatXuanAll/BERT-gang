@@ -106,12 +106,14 @@ def train(
     accum_step = 0
     total_accum_step = config.total_step * config.accum_step
 
-    # Accumulate loss and update when accumulate to `config.batch_size`.
+    # Mini-batch loss and accumulate loss.
+    # Update when accumulate to `config.batch_size`.
+    loss = 0
     accum_loss = 0
 
     # `tqdm` CLI Logger. We will manually update progress bar.
     cli_logger = tqdm(
-        desc=f'loss: {0:.6f}',
+        desc=f'loss: {loss:.6f}',
         total=config.total_step
     )
 
@@ -127,27 +129,28 @@ def train(
                 _
         ) in dataloader:
 
-            # Mini-batch Cross-Entropy loss.
+            # Accumulate cross-entropy loss.
             # Use `model(...)` to do forward pass.
-            accum_loss += objective(
+            accum_loss = objective(
                 input=model(
                     input_ids=input_ids.to(device),
                     token_type_ids=token_type_ids.to(device),
                     attention_mask=attention_mask.to(device)
                 ),
                 target=label.to(device)
-            )
+            ) / config.accum_step
+
+            # Mini-batch cross-entropy loss. Only used as log.
+            loss += accum_loss.item()
+
+            # Backward pass accumulation loss.
+            accum_loss.backward()
 
             # Increment accumulation step.
             accum_step += 1
 
             # Perform gradient descend when achieve actual mini-batch size.
             if accum_step % config.accum_step == 0:
-                # Backward pass. Loss must be divided by `config.accum_step` to
-                # achieve actual mini-batch size.
-                accum_loss = accum_loss / config.accum_step
-                accum_loss.backward()
-
                 # Gradient clipping.
                 torch.nn.utils.clip_grad_norm_(
                     model.parameters(),
@@ -163,7 +166,7 @@ def train(
                 # Log on CLI.
                 cli_logger.update()
                 cli_logger.set_description(
-                    f'loss: {accum_loss.item():.6f}'
+                    f'loss: {loss:.6f}'
                 )
 
                 # Increment actual step.
@@ -173,7 +176,7 @@ def train(
                 if step % config.log_step == 0:
                     writer.add_scalar(
                         f'{config.task}/{config.dataset}/loss',
-                        accum_loss.item(),
+                        loss,
                         step
                     )
                     writer.add_scalar(
@@ -182,8 +185,8 @@ def train(
                         step
                     )
 
-                # Clean up accumulation loss.
-                accum_loss = 0
+                # Clean up mini-batch loss.
+                loss = 0
 
                 # Clean up gradient.
                 optimizer.zero_grad()
