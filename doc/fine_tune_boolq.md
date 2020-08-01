@@ -25,26 +25,27 @@ rm ./data/fine_tune/BoolQ.zip
 ```sh
 # Fine-tune on BoolQ.
 python3.8 run_fine_tune.py     \
---experiment 1                 \
+--experiment 2                 \
 --model bert                   \
 --ptrain_ver bert-base-uncased \
 --task boolq                   \
 --dataset train                \
 --num_class 2                  \
 --accum_step 1                 \
---batch_size 32                \
+--batch_size 16                \
 --beta1 0.9                    \
 --beta2 0.999                  \
---ckpt_step 1000               \
+--ckpt_step 200               \
 --dropout 0.1                  \
 --eps 1e-8                     \
+--log_step 50                  \
 --lr 1e-5                      \
 --max_norm 1.0                 \
---max_seq_len 128              \
+--max_seq_len 200              \
 --num_gpu 1                    \
 --seed 42                      \
---total_step 100000            \
---warmup_step  10000           \
+--total_step 5892            \
+--warmup_step  589           \
 --weight_decay 0.01
 ```
 
@@ -80,20 +81,20 @@ python3.8 run_fine_tune_eval.py \
 
 - Individual configuration
 
-|ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|ckpt step|dropout|encoder|log step|lr|max_seq_len|seed|total step|warmup step|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|1|0|0|0|0|0|0|1|32|1000|0.1|bert-base-uncased|500|1e-5|128|42|100000|10000|
+|ex|train acc|train acc ckpt|val acc|val acc ckpt|accum step|batch|ckpt step|dropout|encoder|log step|lr|max_seq_len|seed|total step|warmup step|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|2|0.995863|5892.ckpt|0.731498|3900.ckpt|1|16|100|0.1|bert-base-uncased|50|1e-5|200|42|5892|590|
 
 ### BERT Fine-Tune Logits Generation Scripts
 
 ```sh
 # Generate BoolQ logits.
 python3.8 run_fine_tune_gen_logits.py \
---experiment 1                        \
+--experiment 2                        \
 --model bert                          \
 --task boolq                          \
 --dataset train                       \
---ckpt 0                              \
+--ckpt 5892                              \
 --batch_size 128
 ```
 
@@ -102,30 +103,30 @@ python3.8 run_fine_tune_gen_logits.py \
 ```sh
 # Fine-tune distillation on BoolQ.
 python3.8 run_fine_tune_distill.py \
---experiment 1                     \
+--experiment student_2                     \
 --model bert                       \
---task BoolQ                        \
---dataset 1_bert_boolq             \
+--task boolq                        \
+--dataset 2_bert_boolq             \
 --num_class 2                      \
 --accum_step 1                     \
---batch_size 32                    \
+--batch_size 16                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 1000                   \
+--ckpt_step 200                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
 --eps 1e-8                         \
---lr 3e-5                          \
+--lr 1e-5                          \
 --max_norm 1.0                     \
---max_seq_len 128                  \
+--max_seq_len 200                  \
 --num_attention_heads 16           \
 --num_gpu 1                        \
 --num_hidden_layers 6              \
 --seed 42                          \
---total_step 100000                \
+--total_step 5892                \
 --type_vocab_size 2                \
---warmup_step  10000               \
+--warmup_step  590               \
 --weight_decay 0.01
 ```
 
@@ -133,8 +134,8 @@ python3.8 run_fine_tune_distill.py \
 
 ```sh
 # Fine-tune distillation evaluation on BoolQ dataset `train`.
-python3.8 run_fine_tune_distill_eval.py \
---experiment distill_1                  \
+python3.8 run_fine_tune_eval.py \
+--experiment student_2                  \
 --model bert                            \
 --task boolq                            \
 --dataset train                         \
@@ -143,13 +144,27 @@ python3.8 run_fine_tune_distill_eval.py \
 
 ```sh
 # Fine-tune distillation evaluation on BoolQ dataset `val`.
-python3.8 run_fine_tune_distill_eval.py \
---experiment distill_1                  \
+python3.8 run_fine_tune_eval.py \
+--experiment student_2                  \
 --model bert                            \
 --task boolq                            \
 --dataset val                           \
 --batch_size 128
 ```
+
+### BERT Fine-tune Distillation Experiment Results
+
+- Shared configuration
+
+|beta1|beta2|eps|max_norm|weight_decay|
+|-|-|-|-|-|
+|0.9|0.999|1e-8|1.0|0.01|
+
+- Individual configuration
+
+|ex|train acc|train acc ckpt|val acc|val acc ckpt|accum step|batch|ckpt step|dropout|dim_model|dim_FF|num_attn_heads|num_hidden_layers|lr|max_seq_len|seed|total step|warmup step|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|student-2|0.875252|5800.ckpt|0.658716|4600.ckpt|1|16|200|0.1|768|3072|16|6|1e-5|200|42|5892|590|
 
 ## ALBERT
 
