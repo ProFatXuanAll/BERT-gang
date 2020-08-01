@@ -44,8 +44,8 @@ python3.8 run_fine_tune.py     \
 --max_seq_len 200              \
 --num_gpu 1                    \
 --seed 42                      \
---total_step 36816             \
---warmup_step  10000           \
+--total_step 5892            \
+--warmup_step  589           \
 --weight_decay 0.01
 ```
 
