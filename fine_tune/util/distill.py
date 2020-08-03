@@ -102,16 +102,19 @@ def distill(
     objective = fine_tune.objective.distill_loss
 
     # Accumulation step counter.
+    step = 0
     accum_step = 0
     total_accum_step = config.total_step * config.accum_step
 
-    # Accumulate loss and update when accumulate to `config.batch_size`.
+    # Mini-batch loss and accumulate loss.
+    # Update when accumulate to `config.batch_size`.
+    loss = 0
     accum_loss = 0
 
     # `tqdm` CLI Logger. We will manually update progress bar.
     cli_logger = tqdm(
-        desc=f'loss: {0:.6f}',
-        total=config.total_step * config.accum_step
+        desc=f'loss: {loss:.6f}',
+        total=config.total_step
     )
 
     # Total update times: `config.total_step`.
@@ -126,9 +129,9 @@ def distill(
                 logits
         ) in dataloader:
 
-            # Mini-batch hard-target + soft-target loss.
+            # Accumulate cross-entropy loss.
             # Use `model(...)` to do forward pass.
-            accum_loss += objective(
+            accum_loss = objective(
                 hard_target=label.to(device),
                 student_logits=model(
                     input_ids=input_ids.to(device),
@@ -136,18 +139,19 @@ def distill(
                     attention_mask=attention_mask.to(device)
                 ),
                 teacher_logits=logits.to(device)
-            )
+            ) / config.accum_step
+
+            # Mini-batch cross-entropy loss. Only used as log.
+            loss += accum_loss.item()
+
+            # Backward pass accumulation loss.
+            accum_loss.backward()
 
             # Increment accumulation step.
             accum_step += 1
 
             # Perform gradient descend when achieve actual mini-batch size.
             if accum_step % config.accum_step == 0:
-                # Backward pass. Loss must be divided by `config.accum_step` to
-                # achieve actual mini-batch size.
-                accum_loss = accum_loss / config.accum_step
-                accum_loss.backward()
-
                 # Gradient clipping.
                 torch.nn.utils.clip_grad_norm_(
                     model.parameters(),
@@ -163,17 +167,17 @@ def distill(
                 # Log on CLI.
                 cli_logger.update()
                 cli_logger.set_description(
-                    f'loss: {accum_loss.item():.6f}'
+                    f'loss: {loss:.6f}'
                 )
 
-                # Calculate actual training step.
-                step = accum_step // config.accum_step
+                # Increment actual step.
+                step += 1
 
                 # Log loss and learning rate for each `config.log_step` step.
                 if step % config.log_step == 0:
                     writer.add_scalar(
                         f'{config.task}/{config.dataset}/{config.model}/loss',
-                        accum_loss.item(),
+                        loss,
                         step
                     )
                     writer.add_scalar(
@@ -182,8 +186,8 @@ def distill(
                         step
                     )
 
-                # Clean up accumulation loss.
-                accum_loss = 0
+                # Clean up mini-batch loss.
+                loss = 0
 
                 # Clean up gradient.
                 optimizer.zero_grad()
@@ -193,10 +197,6 @@ def distill(
                     torch.save(
                         model.state_dict(),
                         os.path.join(experiment_dir, f'model-{step}.pt')
-                    )
-                    torch.save(
-                        optimizer.state_dict(),
-                        os.path.join(experiment_dir, f'optimizer-{step}.pt')
                     )
 
             # Stop training condition.
