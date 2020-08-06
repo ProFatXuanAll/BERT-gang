@@ -25,27 +25,27 @@ rm ./data/fine_tune/BoolQ.zip
 ```sh
 # Fine-tune on BoolQ.
 python3.8 run_fine_tune.py     \
---experiment test_amp                 \
+--experiment BLarge_1                 \
 --model bert                   \
---ptrain_ver bert-base-uncased \
+--ptrain_ver bert-large-cased \
 --task boolq                   \
 --dataset train                \
 --num_class 2                  \
---accum_step 2                 \
+--accum_step 16                 \
 --batch_size 32                \
 --beta1 0.9                    \
 --beta2 0.999                  \
---ckpt_step 500               \
+--ckpt_step 250               \
 --dropout 0.1                  \
 --eps 1e-8                     \
---log_step 500                 \
+--log_step 250                 \
 --lr 1e-5                      \
 --max_norm 1.0                 \
 --max_seq_len 256              \
 --num_gpu 1                    \
 --seed 42                      \
---total_step 5892            \
---warmup_step  589           \
+--total_step 2946            \
+--warmup_step  295           \
 --weight_decay 0.01 \
 --amp
 ```
@@ -55,7 +55,7 @@ python3.8 run_fine_tune.py     \
 ```sh
 # Fine-tune evaluation on BoolQ dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment test_amp                  \
+--experiment BLarge_1_amp                  \
 --model bert                    \
 --task boolq                    \
 --dataset train                 \
@@ -65,7 +65,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on BoolQ dataset `val`.
 python3.8 run_fine_tune_eval.py \
---experiment test_amp                 \
+--experiment BLarge_1_amp                 \
 --model bert                    \
 --task boolq                    \
 --dataset val                   \
@@ -86,6 +86,8 @@ python3.8 run_fine_tune_eval.py \
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
 |2|0.995863|5892.ckpt|0.731498|3900.ckpt|1|16|100|0.1|bert-base-uncased|50|1e-5|200|42|5892|590|
 |test-amp|0.998727|5000.ckpt|0.723242|4500.ckpt|2|32|500|0.1|bert-base-uncased|500.ckpt|1e-5|256|42|5892|590|
+|BLarge_1_amp|0.992681|2946.ckpt|0.733333|2250.ckpt|16|32|250|0.1|bert-large-cased|250|1e-5|256|42|2946|295|
+
 
 ### BERT Fine-Tune Logits Generation Scripts
 
