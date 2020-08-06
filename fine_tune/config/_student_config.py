@@ -34,6 +34,9 @@ class StudentConfig(BaseConfig):
             Gradient accumulation step. Used when GPU memory cannot fit in
             whole batch. `accum_step` must be bigger than or equal to `1`;
             `accum_step` must be smaller than or equal to `batch_size`.
+        amp:
+            A boolean flag to indicate whether using `torch.cuda.amp` package
+            in both train and inference.
         batch_size:
             Distillation batch size. `batch_size` must be bigger than or equal
             to `1`; `batch_size` must be greater than or equal to `accum_step`.
@@ -125,6 +128,7 @@ class StudentConfig(BaseConfig):
     def __init__(
             self,
             accum_step: int = 1,
+            amp: bool = False,
             batch_size: int = 32,
             beta1: float = 0.9,
             beta2: float = 0.999,
@@ -154,6 +158,7 @@ class StudentConfig(BaseConfig):
     ):
         super().__init__(
             accum_step=accum_step,
+            amp=amp,
             batch_size=batch_size,
             beta1=beta1,
             beta2=beta2,
@@ -173,7 +178,7 @@ class StudentConfig(BaseConfig):
             task=task,
             total_step=total_step,
             warmup_step=warmup_step,
-            weight_decay=weight_decay,
+            weight_decay=weight_decay
         )
 
         self.__class__.type_check(d_emb, 'd_emb', int)

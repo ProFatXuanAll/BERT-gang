@@ -75,6 +75,12 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
+        '--amp',
+        default=False,
+        help='Use automatic mixed precision during training.',
+        action='store_true'
+    )
+    parser.add_argument(
         '--batch_size',
         default=32,
         help='Distillation batch size.',
@@ -200,13 +206,13 @@ if __name__ == '__main__':
         help="Optimizer `torch.optim.AdamW` weight decay regularization.",
         type=float,
     )
-
     # Parse arguments.
     args = parser.parse_args()
 
     # Construct configuration.
     config = fine_tune.config.StudentConfig(
         accum_step=args.accum_step,
+        amp=args.amp,
         batch_size=args.batch_size,
         beta1=args.beta1,
         beta2=args.beta2,
@@ -275,11 +281,21 @@ if __name__ == '__main__':
     )
 
     # Perform distllation.
-    fine_tune.util.distill(
-        config=config,
-        dataset=dataset,
-        model=model,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        tokenizer=tokenizer
-    )
+    if args.amp:
+        fine_tune.util.amp_distill(
+            config=config,
+            dataset=dataset,
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            tokenizer=tokenizer
+        )
+    else:
+        fine_tune.util.distill(
+            config=config,
+            dataset=dataset,
+            model=model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            tokenizer=tokenizer
+        )

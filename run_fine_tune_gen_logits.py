@@ -151,9 +151,18 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(model_name))
 
     # Generate logits.
-    fine_tune.util.gen_logits(
-        config=config,
-        dataset=dataset,
-        model=model,
-        tokenizer=tokenizer
-    )
+    if config.amp:
+        # Use automatic mixed precision to generate logits.
+        fine_tune.util.amp_gen_logits(
+            config=config,
+            dataset=dataset,
+            model=model,
+            tokenizer=tokenizer
+        )
+    else:
+        fine_tune.util.gen_logits(
+            config=config,
+            dataset=dataset,
+            model=model,
+            tokenizer=tokenizer
+        )

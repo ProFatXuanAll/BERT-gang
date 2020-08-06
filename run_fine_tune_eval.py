@@ -14,7 +14,7 @@ import logging
 import os
 import re
 
-# 3rd-party modules.
+# 3rd-party modules
 
 import torch
 import torch.utils
@@ -179,12 +179,20 @@ if __name__ == '__main__':
         )))
 
         # Calculate accuracy.
-        acc = fine_tune.util.evaluation(
-            config=config,
-            dataset=dataset,
-            model=model,
-            tokenizer=tokenizer
-        )
+        if config.amp:
+            acc = fine_tune.util.amp_evaluation(
+                config=config,
+                dataset=dataset,
+                model=model,
+                tokenizer=tokenizer
+            )
+        else:
+            acc = fine_tune.util.evaluation(
+                config=config,
+                dataset=dataset,
+                model=model,
+                tokenizer=tokenizer
+            )
 
         # Update max accuracy.
         if max_acc <= acc:

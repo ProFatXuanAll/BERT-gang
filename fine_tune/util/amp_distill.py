@@ -1,9 +1,9 @@
-r"""Helper function for training model with  automatic mixed precision.
+r"""Helper functions for knowledge distillation with automatic mixed precision.
 
 Usage:
     import fine_tune
 
-    fine_tune.util.amp_train(...)
+    fine_tune.util.amp_distill(...)
 """
 
 # built-in modules
@@ -18,7 +18,6 @@ import os
 # 3rd party modules
 
 import torch
-import torch.nn as nn
 import torch.utils
 import torch.utils.data
 import torch.utils.tensorboard
@@ -34,7 +33,7 @@ import fine_tune.model
 import fine_tune.path
 
 
-def amp_train(
+def amp_distill(
         config: fine_tune.config.BaseConfig,
         dataset: fine_tune.task.Dataset,
         model: fine_tune.model.Model,
@@ -42,7 +41,7 @@ def amp_train(
         scheduler: torch.optim.lr_scheduler.LambdaLR,
         tokenizer: transformers.PreTrainedTokenizer,
 ):
-    r"""Fine-tune or distill model on task specific dataset with automatic mixed precision
+    r"""Perform knowledge distillation model on logits dataset with automatic mixed precision.
 
     Args:
         config:
@@ -51,7 +50,8 @@ def amp_train(
         dataset:
             Task specific dataset.
         model:
-            Model which will be fine-tuned on `dataset`.
+            Model which will perform distillation on previously generated
+            logits `dataset`.
         optimizer:
             `torch.optim.AdamW` optimizer.
         schduler:
@@ -62,11 +62,11 @@ def amp_train(
     # Training mode.
     model.train()
 
+    # Creates a GradScaler.
+    scaler = torch.cuda.amp.GradScaler()
+
     # Model running device.
     device = config.device
-
-    # Creates a GradScaler
-    scaler = torch.cuda.amp.GradScaler()
 
     # Clean all gradient.
     optimizer.zero_grad()
@@ -101,15 +101,15 @@ def amp_train(
         )
     )
 
-    # Use cross-entropy as objective.
-    objective = nn.CrossEntropyLoss()
+    # Use both hard-target and soft-target as objective.
+    objective = fine_tune.objective.distill_loss
 
-    # Step and accumulation step counter.
+    # Accumulation step counter.
     step = 0
     accum_step = 0
     total_accum_step = config.total_step * config.accum_step
 
-    # Mini-batch loss and accumulate loss.
+    # Mini-batch loss and accmulate loss.
     # Update when accumulate to `config.batch_size`.
     loss = 0
     accum_loss = 0
@@ -124,25 +124,24 @@ def amp_train(
     while accum_step < total_accum_step:
 
         # Mini-batch loop.
-        for (
+        for(
                 input_ids,
                 attention_mask,
                 token_type_ids,
                 label,
-                _
+                logits
         ) in dataloader:
 
             # Enable autocast.
             with torch.cuda.amp.autocast():
-                # Accumulate cross-entropy loss.
-                # Use `model(...)` to do forward pass.
                 accum_loss = objective(
-                    input=model(
+                    hard_target=label.to(device),
+                    student_logits=model(
                         input_ids=input_ids.to(device),
                         token_type_ids=token_type_ids.to(device),
                         attention_mask=attention_mask.to(device)
                     ),
-                    target=label.to(device)
+                    teacher_logits=logits.to(device)
                 ) / config.accum_step
 
             # Mini-batch cross-entropy loss. Only used as log.
@@ -165,7 +164,7 @@ def amp_train(
                     config.max_norm
                 )
 
-                # Gradient descent.
+                # Gradient descend.
                 scaler.step(optimizer)
 
                 # Updates the scale for next iteration.
@@ -174,7 +173,7 @@ def amp_train(
                 # Update learning rate.
                 scheduler.step()
 
-                # Log on CLI
+                # Log on CLI.
                 cli_logger.update()
                 cli_logger.set_description(
                     f'loss: {loss:.6f}'
@@ -186,12 +185,12 @@ def amp_train(
                 # Log loss and learning rate for each `config.log_step` step.
                 if step % config.log_step == 0:
                     writer.add_scalar(
-                        f'{config.task}/{config.dataset}/loss',
+                        f'{config.task}/{config.dataset}/{config.model}/loss',
                         loss,
                         step
                     )
                     writer.add_scalar(
-                        f'{config.task}/{config.dataset}/lr',
+                        f'{config.task}/{config.dataset}/{config.model}/lr',
                         optimizer.state_dict()['param_groups'][0]['lr'],
                         step
                     )
