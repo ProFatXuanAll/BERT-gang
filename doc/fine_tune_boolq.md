@@ -170,7 +170,7 @@ python3.8 run_fine_tune_eval.py \
 - Individual configuration
 
 |ex|train acc|train acc ckpt|val acc|val acc ckpt|accum step|batch|ckpt step|dropout|dim_model|dim_FF|num_attn_heads|num_hidden_layers|lr|max_seq_len|seed|total step|warmup step|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
 |student-2|0.875252|5800.ckpt|0.658716|4600.ckpt|1|16|200|0.1|768|3072|16|6|1e-5|200|42|5892|590|
 |BLarge_uncased_distill_1*|0.866554|2946.ckpt|0.673394|2200.ckpt|8|32|200|0.1|1024|4096|16|6|1e-5|256|42|2946|295|
 |BLarge_uncased_distill_2*|0.853294|2946.ckpt|0.658716|2000.ckpt|8|32|200|0.1|1024|4096|16|12|1e-5|256|42|2946|295|
@@ -178,7 +178,7 @@ python3.8 run_fine_tune_eval.py \
 ### BERT Fine-tune Distillation(initialized from pre-trained teacher) Experiment Results
 
 |ex|train acc|train acc ckpt|val acc|val acc ckpt|accum step|batch|ckpt step|dropout|dim_model|dim_FF|num_attn_heads|num_hidden_layers|lr|max_seq_len|seed|total step|warmup step|start|end|step|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
 |BLarge_uncased_distill_3*(attn_W only)|0.922351|2800.ckpt|0.675535|2000.ckpt|8|32|200|0.1|1024|4096|16|6|1e-5|256|42|2946|295|1|6|1|
 |BLarge_uncased_distill_5*|0.966797|2946.ckpt|0.659939|2400.ckpt|8|32|200|0.1|1024|4096|16|6|1e-5|256|42|2946|295|1|6|1|
 |BLarge_uncased_distill_6|0.934019|2800.ckpt|0.680428|1600.ckpt|8|32|200|0.1|1024|4096|16|12|1e-5|256|42|2946|295|1|24|2|
@@ -188,7 +188,7 @@ python3.8 run_fine_tune_eval.py \
 ### BERT Fine-tune Distillation with TA Experiments Results
 
 |ex|train acc|train acc ckpt|val acc|val acc ckpt|accum step|batch|ckpt step|dropout|dim_model|dim_FF|num_attn_heads|num_hidden_layers|lr|max_seq_len|seed|total step|warmup step|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
+|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
 |BLarge_uncased_TA_1*|0.853294|2946.ckpt|0.658716|2000.ckpt|8|32|200|0.1|1024|4096|16|12|1e-5|256|42|2946|295|
 |BLarge_uncased_TA_2*|0.825607|2946.ckpt|0.659633|2000.ckpt|16|32|200|0.1|1024|4096|16|21|1e-5|256|42|2946|295|
 |BLarge_uncased_TA_3*|0.853294|2946.ckpt|0.656575|2800.ckpt|8|32|200|0.1|1024|4096|16|12|1e-5|256|42|2946|295|
