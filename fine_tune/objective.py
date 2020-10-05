@@ -128,3 +128,24 @@ def distill_loss(
         F.cross_entropy(student_logits, hard_target) +
         soft_target_cross_entropy_loss(student_logits, teacher_logits)
     )
+
+def attention_KL_loss(
+        teacher_attn: torch.Tensor,
+        student_attn: torch.Tensor
+) -> torch.Tensor:
+    r""" KL divergence loss between teacher's and student's attention head
+    We use the following notation for the rest of the context.
+        - B: batch size.
+        - S: sequence length.
+        - A: num of attention heads
+    Args:
+        teacher_attn:
+            attention matrix from one of teacher layer with numeric type
+            `torch.float32` and size (B, A, S, S)
+        student_attn:
+            attention matrix from one of student layer with numeric type
+            `torch.float32` and size (B, A, S, S)
+    Returns:
+        KL divergence loss between teacher and student attention heads.
+    """
+    return F.kl_div(teacher_attn, student_attn)

@@ -193,8 +193,6 @@ python3.8 run_fine_tune_eval.py \
 |BLarge_uncased_TA_2*|0.825607|2946.ckpt|0.659633|2000.ckpt|16|32|200|0.1|1024|4096|16|21|1e-5|256|42|2946|295|
 |BLarge_uncased_TA_3*|0.853294|2946.ckpt|0.656575|2800.ckpt|8|32|200|0.1|1024|4096|16|12|1e-5|256|42|2946|295|
 
-
-
 ## ALBERT
 
 ### ALBERT Fine-Tune Script
@@ -223,7 +221,8 @@ python3.8 run_fine_tune.py  \
 --seed 42                   \
 --total_step 10000          \
 --warmup_step  1000         \
---weight_decay 0.01
+--weight_decay 0.01         \
+--amp
 ```
 
 ### ALBERT Fine-Tune Evaluation Scripts
@@ -306,7 +305,8 @@ python3.8 run_fine_tune_distill.py \
 --total_step 100000                \
 --type_vocab_size 2                \
 --warmup_step  10000               \
---weight_decay 0.01
+--weight_decay 0.01         \
+--amp
 ```
 
 ### ALBERT Fine-Tune Distillation Evaluation Scripts

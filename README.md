@@ -4,9 +4,12 @@ Using Knowledge Distillation to learn from BERT-like models.
 
 ## Setup
 
-You need `Ubuntu18.04+` and `python3.8+` to run all the code.
+You need `Ubuntu18.04+` and `python3.8+` to run all the code.  
+We will use `pipenv` to replace `venv` and `pip`.
 
-```sh
+- [Pipenv documentation](https://pipenv.pypa.io/en/latest/)
+
+```bash
 # clone the project
 git clone https://github.com/ProFatXuanAll/BERT-gang
 
@@ -17,12 +20,14 @@ cd BERT-gang
 mkdir data data/fine_tune
 
 # create virtual environment
-python3.8 -m venv venv
-source venv/bin/activate
-pip install -U pip setuptools wheel
+pipenv --python 3.8
 
-# install dependencies
-pip install -r requirements.txt
+# install dependencies from `Pipfile`
+pipenv install
+
+# activate Pipenv shell and check python version
+pipenv shell
+python --version
 ```
 
 ## Profiling
@@ -33,3 +38,10 @@ pip install -r requirements.txt
   - You need to install `cuda` driver first.
   - Required `cuda10+`.
 - Use `tensorboard --logdir='./data/fine_tune_experiment/log'` to monitor loss, learning rate and accuracy.
+
+## TO-DO
+
+- [x] Use `pipenv` to replace `virtualenv` and `pip`
+- [ ] Use multi-gpu to perform distillation:
+  - Teacher model (GPU:0), student model(GPU:1)
+  - Use inter program communication to let teacher model send attention scores, hidden states or even output logits to student model.
