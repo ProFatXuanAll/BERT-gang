@@ -125,8 +125,7 @@ def train(
                 input_ids,
                 attention_mask,
                 token_type_ids,
-                label,
-                _
+                label
         ) in dataloader:
 
             # Accumulate cross-entropy loss.

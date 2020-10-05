@@ -128,8 +128,7 @@ def amp_train(
                 input_ids,
                 attention_mask,
                 token_type_ids,
-                label,
-                _
+                label
         ) in dataloader:
 
             # Enable autocast.
