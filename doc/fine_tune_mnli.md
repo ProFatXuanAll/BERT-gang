@@ -116,6 +116,7 @@ python3.8 run_fine_tune_gen_logits.py \
 ```
 
 ### BERT Fine-Tune Attention Heads Generation Scripts
+
 ```sh
 python3.8 run_fine_tune_gen_attn_heads.py \
 --experiment 2                        \
@@ -125,7 +126,6 @@ python3.8 run_fine_tune_gen_attn_heads.py \
 --ckpt 36816                          \
 --output_attn
 ```
-
 
 ### BERT Fine-Tune Distillation Scripts
 
