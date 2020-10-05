@@ -44,4 +44,3 @@ python --version
 - [x] Use `pipenv` to replace `virtualenv` and `pip`
 - [ ] Use multi-gpu to perform distillation:
   - Teacher model (GPU:0), student model(GPU:1)
-  - Use inter program communication to let teacher model send attention scores, hidden states or even output logits to student model.

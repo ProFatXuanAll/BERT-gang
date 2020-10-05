@@ -77,7 +77,7 @@ class TeacherBert(nn.Module):
             )
 
         # Load pre-train BERT model.
-        self.encoder = BertModel.from_pretrained(ptrain_ver)
+        self.encoder = BertModel.from_pretrained(ptrain_ver, return_dict=True)
 
         # Dropout layer between encoder and linear layer.
         self.dropout = nn.Dropout(dropout)
@@ -103,14 +103,17 @@ class TeacherBert(nn.Module):
             self,
             input_ids: torch.Tensor,
             attention_mask: torch.Tensor,
-            token_type_ids: torch.Tensor
+            token_type_ids: torch.Tensor,
+            return_hidden_and_attn: bool = False
     ):
-        r"""Forward pass.
+        r"""Forward pass
 
         We use the following notation for the rest of the context.
+            - A: num of attention heads.
             - B: batch size.
             - S: sequence length.
             - C: number of class.
+            - H: hidden state size.
 
         Args:
             input_ids:
@@ -123,17 +126,48 @@ class TeacherBert(nn.Module):
             token_type_ids:
                 Batch of input token type ids. `token_type_ids` is a
                 `torch.Tensor` with numeric type `torch.int64` and size (B, S).
+            return_hidden_and_attn:
+                A boolean flag to indicate whether return hidden states and attention heads
+                of model. It should be true if you want to get hidden states of a fine-tuned model.
+                Default: `False`
 
         Returns:
-            Unnormalized logits with numeric type `torch.float32` and size
-            (B, C).
+            If `return_hidden_and_attn` is `False`:
+                Unnormalized logits with numeric type `torch.float32` and size
+                (B, C).
+            Else:
+                Return three values:
+                1. Unnormalized logits with numeric type `torch.float32` and size
+                (B, C).
+                2. Hidden states: Tuple of torch.FloatTensor with shape: (B, S, H).
+                (One for the output of the embeddings + one for the output of each layer.)
+                3. Attentions: Tuple of torch.FloatTensor with shape: (B, A, S, S).
+                (One for each layer).
         """
+        # Return logits, hidden states and attention heads.
+        if return_hidden_and_attn:
+            output = self.encoder(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                token_type_ids=token_type_ids,
+                output_hidden_states=True,
+                output_attentions=True
+            )
+
+            pooled_output = output.pooler_output
+            hidden_states = output.hidden_states
+            attentions = output.attentions
+
+            pooled_output = self.dropout(pooled_output)
+            return self.linear_layer(pooled_output), hidden_states, attentions
+
+        # Only return logits.
         output = self.encoder(
             input_ids=input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids
         )
-        pooled_output = output[1]
+        pooled_output = output.pooler_output
         pooled_output = self.dropout(pooled_output)
         return self.linear_layer(pooled_output)
 
@@ -172,7 +206,8 @@ class TeacherBert(nn.Module):
             self(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
-                token_type_ids=token_type_ids
+                token_type_ids=token_type_ids,
+                return_hidden_and_attn=False
             ),
             dim=-1
         )
