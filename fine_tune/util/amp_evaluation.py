@@ -82,8 +82,7 @@ def amp_evaluation(
             input_ids,
             attention_mask,
             token_type_ids,
-            label,
-            _
+            label
     ) in mini_batch_iterator:
         # Enable autocast
         with torch.cuda.amp.autocast():
