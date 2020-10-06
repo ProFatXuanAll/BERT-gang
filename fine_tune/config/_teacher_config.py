@@ -97,6 +97,8 @@ class TeacherConfig(BaseConfig):
         weight_decay:
             Optimizer `torch.optim.AdamW` weight decay regularization.
             `weight_decay` must be bigger than or equal to `0`.
+        device_id:
+            ID of GPU device, set to `-1` to use CPU.
 
     Raises:
         OSError:
@@ -133,7 +135,8 @@ class TeacherConfig(BaseConfig):
             task: str = '',
             total_step: int = 50000,
             warmup_step: int = 10000,
-            weight_decay: float = 0.01
+            weight_decay: float = 0.01,
+            device_id: int = -1
     ):
         super().__init__(
             accum_step=accum_step,
@@ -157,7 +160,8 @@ class TeacherConfig(BaseConfig):
             task=task,
             total_step=total_step,
             warmup_step=warmup_step,
-            weight_decay=weight_decay
+            weight_decay=weight_decay,
+            device_id=device_id
         )
 
         self.__class__.type_check(ptrain_ver, 'ptrain_ver', str)

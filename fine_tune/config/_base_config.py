@@ -107,6 +107,8 @@ class BaseConfig:
         weight_decay:
             Optimizer `torch.optim.AdamW` weight decay regularization.
             `weight_decay` must be bigger than or equal to `0`.
+        device_id:
+            ID of GPU device, set to `-1` to use CPU.
 
     Raises:
         OSError:
@@ -142,7 +144,8 @@ class BaseConfig:
             task: str = '',
             total_step: int = 50000,
             warmup_step: int = 10000,
-            weight_decay: float = 0.01
+            weight_decay: float = 0.01,
+            device_id: int = -1
     ):
 
         self.__class__.type_check(accum_step, 'accum_step', int)
@@ -167,6 +170,7 @@ class BaseConfig:
         self.__class__.type_check(total_step, 'total_step', int)
         self.__class__.type_check(warmup_step, 'warmup_step', int)
         self.__class__.type_check(weight_decay, 'weight_decay', float)
+        self.__class__.type_check(device_id, 'device_id', int)
 
         if accum_step < 1:
             raise ValueError(
@@ -305,6 +309,7 @@ class BaseConfig:
         self.total_step = total_step
         self.warmup_step = warmup_step
         self.weight_decay = weight_decay
+        self.device_id = device_id
 
     @staticmethod
     def type_check(
@@ -356,6 +361,7 @@ class BaseConfig:
         yield 'total_step', self.total_step
         yield 'warmup_step', self.warmup_step
         yield 'weight_decay', self.weight_decay
+        yield 'device_id', self.device_id
 
     def __str__(self) -> str:
         col_width = max([
@@ -387,6 +393,8 @@ class BaseConfig:
         """
         return self.beta1, self.beta2
 
+    #TODO:Is `self.num_gpu` essential?
+    #TODO: How to handle `device` property when use multi-gpu
     @property
     def device(self) -> torch.device:
         r"""Get running model device.
@@ -397,9 +405,9 @@ class BaseConfig:
         Returns:
             Device create by `torch.device`.
         """
-        if not self.num_gpu:
+        if self.device_id == -1:
             return torch.device('cpu')
-        return torch.device('cuda')
+        return torch.device(f'cuda:{self.device_id}')
 
     def save(self) -> None:
         r"""Save configuration into json file."""
