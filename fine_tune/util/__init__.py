@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 
 # my own modules
 
+from fine_tune.util.check_device import check_device
 from fine_tune.util.distill import distill
 from fine_tune.util.amp_distill import amp_distill
 from fine_tune.util.evaluation import evaluation
