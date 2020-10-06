@@ -279,7 +279,6 @@ if __name__ == "__main__":
         model=args.model,
         num_attention_heads=args.num_attention_heads,
         num_class=args.num_class,
-        num_gpu=args.num_gpu,
         num_hidden_layers=args.num_hidden_layers,
         seed=teacher_config.seed,
         task=args.task,
