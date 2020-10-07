@@ -148,4 +148,25 @@ def attention_KL_loss(
     Returns:
         KL divergence loss between teacher and student attention heads.
     """
-    return F.kl_div(teacher_attn, student_attn)
+    return F.kl_div(student_attn, teacher_attn)
+
+def hidden_MSE_loss(
+        teacher_hidden: torch.Tensor,
+        student_hidden: torch.Tensor
+) -> torch.Tensor:
+    r""" MSE loss between teacher's and student's hidden states.
+    We use the following notation for the reset of the context.
+        - B: batch size.
+        - S: sequence size.
+        - H: hidden size.
+    Args:
+        teacher_hidden:
+            hidden state from one of teacher layer with numeric type
+            `torch.float32` and size (B, S, H)
+        student_hidden:
+            hidden state from one of student layer with numeric type
+            `torch.float32` and size (B, S, H)
+    Returns:
+        MSE loss between teacher and student hidden states.
+    """
+    return F.mse_loss(student_hidden, teacher_hidden)
