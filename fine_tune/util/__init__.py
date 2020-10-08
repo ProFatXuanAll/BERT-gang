@@ -23,6 +23,7 @@ from __future__ import unicode_literals
 from fine_tune.util.check_device import check_device
 from fine_tune.util.distill import distill
 from fine_tune.util.amp_distill import amp_distill
+from fine_tune.util.amp_distill_mgpu import amp_distill_mgpu
 from fine_tune.util.evaluation import evaluation
 from fine_tune.util.amp_evaluation import amp_evaluation
 from fine_tune.util.gen_logits import gen_logits
