@@ -142,7 +142,7 @@ def amp_distill_mgpu(
         out_features=teahcer_model.allow_ptrain_ver[
             teacher_config.ptrain_ver
         ]
-    )
+    ).to(student_config.device_id)
 
     # Accumulation step counter.
     step = 0
@@ -215,7 +215,7 @@ def amp_distill_mgpu(
             loss += batch_logits_loss.item()
 
             # Accumulate gradients.
-            scaler.scale(batch_logits_loss).backward()
+            scaler.scale(batch_logits_loss).backward(retain_graph=True)
 
             # Calculate batch hidden states loss.
             # Cause parameter update in Mixed Precision Training use 32-bit fp.
@@ -232,7 +232,7 @@ def amp_distill_mgpu(
                     batch_hidden_loss = hidden_objective(
                         teacher_hidden=t_hidden.to(student_device),
                         student_hidden= adaptive_layer(
-                            s_hidden
+                            s_hidden.to(torch.half)
                         )
                     )
 
@@ -243,7 +243,7 @@ def amp_distill_mgpu(
                 loss += batch_hidden_loss.item()
 
                 # Accumulate gradient.
-                scaler.scale(batch_hidden_loss).backward()
+                scaler.scale(batch_hidden_loss).backward(retain_graph=True)
 
             # Calculate batch attentions loss.
             # Cause parameter update in Mixed Precision Training use 32-bit fp.
@@ -269,7 +269,7 @@ def amp_distill_mgpu(
                 loss += batch_attn_loss.item()
 
                 # Accumulate gradient.
-                scaler.scale(batch_attn_loss).backward()
+                scaler.scale(batch_attn_loss).backward(retain_graph=True)
 
             # Increment accumulation step.
             accum_step += 1
