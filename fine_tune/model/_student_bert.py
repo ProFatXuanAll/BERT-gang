@@ -73,7 +73,8 @@ class StudentBert(nn.Module):
             num_hidden_layers=num_hidden_layers,
             num_attention_heads=num_attention_heads,
             type_vocab_size=type_vocab_size,
-            vocab_size=vocab_size
+            vocab_size=vocab_size,
+            return_dict=True
         ))
 
         # Dropout layer between encoder and linear layer.
@@ -160,7 +161,7 @@ class StudentBert(nn.Module):
         output = self.encoder(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            token_type_ids=token_type_ids
+            token_type_ids=token_type_ids,
         )
         pooled_output = output.pooler_output
         pooled_output = self.dropout(pooled_output)
