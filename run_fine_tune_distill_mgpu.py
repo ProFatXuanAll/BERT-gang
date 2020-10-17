@@ -55,6 +55,21 @@ if __name__ == "__main__":
         required=True,
         type=str,
     )
+    parser.add_argument(
+        '--use_logits_loss',
+        help='Use logits loss during distillation',
+        action='store_true'
+    )
+    parser.add_argument(
+        '--use_hidden_loss',
+        help='Use hidden states only during distillation',
+        action='store_true'
+    )
+    parser.add_argument(
+        '--use_attn_loss',
+        help='Use attention distribution only during distillation',
+        action='store_true'
+    )
 
     # Arguments of teacher model.
     parser.add_argument(
@@ -218,6 +233,12 @@ if __name__ == "__main__":
     # Parse arguments.
     args = parser.parse_args()
 
+    # Check use forgot to indicate loss.
+    if not ( args.use_logits_loss or args.use_hidden_loss or args.use_attn_loss ):
+        raise ValueError("You forgot to specify loss function!\n" +
+            "Please check relative document for more info!"
+        )
+
     # Load fine-tune teacher model configuration.
     teacher_config = fine_tune.config.TeacherConfig.load(
         experiment=args.teacher_exp,
@@ -333,7 +354,10 @@ if __name__ == "__main__":
             optimizer=optimizer,
             scheduler=scheduler,
             teacher_tokenizer=teacher_tokenizer,
-            student_tokenizer=student_tokenizer
+            student_tokenizer=student_tokenizer,
+            use_logits_loss=args.use_logits_loss,
+            use_hidden_loss=args.use_hidden_loss,
+            use_attn_loss=args.use_attn_loss
         )
     else:
         # perform distillation.

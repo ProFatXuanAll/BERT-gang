@@ -43,7 +43,10 @@ def amp_distill_mgpu(
         optimizer: torch.optim.AdamW,
         scheduler: torch.optim.lr_scheduler.LambdaLR,
         teacher_tokenizer: transformers.PreTrainedTokenizer,
-        student_tokenizer: transformers.PreTrainedTokenizer
+        student_tokenizer: transformers.PreTrainedTokenizer,
+        use_logits_loss: bool = True,
+        use_hidden_loss: bool = True,
+        use_attn_loss: bool = True
 ):
     r"""Perform knowledge distillation from given fine-tuned teacher model
     with automatic mixed precision.
@@ -155,7 +158,10 @@ def amp_distill_mgpu(
 
     # `tqdm` CLI Logger. We will manually update progress bar.
     cli_logger = tqdm(
-        desc=f'loss: {loss:.6f}',
+        desc=f'loss: {loss:.6f} ' +
+            f'logits_loss: {logits_loss:.6f} ' +
+            f'hidden_loss: {hidden_loss:.6f} ' +
+            f'attn_loss: {attn_loss:.6f}',
         total=student_config.total_step
     )
 
@@ -193,7 +199,7 @@ def amp_distill_mgpu(
             student_token_type_ids = student_batch_encode['token_type_ids']
             student_attention_mask = student_batch_encode['attention_mask']
 
-            # Get output logits, hidden states and attentions from teacher.
+            # Get output logits, hidden states and attentions from teacher and student.
             with torch.no_grad():
                 teacher_logits, teacher_hiddens, teacher_attns = teahcer_model(
                     input_ids = teacher_input_ids.to(teacher_device),
@@ -202,11 +208,6 @@ def amp_distill_mgpu(
                     return_hidden_and_attn=True
                 )
 
-            # Calculate logits loss.
-            # Cause parameter update in Mixed Precision Training use 32-bit fp.
-            # We need to leave context manager before `backward`.
-
-            # Enable autocast.
             with torch.cuda.amp.autocast():
                 # Get output logits, hidden states and attentions from student.
                 student_logits, student_hiddens, student_attns = student_model(
@@ -216,79 +217,88 @@ def amp_distill_mgpu(
                     return_hidden_and_attn=True
                 )
 
-                # Calculate batch loss of logits.
-                batch_logits_loss = logits_objective(
-                    hard_target=label.to(student_device),
-                    teacher_logits=teacher_logits.to(student_device),
-                    student_logits=student_logits
-                )
-
-                # Normalize loss.
-                batch_logits_loss = batch_logits_loss / student_config.accum_step
-
-            # Log loss.
-            logits_loss += batch_logits_loss.item()
-            loss += batch_logits_loss.item()
-
-            # Accumulate gradients.
-            scaler.scale(batch_logits_loss).backward(retain_graph=True)
-
-            # Calculate batch hidden states loss.
+            # Calculate logits loss.
             # Cause parameter update in Mixed Precision Training use 32-bit fp.
             # We need to leave context manager before `backward`.
-            # TODO: can we use `map` function to summarize loss?
-            skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
-            for t_hidden, s_hidden, adaptive_layer in zip(
-                teacher_hiddens[1::skip],
-                student_hiddens[1:],
-                adaptvive_layers
-            ):
 
-                # Enable autocast.
+            # Enable autocast.
+            if use_logits_loss:
                 with torch.cuda.amp.autocast():
-                    batch_hidden_loss = hidden_objective(
-                        teacher_hidden=t_hidden.to(student_device),
-                        student_hidden= adaptive_layer(
-                            s_hidden
+                    # Calculate batch loss of logits.
+                    batch_logits_loss = logits_objective(
+                        hard_target=label.to(student_device),
+                        teacher_logits=teacher_logits.to(student_device),
+                        student_logits=student_logits
+                    )
+
+                    # Normalize loss.
+                    batch_logits_loss = batch_logits_loss / student_config.accum_step
+
+                # Log loss.
+                logits_loss += batch_logits_loss.item()
+                loss += batch_logits_loss.item()
+
+                # Accumulate gradients.
+                scaler.scale(batch_logits_loss).backward(retain_graph=True)
+
+            if use_hidden_loss:
+                # Calculate batch hidden states loss.
+                # Cause parameter update in Mixed Precision Training use 32-bit fp.
+                # We need to leave context manager before `backward`.
+                # TODO: can we use `map` function to summarize loss?
+                skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
+                for t_hidden, s_hidden, adaptive_layer in zip(
+                    teacher_hiddens[1::skip],
+                    student_hiddens[1:],
+                    adaptvive_layers
+                ):
+
+                    # Enable autocast.
+                    with torch.cuda.amp.autocast():
+                        batch_hidden_loss = hidden_objective(
+                            teacher_hidden=t_hidden.to(student_device),
+                            student_hidden= adaptive_layer(
+                                s_hidden
+                            )
                         )
-                    )
 
-                    # Normalize loss.
-                    batch_hidden_loss = batch_hidden_loss / student_config.accum_step
+                        # Normalize loss.
+                        batch_hidden_loss = batch_hidden_loss / student_config.accum_step
 
-                # Log loss.
-                hidden_loss += batch_hidden_loss.item()
-                loss += batch_hidden_loss.item()
+                    # Log loss.
+                    hidden_loss += batch_hidden_loss.item()
+                    loss += batch_hidden_loss.item()
 
-                # Accumulate gradient.
-                scaler.scale(batch_hidden_loss).backward(retain_graph=True)
+                    # Accumulate gradient.
+                    scaler.scale(batch_hidden_loss).backward(retain_graph=True)
 
-            # Calculate batch attentions loss.
-            # Cause parameter update in Mixed Precision Training use 32-bit fp.
-            # We need to leave context manager before `backward`.
-            # TODO: can we use `map` function to summarize loss?
-            skip = len(teacher_attns) // len(student_attns)
-            for t_attn, s_attn in zip(
-                teacher_attns[skip-1::skip],
-                student_attns
-            ):
+            if use_attn_loss:
+                # Calculate batch attentions loss.
+                # Cause parameter update in Mixed Precision Training use 32-bit fp.
+                # We need to leave context manager before `backward`.
+                # TODO: can we use `map` function to summarize loss?
+                skip = len(teacher_attns) // len(student_attns)
+                for t_attn, s_attn in zip(
+                    teacher_attns[skip-1::skip],
+                    student_attns
+                ):
 
-                # Enable autocast.
-                with torch.cuda.amp.autocast():
-                    batch_attn_loss = attn_objective(
-                        teacher_attn=t_attn.to(student_device),
-                        student_attn=s_attn
-                    )
+                    # Enable autocast.
+                    with torch.cuda.amp.autocast():
+                        batch_attn_loss = attn_objective(
+                            teacher_attn=t_attn.to(student_device),
+                            student_attn=s_attn
+                        )
 
-                    # Normalize loss.
-                    batch_attn_loss = batch_attn_loss / student_config.accum_step
+                        # Normalize loss.
+                        batch_attn_loss = batch_attn_loss / student_config.accum_step
 
-                # Log loss.
-                attn_loss += batch_attn_loss.item()
-                loss += batch_attn_loss.item()
+                    # Log loss.
+                    attn_loss += batch_attn_loss.item()
+                    loss += batch_attn_loss.item()
 
-                # Accumulate gradient.
-                scaler.scale(batch_attn_loss).backward(retain_graph=True)
+                    # Accumulate gradient.
+                    scaler.scale(batch_attn_loss).backward(retain_graph=True)
 
             # Increment accumulation step.
             accum_step += 1
@@ -316,7 +326,10 @@ def amp_distill_mgpu(
                 # Log on CLI.
                 cli_logger.update()
                 cli_logger.set_description(
-                    f'loss: {loss:.6f}'
+                    f'loss: {loss:.6f} ' +
+                    f'logits_loss: {logits_loss:.6f} ' +
+                    f'hidden_loss: {hidden_loss:.6f} ' +
+                    f'attn_loss: {attn_loss:.6f}'
                 )
 
                 # Increment actual step.

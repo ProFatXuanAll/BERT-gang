@@ -102,40 +102,19 @@ python3.8 run_fine_tune_eval.py \
 |1|0.983002|36816|0.867753|36000|0.862083|36000|8|32|1000|0.1|bert-large-uncased|500|3e-5|128|42|36816|10000|
 |2|0.964217|36816|0.846052|24000|0.850488|36816|8|32|1000|0.1|bert-base-uncased|500|3e-5|128|42|36816|10000|
 
-### BERT Fine-Tune Logits Generation Scripts
-
-```sh
-# Generate MNLI logits.
-python3.8 run_fine_tune_gen_logits.py \
---experiment 2                        \
---model bert                          \
---task mnli                           \
---dataset train                       \
---ckpt 36816                              \
---batch_size 128
-```
-
-### BERT Fine-Tune Attention Heads Generation Scripts
-
-```sh
-python3.8 run_fine_tune_gen_attn_heads.py \
---experiment 2                        \
---model bert                          \
---task mnli                           \
---dataset train                       \
---ckpt 36816                          \
---output_attn
-```
-
 ### BERT Fine-Tune Distillation Scripts with Multi-GPU
 
+#### Use logits loss + hidden states loss + attention loss
+
 python3.8 run_fine_tune_distill_mgpu.py \
---teacher_exp 1                \
+--teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment distill_1             \
+--experiment distill_mgpu_10             \
 --model bert                       \
 --task mnli                        \
+--accum_step 1                     \
+--batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
 --ckpt_step 1000                   \
@@ -146,13 +125,16 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --log_step 500                     \
 --lr 3e-5                          \
 --max_norm 1.0                     \
---num_attention_heads 16           \
+--num_attention_heads 12           \
 --num_hidden_layers 6              \
 --total_step 100000                \
 --type_vocab_size 2                \
 --warmup_step  10000               \
 --weight_decay 0.01                \
---device_id 1
+--device_id 1                      \
+--use_logits_loss                  \
+--use_hidden_loss                  \
+--use_attn_loss
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 
