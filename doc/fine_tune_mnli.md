@@ -127,40 +127,6 @@ python3.8 run_fine_tune_gen_attn_heads.py \
 --output_attn
 ```
 
-<!-- ### BERT Fine-Tune Distillation Scripts
-
-```sh
-# Fine-tune distillation on MNLI.
-python3.8 run_fine_tune_distill.py \
---experiment distill_1             \
---model bert                       \
---task mnli                        \
---dataset 1_bert_mnli              \
---num_class 3                      \
---accum_step 1                     \
---batch_size 32                    \
---beta1 0.9                        \
---beta2 0.999                      \
---ckpt_step 1000                   \
---d_ff 3072                        \
---d_model 768                      \
---dropout 0.1                      \
---eps 1e-8                         \
---log_step 500                     \
---lr 3e-5                          \
---max_norm 1.0                     \
---max_seq_len 128                  \
---num_attention_heads 16           \
---num_gpu 1                        \
---num_hidden_layers 6              \
---seed 42                          \
---total_step 100000                \
---type_vocab_size 2                \
---warmup_step  10000               \
---weight_decay 0.01                \
---amp
-``` -->
-
 ### BERT Fine-Tune Distillation Scripts with Multi-GPU
 
 python3.8 run_fine_tune_distill_mgpu.py \

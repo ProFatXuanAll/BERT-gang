@@ -101,24 +101,11 @@ def amp_distill_mgpu(
         experiment_name
     )
 
-    # Create dataloader of teacher and student model.
-    teacher_dataloader = torch.utils.data.DataLoader(
+    # Teacher and student share a dataloader.
+    dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=teacher_config.batch_size // teacher_config.accum_step,
-        collate_fn=dataset.create_collate_fn(
-            max_seq_len=teacher_config.max_seq_len,
-            tokenizer=teacher_tokenizer
-        ),
-        shuffle=True
-    )
-
-    student_dataloader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=student_config.batch_size // student_config.accum_step,
-        collate_fn=dataset.create_collate_fn(
-            max_seq_len=student_config.max_seq_len,
-            tokenizer=student_tokenizer
-        ),
+        collate_fn=dataset.create_collate_fn(),
         shuffle=True
     )
 
@@ -137,12 +124,16 @@ def amp_distill_mgpu(
 
     # Create adaptive layer.
     # Transform dimension of student hidden states as teacher's.
-    adaptive_layer = torch.nn.Linear(
-        in_features=student_config.d_model,
-        out_features=teahcer_model.allow_ptrain_ver[
-            teacher_config.ptrain_ver
-        ]
-    ).to(student_config.device_id)
+    adaptvive_layers = []
+    for _ in range(student_config.num_hidden_layers):
+        adaptvive_layers.append(
+            torch.nn.Linear(
+                in_features=student_config.d_model,
+                out_features=teahcer_model.allow_ptrain_ver[
+                    teacher_config.ptrain_ver
+                ]
+            ).to(student_config.device_id)
+        )
 
     # Accumulation step counter.
     step = 0
@@ -151,7 +142,13 @@ def amp_distill_mgpu(
 
     # Mini-batch loss and accmulate loss.
     # Update when accumulate to `config.batch_size`.
+    # For CLI and tensorboard logger.
     loss = 0
+    logits_loss = 0
+    hidden_loss = 0
+    attn_loss = 0
+
+    # torch.Tensor placeholder.
     batch_logits_loss = 0
     batch_hidden_loss = 0
     batch_attn_loss = 0
@@ -166,17 +163,35 @@ def amp_distill_mgpu(
     while accum_step < total_accum_step:
 
         # Mini-batch loop.
-        for (
-                teacher_input_ids,
-                teacher_attention_mask,
-                teacher_token_type_ids,
-                _
-        ), (
-                student_input_ids,
-                student_attention_mask,
-                student_token_type_ids,
-                label
-        ) in zip(teacher_dataloader, student_dataloader):
+        for text, text_pair, label in dataloader:
+
+            # Transform `label` to a Tensor.
+            label = torch.LongTensor(label)
+
+            # Get `input_ids`, `token_type_ids` and `attention_mask` from via tokenizer.
+            teacher_batch_encode = teacher_tokenizer(
+                text=text,
+                text_pair=text_pair,
+                padding='max_length',
+                max_length=teacher_config.max_seq_len,
+                return_tensors='pt',
+                truncation=True
+            )
+            teacher_input_ids = teacher_batch_encode['input_ids']
+            teacher_token_type_ids = teacher_batch_encode['token_type_ids']
+            teacher_attention_mask = teacher_batch_encode['attention_mask']
+
+            student_batch_encode = student_tokenizer(
+                text=text,
+                text_pair=text_pair,
+                padding='max_length',
+                max_length=student_config.max_seq_len,
+                return_tensors='pt',
+                truncation=True
+            )
+            student_input_ids = student_batch_encode['input_ids']
+            student_token_type_ids = student_batch_encode['token_type_ids']
+            student_attention_mask = student_batch_encode['attention_mask']
 
             # Get output logits, hidden states and attentions from teacher.
             with torch.no_grad():
@@ -212,6 +227,7 @@ def amp_distill_mgpu(
                 batch_logits_loss = batch_logits_loss / student_config.accum_step
 
             # Log loss.
+            logits_loss += batch_logits_loss.item()
             loss += batch_logits_loss.item()
 
             # Accumulate gradients.
@@ -222,9 +238,10 @@ def amp_distill_mgpu(
             # We need to leave context manager before `backward`.
             # TODO: can we use `map` function to summarize loss?
             skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
-            for t_hidden, s_hidden in zip(
+            for t_hidden, s_hidden, adaptive_layer in zip(
                 teacher_hiddens[1::skip],
-                student_hiddens[1:]
+                student_hiddens[1:],
+                adaptvive_layers
             ):
 
                 # Enable autocast.
@@ -232,7 +249,7 @@ def amp_distill_mgpu(
                     batch_hidden_loss = hidden_objective(
                         teacher_hidden=t_hidden.to(student_device),
                         student_hidden= adaptive_layer(
-                            s_hidden.to(torch.half)
+                            s_hidden
                         )
                     )
 
@@ -240,6 +257,7 @@ def amp_distill_mgpu(
                     batch_hidden_loss = batch_hidden_loss / student_config.accum_step
 
                 # Log loss.
+                hidden_loss += batch_hidden_loss.item()
                 loss += batch_hidden_loss.item()
 
                 # Accumulate gradient.
@@ -266,6 +284,7 @@ def amp_distill_mgpu(
                     batch_attn_loss = batch_attn_loss / student_config.accum_step
 
                 # Log loss.
+                attn_loss += batch_attn_loss.item()
                 loss += batch_attn_loss.item()
 
                 # Accumulate gradient.
@@ -306,8 +325,27 @@ def amp_distill_mgpu(
                 # Log loss and learning rate for each `student_config.log_step`.
                 if step % student_config.log_step == 0:
                     writer.add_scalar(
-                        f'{student_config.task}/{student_config.dataset}/{student_config.model}/loss',
+                        f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
+                        '/loss',
                         loss,
+                        step
+                    )
+                    writer.add_scalar(
+                        f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
+                        '/logits_loss',
+                        logits_loss,
+                        step
+                    )
+                    writer.add_scalar(
+                        f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
+                        '/hidden_loss',
+                        hidden_loss,
+                        step
+                    )
+                    writer.add_scalar(
+                        f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
+                        '/attn_loss',
+                        attn_loss,
                         step
                     )
                     writer.add_scalar(
@@ -318,6 +356,9 @@ def amp_distill_mgpu(
 
                 # Clean up mini-batch loss.
                 loss = 0
+                logits_loss = 0
+                hidden_loss = 0
+                attn_loss = 0
 
                 # Clean up gradient.
                 optimizer.zero_grad()
