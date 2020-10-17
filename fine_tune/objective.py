@@ -62,13 +62,15 @@ def soft_target_cross_entropy_loss(
     """
     # `p.size == q.size == (B, C)`.
     p = F.softmax(teacher_logits, dim=-1)
-    q = F.softmax(student_logits, dim=-1)
+    # q = F.softmax(student_logits, dim=-1)
 
     # `loss.size == (B, C)`.
-    loss = -p * q.log()
+    # loss = -p * q.log()
 
     # `loss.sum(dim=-1).size == (B)` and `loss.sum(dim=-1).mean().size == (1)`.
-    return loss.sum(dim=-1).mean()
+    # return loss.sum(dim=-1).mean()
+    logsoftmax = torch.nn.LogSoftmax(dim=1)
+    return torch.mean(torch.sum(- p * logsoftmax(student_logits), dim=-1))
 
 
 def distill_loss(
@@ -148,7 +150,7 @@ def attention_KL_loss(
     Returns:
         KL divergence loss between teacher and student attention heads.
     """
-    return F.kl_div(student_attn, teacher_attn)
+    return F.kl_div(student_attn, teacher_attn, log_target=True)
 
 def hidden_MSE_loss(
         teacher_hidden: torch.Tensor,

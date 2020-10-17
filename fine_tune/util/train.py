@@ -83,10 +83,7 @@ def train(
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=config.batch_size // config.accum_step,
-        collate_fn=dataset.create_collate_fn(
-            max_seq_len=config.max_seq_len,
-            tokenizer=tokenizer
-        ),
+        collate_fn=dataset.create_collate_fn(),
         shuffle=True
     )
 
@@ -122,11 +119,26 @@ def train(
 
         # Mini-batch loop.
         for (
-                input_ids,
-                attention_mask,
-                token_type_ids,
+                text,
+                text_pair,
                 label
         ) in dataloader:
+
+            # Transform `label` to tensor.
+            label = torch.LongTensor(label)
+
+            # Get `input_ids`, `token_type_ids` and `attention_mask` via tokenizer.
+            batch_encode = tokenizer(
+                text=text,
+                text_pair=text_pair,
+                padding='max_length',
+                max_length=config.max_seq_len,
+                return_tensors='pt',
+                truncation=True
+            )
+            input_ids = batch_encode['input_ids']
+            token_type_ids = batch_encode['token_type_ids']
+            attention_mask = batch_encode['attention_mask']
 
             # Accumulate cross-entropy loss.
             # Use `model(...)` to do forward pass.

@@ -74,6 +74,12 @@ if __name__ == '__main__':
         help='Evaluation batch size.',
         type=int,
     )
+    parser.add_argument(
+        '--device_id',
+        default=-1,
+        help='Evaluation batch size.',
+        type=int,
+    )
 
     # Parse arguments.
     args = parser.parse_args()
@@ -98,6 +104,11 @@ if __name__ == '__main__':
     # Change batch size for faster evaluation.
     if args.batch_size:
         config.batch_size = args.batch_size
+
+    # Check user specify device or not.
+    if args.device_id > -1:
+        config.device_id = args.device_id
+    logger.info("Use device: %s to run evaluation", config.device_id)
 
     # Set evaluation dataset.
     config.dataset = args.dataset

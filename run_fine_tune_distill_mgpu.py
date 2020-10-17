@@ -97,6 +97,19 @@ if __name__ == "__main__":
     )
 
     # Optional arguments.
+    # Shared arguments.
+    parser.add_argument(
+        '--accum_step',
+        default=1,
+        help='Gradient accumulation step.',
+        type=int,
+    )
+    parser.add_argument(
+        '--batch_size',
+        default=32,
+        help='Distillation batch size.',
+        type=int,
+    )
 
     # Arguments of student model.
     parser.add_argument(
@@ -212,11 +225,15 @@ if __name__ == "__main__":
         task=args.task
     )
 
+    # Sync batch size and accumulation steps.
+    teacher_config.batch_size = args.batch_size
+    teacher_config.accum_step = args.accum_step
+
     # Construct student model configuration.
     student_config = fine_tune.config.StudentConfig(
-        accum_step=teacher_config.accum_step,
+        accum_step=args.accum_step,
         amp=teacher_config.amp,
-        batch_size=teacher_config.batch_size,
+        batch_size=args.batch_size,
         beta1=args.beta1,
         beta2=args.beta2,
         ckpt_step=args.ckpt_step,

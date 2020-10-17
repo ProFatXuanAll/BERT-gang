@@ -64,10 +64,7 @@ def evaluation(
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=config.batch_size,
-        collate_fn=dataset.create_collate_fn(
-            max_seq_len=config.max_seq_len,
-            tokenizer=tokenizer
-        ),
+        collate_fn=dataset.create_collate_fn(),
         shuffle=False
     )
 
@@ -79,11 +76,22 @@ def evaluation(
     mini_batch_iterator = tqdm(dataloader)
 
     for (
-            input_ids,
-            attention_mask,
-            token_type_ids,
+            text,
+            text_pair,
             label
     ) in mini_batch_iterator:
+
+        # Get `input_ids`, `token_type_ids` and `attention_mask` from via tokenizer.
+        batch_encode = tokenizer(
+            text=text,
+            text_pair=text_pair,
+            padding='max_length',
+            max_length=config.max_seq_len,
+            return_tensors=True
+        )
+        input_ids = batch_encode['input_ids']
+        token_type_ids = batch_encode['token_type_ids']
+        attention_mask = batch_encode['attention_mask']
 
         # Mini-batch prediction.
         pred_label = model.predict(
@@ -92,7 +100,7 @@ def evaluation(
             attention_mask=attention_mask.to(device)
         ).argmax(dim=-1).to('cpu')
 
-        all_label.extend(label.tolist())
+        all_label.extend(label)
         all_pred_label.extend(pred_label.tolist())
 
     # Calculate accuracy.

@@ -77,10 +77,9 @@ class Sample(TypedDict):
 # - `label.dtype == torch.int64`
 
 CollateFnReturn = Tuple[
-    torch.Tensor,
-    torch.Tensor,
-    torch.Tensor,
-    torch.Tensor,
+    List[str],
+    Optional[List[str]],
+    List[int],
 ]
 
 CollateFn = Callable[
@@ -198,23 +197,8 @@ class Dataset(torch.utils.data.Dataset):
 
 
     @staticmethod
-    def create_collate_fn(
-            max_seq_len: int,
-            tokenizer: transformers.PreTrainedTokenizer
-    ) -> CollateFn:
+    def create_collate_fn() -> CollateFn:
         r"""Create `collate_fn` used by `torch.utils.data.Dataloader`.
-
-        Args:
-            max_seq_len:
-                Maximum input sequence length of model. When input sequence
-                length is smaller than `max_seq_len`, it will be padded to
-                `max_seq_len`. When input sequence length is bigger than
-                `max_seq_len`, it will be truncated to `max_seq_len`.
-            tokenizer:
-                Pre-trained tokenizer provided by `transformers` package.
-                See
-                https://huggingface.co/transformers/main_classes/tokenizer.html
-                for tokenizer details.
 
         Returns:
             `collate_fn` function used by `torch.utils.data.Dataloader`.
@@ -222,6 +206,7 @@ class Dataset(torch.utils.data.Dataset):
         def collate_fn(batch_samples: List[Sample]) -> CollateFnReturn:
             text = []
             label = []
+            text_pair = []
 
             # When input text is consist of only 1 sequence.
             if batch_samples[0]['text_pair'] is None:
@@ -231,27 +216,15 @@ class Dataset(torch.utils.data.Dataset):
                     label.append(sample['label'])
             # When input text is consist of 2 sequences.
             else:
-                text_pair = []
                 for sample in batch_samples:
                     text.append(sample['text'])
                     text_pair.append(sample['text_pair'])
                     label.append(sample['label'])
 
-            # Perform tokenization and encode into token ids.
-            batch_encode = tokenizer(
-                text=text,
-                text_pair=text_pair,
-                padding='max_length',
-                max_length=max_seq_len,
-                return_tensors='pt',
-                truncation=True
-            )
-
             return (
-                batch_encode['input_ids'],
-                batch_encode['attention_mask'],
-                batch_encode['token_type_ids'],
-                torch.LongTensor(label),
+                text,
+                text_pair,
+                label
             )
 
         return collate_fn
