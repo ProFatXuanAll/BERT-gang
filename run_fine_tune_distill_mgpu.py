@@ -349,7 +349,7 @@ if __name__ == "__main__":
             teacher_config=teacher_config,
             student_config=student_config,
             dataset=dataset,
-            teahcer_model=teacher_model,
+            teacher_model=teacher_model,
             student_model=student_model,
             optimizer=optimizer,
             scheduler=scheduler,
@@ -361,4 +361,17 @@ if __name__ == "__main__":
         )
     else:
         # perform distillation.
-        raise NotImplementedError("Call 'distill_mgpu'")
+        fine_tune.util.distill_mgpu(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            use_logits_loss=args.use_logits_loss,
+            use_hidden_loss=args.use_hidden_loss,
+            use_attn_loss=args.use_attn_loss
+        )

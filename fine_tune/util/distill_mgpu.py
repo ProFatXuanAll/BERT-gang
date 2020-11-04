@@ -33,7 +33,7 @@ import fine_tune.model
 import fine_tune.path
 
 
-def amp_distill_mgpu(
+def distill_mgpu(
         teacher_config: fine_tune.config.TeacherConfig,
         student_config: fine_tune.config.StudentConfig,
         dataset: fine_tune.task.Dataset,
