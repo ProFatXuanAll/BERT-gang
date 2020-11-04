@@ -87,7 +87,8 @@ def evaluation(
             text_pair=text_pair,
             padding='max_length',
             max_length=config.max_seq_len,
-            return_tensors=True
+            return_tensors='pt',
+            truncation=True
         )
         input_ids = batch_encode['input_ids']
         token_type_ids = batch_encode['token_type_ids']
