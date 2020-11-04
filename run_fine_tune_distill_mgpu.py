@@ -345,6 +345,8 @@ if __name__ == "__main__":
     # Perform disitllation.
     if teacher_config.amp:
         # perform amp distillation.
+        logger.info("Perform distillation with mixed precesion")
+
         fine_tune.util.amp_distill_mgpu(
             teacher_config=teacher_config,
             student_config=student_config,
@@ -361,6 +363,8 @@ if __name__ == "__main__":
         )
     else:
         # perform distillation.
+        logger.info("Perform distillation WITHOUT mixed precesion")
+
         fine_tune.util.distill_mgpu(
             teacher_config=teacher_config,
             student_config=student_config,
