@@ -76,7 +76,8 @@ def soft_target_cross_entropy_loss(
 def distill_loss(
         hard_target: torch.Tensor,
         student_logits: torch.Tensor,
-        teacher_logits: torch.Tensor
+        teacher_logits: torch.Tensor,
+        alpha: float = 0.2
 ) -> torch.Tensor:
     r"""Knowledge distillation loss function.
 
@@ -121,19 +122,21 @@ def distill_loss(
         teacher_logits:
             Teacher model's output unnormalized logits with numeric type
             `torch.float32` and size (B, C).
-
+        alpha (optional):
+            loss weight of soft target cross entropy.
     Returns:
         Hard-target + soft-target cross-entropy loss. See Hinton, G. (2014).
         Distilling the Knowledge in a Neural Network.
     """
     return (
-        F.cross_entropy(student_logits, hard_target) +
-        soft_target_cross_entropy_loss(student_logits, teacher_logits)
+        ( 1 - alpha ) * F.cross_entropy(student_logits, hard_target) +
+        alpha * soft_target_cross_entropy_loss(student_logits, teacher_logits)
     )
 
 def attention_KL_loss(
         teacher_attn: torch.Tensor,
-        student_attn: torch.Tensor
+        student_attn: torch.Tensor,
+        gamma: int = 10
 ) -> torch.Tensor:
     r""" KL divergence loss between teacher's and student's attention head
     We use the following notation for the rest of the context.
@@ -147,14 +150,17 @@ def attention_KL_loss(
         student_attn:
             attention matrix from one of student layer with numeric type
             `torch.float32` and size (B, A, S, S)
+        gamma (optional):
+            scaling factor of attention KL loss
     Returns:
         KL divergence loss between teacher and student attention heads.
     """
-    return F.kl_div(student_attn, teacher_attn, log_target=True)
+    return gamma * F.kl_div(student_attn, teacher_attn, log_target=True)
 
 def hidden_MSE_loss(
         teacher_hidden: torch.Tensor,
-        student_hidden: torch.Tensor
+        student_hidden: torch.Tensor,
+        mu: int = 100
 ) -> torch.Tensor:
     r""" MSE loss between teacher's and student's hidden states.
     We use the following notation for the reset of the context.
@@ -168,7 +174,9 @@ def hidden_MSE_loss(
         student_hidden:
             hidden state from one of student layer with numeric type
             `torch.float32` and size (B, S, H)
+        mu (optional):
+            scaling factor of hidden MSE loss.
     Returns:
         MSE loss between teacher and student hidden states.
     """
-    return F.mse_loss(student_hidden, teacher_hidden)
+    return mu * F.mse_loss(student_hidden, teacher_hidden)
