@@ -78,10 +78,6 @@ class TeacherConfig(BaseConfig):
         num_class:
             Number of classes to classify. `num_class` must be bigger than or
             equal to `2`.
-        num_gpu:
-            Number of GPUs to perform training. `num_gpu` must be bigger than
-            or equal to `0`. Set `num_gpu=0` if you wish to perform training on
-            CPU instead.
         ptrain_ver:
             Pretrained model version provided by `transformers` package.
         seed:
@@ -129,7 +125,6 @@ class TeacherConfig(BaseConfig):
             max_seq_len: int = 512,
             model: str = '',
             num_class: int = 2,
-            num_gpu: int = 0,
             ptrain_ver: str = '',
             seed: int = 42,
             task: str = '',
@@ -155,7 +150,6 @@ class TeacherConfig(BaseConfig):
             max_seq_len=max_seq_len,
             model=model,
             num_class=num_class,
-            num_gpu=num_gpu,
             seed=seed,
             task=task,
             total_step=total_step,

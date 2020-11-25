@@ -26,11 +26,11 @@ import torch
 import fine_tune.config
 
 
-def set_seed(num_gpu: int, seed: int):
+def set_seed(device_id: int, seed: int):
     r"""Control random seed for experiment reproducibility.
 
     Args:
-        num_gpu:
+        device_id:
             Number of GPUs used to run experiment.
         seed:
             Random seed value to be initialized.
@@ -39,7 +39,7 @@ def set_seed(num_gpu: int, seed: int):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    if torch.cuda.is_available() and num_gpu >= 1:
+    if torch.cuda.is_available() and device_id > -1:
         torch.cuda.manual_seed_all(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
@@ -56,6 +56,6 @@ def set_seed_by_config(
             `num_gpu`.
     """
     set_seed(
-        num_gpu=config.num_gpu,
+        device_id=config.device_id,
         seed=config.seed
     )

@@ -90,10 +90,6 @@ class StudentConfig(BaseConfig):
         num_class:
             Number of classes to classify. `num_class` must be bigger than or
             equal to `2`.
-        num_gpu:
-            Number of GPUs to perform training. `num_gpu` must be bigger than
-            or equal to `0`. Set `num_gpu=0` if you wish to perform training on
-            CPU instead.
         num_hidden_layers:
             Number of Transformer layers.
             Must be bigger than or equal to `1`.
@@ -149,7 +145,6 @@ class StudentConfig(BaseConfig):
             model: str = '',
             num_attention_heads: int = 16,
             num_class: int = 2,
-            num_gpu: int = 0,
             num_hidden_layers: int = 6,
             seed: int = 42,
             task: str = '',
@@ -176,7 +171,6 @@ class StudentConfig(BaseConfig):
             max_seq_len=max_seq_len,
             model=model,
             num_class=num_class,
-            num_gpu=num_gpu,
             seed=seed,
             task=task,
             total_step=total_step,
