@@ -90,10 +90,6 @@ class BaseConfig:
         num_class:
             Number of classes to classify. `num_class` must be bigger than or
             equal to `2`.
-        num_gpu:
-            Number of GPUs to perform training. `num_gpu` must be bigger than
-            or equal to `0`. Set `num_gpu=0` if you wish to perform training on
-            CPU instead.
         seed:
             Control random seed. `seed` must be bigger than or equal to `1`.
         task:
@@ -139,7 +135,6 @@ class BaseConfig:
             max_seq_len: int = 512,
             model: str = '',
             num_class: int = 2,
-            num_gpu: int = 0,
             seed: int = 42,
             task: str = '',
             total_step: int = 50000,
@@ -164,7 +159,6 @@ class BaseConfig:
         self.__class__.type_check(max_seq_len, 'max_seq_len', int)
         self.__class__.type_check(model, 'model', str)
         self.__class__.type_check(num_class, 'num_class', int)
-        self.__class__.type_check(num_gpu, 'num_gpu', int)
         self.__class__.type_check(seed, 'seed', int)
         self.__class__.type_check(task, 'task', str)
         self.__class__.type_check(total_step, 'total_step', int)
@@ -252,16 +246,6 @@ class BaseConfig:
                 '`num_class` must be bigger than or equal to `2`.'
             )
 
-        if num_gpu < 0:
-            raise ValueError(
-                '`num_gpu` must be bigger than or equal to `0`.'
-            )
-
-        if num_gpu > 0 and not torch.cuda.is_available():
-            raise OSError(
-                'CUDA device not found, set `num_gpu` to `0`.'
-            )
-
         if seed < 1:
             raise ValueError(
                 '`seed` must be bigger than or equal to `1`.'
@@ -287,6 +271,16 @@ class BaseConfig:
                 '`weight_decay` must be bigger than or equal to `0`.'
             )
 
+        if device_id < -1:
+            raise ValueError(
+                '`device_id` must be -1 (CPU) or any cuda device number(GPU)'
+            )
+
+        if device_id > torch.cuda.device_count():
+            raise OSError(
+                'Invalid `device_id` please check you GPU device count.'
+            )
+
         self.accum_step = accum_step
         self.amp = amp
         self.batch_size = batch_size
@@ -303,7 +297,6 @@ class BaseConfig:
         self.max_seq_len = max_seq_len
         self.model = model
         self.num_class = num_class
-        self.num_gpu = num_gpu
         self.seed = seed
         self.task = task
         self.total_step = total_step
@@ -355,7 +348,6 @@ class BaseConfig:
         yield 'max_seq_len', self.max_seq_len
         yield 'model', self.model
         yield 'num_class', self.num_class
-        yield 'num_gpu', self.num_gpu
         yield 'seed', self.seed
         yield 'task', self.task
         yield 'total_step', self.total_step
@@ -393,8 +385,6 @@ class BaseConfig:
         """
         return self.beta1, self.beta2
 
-    #TODO:Is `self.num_gpu` essential?
-    #TODO: How to handle `device` property when use multi-gpu
     @property
     def device(self) -> torch.device:
         r"""Get running model device.
