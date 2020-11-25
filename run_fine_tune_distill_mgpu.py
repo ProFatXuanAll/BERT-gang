@@ -1,6 +1,3 @@
-#TODO: Rename this file to replace `run_fine_tune_distill.py`
-#TODO: Now we specify model to device manually,
-#It makes that exsistence of `device` property in `config` becomes awkward.
 r"""Run fine-tune distillation with multi-GPU.
 
 Usage:
@@ -37,12 +34,6 @@ for handler in logging.getLogger().handlers:
     handler.addFilter(logging.Filter('fine_tune'))
 
 if __name__ == "__main__":
-    #TODO: Refactor this block.
-    # Check GPU device count.
-    # If we don't have two GPU device.
-    # Then raise ValueError
-    fine_tune.util.check_device()
-
     # Parse arguments from STDIN.
     parser = argparse.ArgumentParser()
 
@@ -124,6 +115,12 @@ if __name__ == "__main__":
         default=32,
         help='Distillation batch size.',
         type=int,
+    )
+    parser.add_argument(
+        '--amp',
+        default=False,
+        help='Use automatic mixed precision during distillation.',
+        action='store_true'
     )
 
     # Arguments of student model.
@@ -253,7 +250,7 @@ if __name__ == "__main__":
     # Construct student model configuration.
     student_config = fine_tune.config.StudentConfig(
         accum_step=args.accum_step,
-        amp=teacher_config.amp,
+        amp=args.amp,
         batch_size=args.batch_size,
         beta1=args.beta1,
         beta2=args.beta2,
@@ -343,7 +340,7 @@ if __name__ == "__main__":
     )
 
     # Perform disitllation.
-    if teacher_config.amp:
+    if args.amp:
         # perform amp distillation.
         logger.info("Perform distillation with mixed precesion")
 
