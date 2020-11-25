@@ -38,9 +38,3 @@ python --version
   - You need to install `cuda` driver first.
   - Required `cuda10+`.
 - Use `tensorboard --logdir='./data/fine_tune_experiment/log'` to monitor loss, learning rate and accuracy.
-
-## TO-DO
-
-- [x] Use `pipenv` to replace `virtualenv` and `pip`
-- [ ] Use multi-gpu to perform distillation:
-  - Teacher model (GPU:0), student model(GPU:1)

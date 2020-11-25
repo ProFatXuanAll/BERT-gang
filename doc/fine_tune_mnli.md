@@ -47,7 +47,7 @@ python3.8 run_fine_tune.py     \
 --lr 3e-5                      \
 --max_norm 1.0                 \
 --max_seq_len 128              \
---num_gpu 1                    \
+--device_id 0                     \
 --seed 42                      \
 --total_step 36816             \
 --warmup_step  10000           \
@@ -106,11 +106,12 @@ python3.8 run_fine_tune_eval.py \
 
 #### Use logits loss + hidden states loss + attention loss
 
+```sh
 python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment distill_mgpu_10             \
+--experiment distill_2_6_2             \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -129,43 +130,46 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --num_hidden_layers 6              \
 --total_step 100000                \
 --type_vocab_size 2                \
---warmup_step  10000               \
+--warmup_step  30000               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --use_logits_loss                  \
 --use_hidden_loss                  \
---use_attn_loss
+--use_attn_loss                    \
+--amp
+```
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment distill_1          \
+--experiment distill_2_6_2          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
---batch_size 128
+--batch_size 512                \
+--device_id 0
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment distill_1          \
+--experiment distill_2_6_2          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
---batch_size 128
+--batch_size 512
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment distill_1          \
+--experiment distill_PKD_NoSoftmaxTEMP2          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
---batch_size 128
+--batch_size 512
 ```
 
 ## ALBERT
