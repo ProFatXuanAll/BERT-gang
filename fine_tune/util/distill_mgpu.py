@@ -45,7 +45,8 @@ def distill_mgpu(
         student_tokenizer: transformers.PreTrainedTokenizer,
         use_logits_loss: bool = True,
         use_hidden_loss: bool = True,
-        use_attn_loss: bool = True
+        use_attn_loss: bool = True,
+        use_last_hidden: bool = False
 ):
     r"""Perform knowledge distillation from given fine-tuned teacher model
     with automatic mixed precision.
@@ -75,6 +76,14 @@ def distill_mgpu(
             Tokenizer paired with `teacher_model`.
         student_tokenizer:
             Tokenizer paired with `student_model`.
+        use_logits_loss:
+            Total loss function include hard target and soft target logits loss.
+        use_hidden_loss:
+            Total loss function include hidden states loss.
+        use_last_hidden:
+            Only use last hidden states as learning objective of student.
+        use_attn_loss:
+            Total loss function include attention loss.
     """
 
     # Set teacher model as evaluation mode.
@@ -237,18 +246,34 @@ def distill_mgpu(
 
             if use_hidden_loss:
                 # Calculate batch hidden states loss.
+                if not use_last_hidden:
+                    skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
+                    for t_hidden, s_hidden in zip(
+                        teacher_hiddens[1::skip],
+                        student_hiddens[1:]
+                    ):
 
-                skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
-                for t_hidden, s_hidden in zip(
-                    teacher_hiddens[1::skip],
-                    student_hiddens[1:]
-                ):
+                        batch_hidden_loss = hidden_objective(
+                            teacher_hidden=t_hidden.to(student_device),
+                            student_hidden= s_hidden
+                        )
 
+                        # Normalize loss.
+                        batch_hidden_loss = batch_hidden_loss / student_config.accum_step
+
+                        # Log loss.
+                        hidden_loss += batch_hidden_loss.item()
+                        loss += batch_hidden_loss.item()
+
+                        # Accumulate gradient.
+                        batch_hidden_loss.backward(retain_graph=True)
+                else:
+                    teacher_last_hidden = teacher_hiddens[-1]
+                    student_last_hidden = student_hiddens[-1]
                     batch_hidden_loss = hidden_objective(
-                        teacher_hidden=t_hidden.to(student_device),
-                        student_hidden= s_hidden
+                        teacher_hidden=teacher_last_hidden.to(student_device),
+                        student_hidden=student_last_hidden
                     )
-
                     # Normalize loss.
                     batch_hidden_loss = batch_hidden_loss / student_config.accum_step
 

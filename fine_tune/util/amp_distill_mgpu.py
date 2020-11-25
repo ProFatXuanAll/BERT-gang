@@ -1,4 +1,3 @@
-#TODO: replace `amp_distill` with this file.
 r"""Helper functions for knowledge distillation with automatic mixed precision.
 Note: This functions use 2 GPU device to perform distillation.
 Usage:
@@ -38,7 +37,7 @@ def amp_distill_mgpu(
         teacher_config: fine_tune.config.TeacherConfig,
         student_config: fine_tune.config.StudentConfig,
         dataset: fine_tune.task.Dataset,
-        teahcer_model: fine_tune.model.TeacherModel,
+        teacher_model: fine_tune.model.TeacherModel,
         student_model: fine_tune.model.StudentModel,
         optimizer: torch.optim.AdamW,
         scheduler: torch.optim.lr_scheduler.LambdaLR,
@@ -46,7 +45,8 @@ def amp_distill_mgpu(
         student_tokenizer: transformers.PreTrainedTokenizer,
         use_logits_loss: bool = True,
         use_hidden_loss: bool = True,
-        use_attn_loss: bool = True
+        use_attn_loss: bool = True,
+        use_last_hidden: bool = False
 ):
     r"""Perform knowledge distillation from given fine-tuned teacher model
     with automatic mixed precision.
@@ -76,12 +76,20 @@ def amp_distill_mgpu(
             Tokenizer paired with `teacher_model`.
         student_tokenizer:
             Tokenizer paired with `student_model`.
+        use_logits_loss:
+            Total loss function include hard target and soft target logits loss.
+        use_hidden_loss:
+            Total loss function include hidden states loss.
+        use_last_hidden:
+            Only use last hidden states as learning objective of student.
+        use_attn_loss:
+            Total loss function include attention loss.
     """
     # Create a GradScalaer.
     scaler = torch.cuda.amp.GradScaler()
 
     # Set teacher model as evaluation mode.
-    teahcer_model.eval()
+    teacher_model.eval()
 
     # Set student model as training mode.
     student_model.train()
@@ -125,18 +133,19 @@ def amp_distill_mgpu(
     attn_objective =fine_tune.objective.attention_KL_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
+    # TODO: Restore this block to use adaptive layer
     # Create adaptive layer.
     # Transform dimension of student hidden states as teacher's.
-    adaptvive_layers = []
-    for _ in range(student_config.num_hidden_layers):
-        adaptvive_layers.append(
-            torch.nn.Linear(
-                in_features=student_config.d_model,
-                out_features=teahcer_model.allow_ptrain_ver[
-                    teacher_config.ptrain_ver
-                ]
-            ).to(student_config.device_id)
-        )
+    # adaptvive_layers = []
+    # for _ in range(student_config.num_hidden_layers):
+    #     adaptvive_layers.append(
+    #         torch.nn.Linear(
+    #             in_features=student_config.d_model,
+    #             out_features=teacher_model.allow_ptrain_ver[
+    #                 teacher_config.ptrain_ver
+    #             ]
+    #         ).to(student_config.device_id)
+    #     )
 
     # Accumulation step counter.
     step = 0
@@ -201,7 +210,7 @@ def amp_distill_mgpu(
 
             # Get output logits, hidden states and attentions from teacher and student.
             with torch.no_grad():
-                teacher_logits, teacher_hiddens, teacher_attns = teahcer_model(
+                teacher_logits, teacher_hiddens, teacher_attns = teacher_model(
                     input_ids = teacher_input_ids.to(teacher_device),
                     token_type_ids=teacher_token_type_ids.to(teacher_device),
                     attention_mask=teacher_attention_mask.to(teacher_device),
@@ -245,38 +254,50 @@ def amp_distill_mgpu(
                 # Calculate batch hidden states loss.
                 # Cause parameter update in Mixed Precision Training use 32-bit fp.
                 # We need to leave context manager before `backward`.
-                # TODO: can we use `map` function to summarize loss?
-                skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
-                for t_hidden, s_hidden, adaptive_layer in zip(
-                    teacher_hiddens[1::skip],
-                    student_hiddens[1:],
-                    adaptvive_layers
-                ):
 
-                    # Enable autocast.
-                    with torch.cuda.amp.autocast():
-                        batch_hidden_loss = hidden_objective(
-                            teacher_hidden=t_hidden.to(student_device),
-                            student_hidden= adaptive_layer(
-                                s_hidden
+                if not use_last_hidden:
+                    skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
+                    for t_hidden, s_hidden in zip(
+                        teacher_hiddens[1::skip],
+                        student_hiddens[1:]
+                    ):
+
+                        # Enable autocast.
+                        with torch.cuda.amp.autocast():
+                            batch_hidden_loss = hidden_objective(
+                                teacher_hidden=t_hidden.to(student_device),
+                                student_hidden= s_hidden
                             )
+
+                            # Normalize loss.
+                            batch_hidden_loss = batch_hidden_loss / student_config.accum_step
+
+                        # Log loss.
+                        hidden_loss += batch_hidden_loss.item()
+                        loss += batch_hidden_loss.item()
+
+                        # Accumulate gradient.
+                        scaler.scale(batch_hidden_loss).backward(retain_graph=True)
+                else:
+                    with torch.cuda.amp.autocast():
+                        teacher_last_hidden = teacher_hiddens[-1]
+                        student_last_hidden = student_hiddens[-1]
+                        batch_hidden_loss = hidden_objective(
+                            teacher_hidden=teacher_last_hidden.to(student_device),
+                            student_hidden=student_last_hidden
                         )
 
-                        # Normalize loss.
                         batch_hidden_loss = batch_hidden_loss / student_config.accum_step
 
-                    # Log loss.
                     hidden_loss += batch_hidden_loss.item()
                     loss += batch_hidden_loss.item()
 
-                    # Accumulate gradient.
                     scaler.scale(batch_hidden_loss).backward(retain_graph=True)
-
             if use_attn_loss:
                 # Calculate batch attentions loss.
                 # Cause parameter update in Mixed Precision Training use 32-bit fp.
                 # We need to leave context manager before `backward`.
-                # TODO: can we use `map` function to summarize loss?
+
                 skip = len(teacher_attns) // len(student_attns)
                 for t_attn, s_attn in zip(
                     teacher_attns[skip-1::skip],
@@ -382,6 +403,8 @@ def amp_distill_mgpu(
                         student_model.state_dict(),
                         os.path.join(experiment_dir, f'model-{step}.pt')
                     )
+
+                    # TODO: if use adaptive layer we have to save it.
 
             # Stop training condition.
             if accum_step >= total_accum_step:
