@@ -17,6 +17,7 @@ matplotlib = "*"
 mypy = "*"
 pandas = "*"
 tensorboard = "*"
+jupyter = "*"
 
 [requires]
 python_version = "3.8"
