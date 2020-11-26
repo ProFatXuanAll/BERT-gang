@@ -76,7 +76,7 @@ def amp_evaluation(
     mini_batch_iterator = tqdm(dataloader)
 
     for text, text_pair, label in mini_batch_iterator:
-        # Get `input_ids`, `token_type_ids` and `attention_mask` from via tokenizer.
+        # Get `input_ids`, `token_type_ids` and `attention_mask` via tokenizer.
         batch_encode = tokenizer(
             text=text,
             text_pair=text_pair,

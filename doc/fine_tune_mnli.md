@@ -172,6 +172,19 @@ python3.8 run_fine_tune_eval.py \
 --batch_size 512
 ```
 
+### Plot CLS embedding of last Transformer block
+
+```sh
+python3.8 plot_CLS_embedding.py  \
+--ckpt 94000                     \
+--experiment distill_2_6_2                \
+--model bert                     \
+--task mnli                      \
+--dataset dev_matched            \
+--batch_size 128                 \
+--device_id 0
+```
+
 ## ALBERT
 
 ### ALBERT Fine-Tune Script
