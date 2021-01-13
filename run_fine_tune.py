@@ -115,6 +115,12 @@ if __name__ == '__main__':
         type=float,
     )
     parser.add_argument(
+        '--device_id',
+        help='Device ID of student model.',
+        required=True,
+        type=int,
+    )
+    parser.add_argument(
         '--eps',
         default=1e-8,
         help="Optimizer `torch.optim.AdamW`'s epsilon.",
@@ -142,12 +148,6 @@ if __name__ == '__main__':
         '--max_seq_len',
         default=512,
         help='Maximum input sequence length for fine-tune model.',
-        type=int,
-    )
-    parser.add_argument(
-        '--num_gpu',
-        default=1,
-        help='Number of GPUs to perform training.',
         type=int,
     )
     parser.add_argument(
@@ -196,13 +196,13 @@ if __name__ == '__main__':
         max_seq_len=args.max_seq_len,
         model=args.model,
         num_class=args.num_class,
-        num_gpu=args.num_gpu,
         ptrain_ver=args.ptrain_ver,
         seed=args.seed,
         task=args.task,
         total_step=args.total_step,
         warmup_step=args.warmup_step,
-        weight_decay=args.weight_decay
+        weight_decay=args.weight_decay,
+        device_id=args.device_id
     )
 
     # Log configuration.

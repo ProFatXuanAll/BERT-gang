@@ -177,7 +177,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 python3.8 plot_CLS_embedding.py  \
 --ckpt 94000                     \
---experiment distill_2_6_2                \
+--experiment distill_2_6                \
 --model bert                     \
 --task mnli                      \
 --dataset dev_matched            \
