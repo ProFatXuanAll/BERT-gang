@@ -133,8 +133,9 @@ class TeacherBert(nn.Module):
 
         Returns:
             If `return_hidden_and_attn` is `False`:
-                Unnormalized logits with numeric type `torch.float32` and size
+                1. Unnormalized logits with numeric type `torch.float32` and size
                 (B, C).
+                2. [CLS] hidden state of last layer.
             Else:
                 Return three values:
                 1. Unnormalized logits with numeric type `torch.float32` and size
@@ -161,7 +162,7 @@ class TeacherBert(nn.Module):
             pooled_output = self.dropout(pooled_output)
             return self.linear_layer(pooled_output), hidden_states, attentions
 
-        # Only return logits.
+        # Return logits and [CLS].
         output = self.encoder(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -169,7 +170,7 @@ class TeacherBert(nn.Module):
         )
         pooled_output = output.pooler_output
         pooled_output = self.dropout(pooled_output)
-        return self.linear_layer(pooled_output)
+        return self.linear_layer(pooled_output), pooled_output
 
     @torch.no_grad()
     def predict(
@@ -202,12 +203,13 @@ class TeacherBert(nn.Module):
             Softmax normalized logits with numeric type `torch.float32` and
             size (B, C).
         """
+        logits, _ = self(input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    token_type_ids=token_type_ids,
+                    return_hidden_and_attn=False
+                )
+
         return F.softmax(
-            self(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                token_type_ids=token_type_ids,
-                return_hidden_and_attn=False
-            ),
+            logits,
             dim=-1
         )

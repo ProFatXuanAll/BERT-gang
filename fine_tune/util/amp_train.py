@@ -147,12 +147,13 @@ def amp_train(
             with torch.cuda.amp.autocast():
                 # Accumulate cross-entropy loss.
                 # Use `model(...)` to do forward pass.
-                accum_loss = objective(
-                    input=model(
+                logits, _ = model(
                         input_ids=input_ids.to(device),
                         token_type_ids=token_type_ids.to(device),
                         attention_mask=attention_mask.to(device)
-                    ),
+                    )
+                accum_loss = objective(
+                    input=logits,
                     target=label.to(device)
                 ) / config.accum_step
 
