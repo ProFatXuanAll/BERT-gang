@@ -77,7 +77,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--device_id',
         default=-1,
-        help='Evaluation batch size.',
+        help='Run evaluation on dedicated device.',
         type=int,
     )
 

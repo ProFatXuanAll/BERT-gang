@@ -1,9 +1,9 @@
-r"""Run fine-tune distillation with multi-GPU.
+r"""Run fine-tune contrasitve distillation with multi-GPU.
 
 Usage:
-    python run_fine_tune_distill_mgpu.py ...
+    python run_fine_tune_contrast_distill.py ...
 
-Run `python run_fine_tune_distill_mgpu.py -h` for help, or see 'doc/fine_tune_*.md'
+Run `python run_fine_tune_contrast_distill.py -h` for help, or see 'doc/fine_tune_*.md'
 for more information.
 """
 
@@ -17,12 +17,13 @@ import logging
 
 import torch
 
+from tqdm import tqdm
 # my own modules
 
 import fine_tune
 
 # Get main logger.
-logger = logging.getLogger('fine_tune.distill')
+logger = logging.getLogger('fine_tune.contrast_distill')
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
     datefmt='%Y/%m/%d %H:%M:%S',
@@ -37,9 +38,7 @@ if __name__ == "__main__":
     # Parse arguments from STDIN.
     parser = argparse.ArgumentParser()
 
-    # Required parameters.
-
-    # Shared arguments.
+    # Required shared arguments.
     parser.add_argument(
         '--task',
         help='Name of the distillation task.',
@@ -47,27 +46,13 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument(
-        '--use_logits_loss',
-        help='Use logits loss during distillation',
-        action='store_true'
-    )
-    parser.add_argument(
-        '--use_hidden_loss',
-        help='Use hidden states only during distillation',
-        action='store_true'
-    )
-    parser.add_argument(
-        '--use_attn_loss',
-        help='Use attention distribution only during distillation',
-        action='store_true'
-    )
-    parser.add_argument(
-        '--use_last_hidden',
-        help='Use last hidden state only during distillation',
-        action='store_true'
+        '--neg_num',
+        help='Number of negative samples.',
+        required=True,
+        type=int,
     )
 
-    # Arguments of teacher model.
+    # Required arguments of teacher model.
     parser.add_argument(
         '--teacher_exp',
         help='Experiment name of the fine-tuned teacher model',
@@ -87,7 +72,7 @@ if __name__ == "__main__":
         type=int,
     )
 
-    # Arguments of student model.
+    # Required arguments of student model.
     parser.add_argument(
         '--experiment',
         help='Name of the current distillation experiment.',
@@ -107,8 +92,18 @@ if __name__ == "__main__":
         type=int,
     )
 
-    # Optional arguments.
-    # Shared arguments.
+    # Optional shared arguments.
+    parser.add_argument(
+        '--use_logits_loss',
+        help='Use logits loss of output labels during distillation',
+        action='store_true'
+    )
+    parser.add_argument(
+        '--softmax_temp',
+        help='Softmax temperature',
+        default=0.07,
+        type=float
+    )
     parser.add_argument(
         '--accum_step',
         default=1,
@@ -126,8 +121,14 @@ if __name__ == "__main__":
         help='Use automatic mixed precision during distillation.',
         action='store_true'
     )
+    parser.add_argument(
+        '--membank_device',
+        help='Memory bank device id',
+        default=-1,
+        type=int
+    )
 
-    # Arguments of student model.
+    # Optional arguments of student model.
     parser.add_argument(
         '--beta1',
         default=0.9,
@@ -234,12 +235,6 @@ if __name__ == "__main__":
     # Parse arguments.
     args = parser.parse_args()
 
-    # Check user forgot to indicate loss.
-    if not ( args.use_logits_loss or args.use_hidden_loss or args.use_attn_loss ):
-        raise ValueError("You forgot to specify loss function!\n" +
-            "Please check relative document for more info!"
-        )
-
     # Load fine-tune teacher model configuration.
     teacher_config = fine_tune.config.TeacherConfig.load(
         experiment=args.teacher_exp,
@@ -251,7 +246,7 @@ if __name__ == "__main__":
     teacher_config.batch_size = args.batch_size
     teacher_config.accum_step = args.accum_step
 
-    # Construct student model configuration.
+        # Construct student model configuration.
     student_config = fine_tune.config.StudentConfig(
         accum_step=args.accum_step,
         amp=args.amp,
@@ -295,9 +290,10 @@ if __name__ == "__main__":
         config=teacher_config
     )
 
-    # Load distillation dataset.
-    dataset = fine_tune.util.load_dataset_by_config(
-        config=teacher_config
+    # Load contrast distillation dataset.
+    dataset = fine_tune.util.load_contrast_dataset_by_config(
+        config=teacher_config,
+        neg_num=args.neg_num
     )
 
     # Load teacher and student tokenizer.
@@ -343,38 +339,37 @@ if __name__ == "__main__":
         optimizer=optimizer
     )
 
-    # Log layer-to-layer hidden states distillation or not.
-    if args.use_hidden_loss:
-        if args.use_last_hidden:
-            logger.info("Use LAST hidden states only!")
-        else:
-            logger.info("Layer-to-layer hidden states distillation!")
+    # Build memory bank.
+    # TODO: more flexible `dim`.
+    membank = fine_tune.contrast_util.Memorybank(
+        N=len(dataset),
+        dim=768,
+        device_id=args.membank_device
+    )
+    membank.to(membank.device)
 
-    # Perform disitllation.
+    # Check memory bank with teacher representations existence.
+    t_membank_path = os.path.join(
+        fine_tune.path.FINE_TUNE_EXPERIMENT,
+        experiment_name,
+        'membank.pt'
+    )
+    if os.path.exists(t_membank_path):
+        logger.info("Load memory bank with teacher representation from .pt file")
+        membank.load_state_dict(torch.load(t_membank_path))
+    else:
+        raise FileNotFoundError("Can't load memory bank from file!" +
+                "Please run `build_membank.py` first")
+
+    # Perform contrastive distillation.
     if args.amp:
         # perform amp distillation.
         logger.info("Perform distillation with mixed precesion")
-
-        fine_tune.util.amp_distill_mgpu(
-            teacher_config=teacher_config,
-            student_config=student_config,
-            dataset=dataset,
-            teacher_model=teacher_model,
-            student_model=student_model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            teacher_tokenizer=teacher_tokenizer,
-            student_tokenizer=student_tokenizer,
-            use_logits_loss=args.use_logits_loss,
-            use_hidden_loss=args.use_hidden_loss,
-            use_attn_loss=args.use_attn_loss,
-            use_last_hidden=args.use_last_hidden
-        )
+        raise NotImplementedError("amp contrastive distillation")
     else:
         # perform distillation.
         logger.info("Perform distillation WITHOUT mixed precesion")
-
-        fine_tune.util.distill_mgpu(
+        fine_tune.util.contrast_distill(
             teacher_config=teacher_config,
             student_config=student_config,
             dataset=dataset,
@@ -384,8 +379,6 @@ if __name__ == "__main__":
             scheduler=scheduler,
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
-            use_logits_loss=args.use_logits_loss,
-            use_hidden_loss=args.use_hidden_loss,
-            use_attn_loss=args.use_attn_loss,
-            use_last_hidden=args.use_last_hidden
+            membank=membank,
+            sotfmax_temp=args.softmax_temp
         )

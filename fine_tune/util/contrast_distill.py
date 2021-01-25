@@ -1,9 +1,9 @@
-r"""Helper functions for knowledge distillation.
+r"""Helper function for knowledge distillation with contrastive learning.
 Note: This functions use 2 GPU device to perform distillation.
 Usage:
     import fine_tune
 
-    fine_tune.util.distill_mgpu(...)
+    fine_tune.util.contrast_distill(...)
 """
 
 # built-in modules
@@ -18,6 +18,7 @@ import os
 # 3rd party modules
 
 import torch
+import torch.nn as nn
 import torch.utils
 import torch.utils.data
 import torch.utils.tensorboard
@@ -31,61 +32,60 @@ import fine_tune.config
 import fine_tune.task
 import fine_tune.model
 import fine_tune.path
+import fine_tune.contrast_util
 
 
-def distill_mgpu(
-        teacher_config: fine_tune.config.TeacherConfig,
-        student_config: fine_tune.config.StudentConfig,
-        dataset: fine_tune.task.Dataset,
-        teacher_model: fine_tune.model.TeacherModel,
-        student_model: fine_tune.model.StudentModel,
-        optimizer: torch.optim.AdamW,
-        scheduler: torch.optim.lr_scheduler.LambdaLR,
-        teacher_tokenizer: transformers.PreTrainedTokenizer,
-        student_tokenizer: transformers.PreTrainedTokenizer,
-        use_logits_loss: bool = True,
-        use_hidden_loss: bool = True,
-        use_attn_loss: bool = True,
-        use_last_hidden: bool = False
+def contrast_distill(
+    teacher_config: fine_tune.config.TeacherConfig,
+    student_config: fine_tune.config.StudentConfig,
+    dataset: fine_tune.task.ContrastDataset,
+    teacher_model: fine_tune.model.TeacherModel,
+    student_model: fine_tune.model.StudentModel,
+    optimizer: torch.optim.AdamW,
+    scheduler: torch.optim.lr_scheduler.LambdaLR,
+    teacher_tokenizer: transformers.PreTrainedTokenizer,
+    student_tokenizer: transformers.PreTrainedTokenizer,
+    membank: fine_tune.contrast_util.Memorybank,
+    sotfmax_temp: float = 0.07,
+    use_logits_loss: bool = True
 ):
-    r"""Perform knowledge distillation from given fine-tuned teacher model
-    without automatic mixed precision.
+    """Perform knowledge distillation with contrastive loss
+    from given fine-tuned teacher model without automatic mixed precision.
     Note: This function will use two gpu-device.
 
-    Args:
-        teacher_config:
-            `fine_tune.config.TeacherConfig` class which attributes are used
-            for experiment setup.
-        student_config:
-            `fine_tune.config.StudentConfig` class which attributes are used
-            for experiment setup.
-        dataset:
-            Task specific dataset.
-        teacher_model:
-            A fine-tuned teacher model which is used to
-            generate soft targets, hidden states and attentions.
-        student_model:
-            Model which will perform disitllation according to
-            outputs from given teacher model.
-        optimizer:
-            `torch.optim.AdamW` optimizer.
-        schduler:
-            Linear warmup scheduler provided by `transformers` package.
-        teacher_tokenizer:
-            Tokenizer paired with `teacher_model`.
-        student_tokenizer:
-            Tokenizer paired with `student_model`.
-        use_logits_loss:
-            Total loss function include hard target and soft target logits loss.
-        use_hidden_loss:
-            Total loss function include hidden states loss.
-        use_last_hidden:
-            Only use last hidden states as learning objective of student.
-        use_attn_loss:
-            Total loss function include attention loss.
+    Parameters
+    ----------
+    teacher_config : fine_tune.config.TeacherConfig
+        `fine_tune.config.TeacherConfig` class which attributes are used
+        for experiment setup.
+    student_config : fine_tune.config.StudentConfig
+        `fine_tune.config.StudentConfig` class which attributes are used
+        for experiment setup.
+    dataset : fine_tune.task.ContrastDataset
+        Task specific dataset.
+    teacher_model : fine_tune.model.TeacherModel
+        A fine-tuned teacher model which is used to
+        generate soft targets, hidden states and attentions.
+    student_model : fine_tune.model.StudentModel
+        Model which will perform disitllation according to
+        outputs from given teacher model.
+    optimizer : torch.optim.AdamW
+        `torch.optim.AdamW` optimizer.
+    scheduler : torch.optim.lr_scheduler.LambdaLR
+        Linear warmup scheduler provided by `transformers` package.
+    teacher_tokenizer : transformers.PreTrainedTokenizer
+        Tokenizer paired with `teacher_model`.
+    student_tokenizer : transformers.PreTrainedTokenizer
+        Tokenizer paired with `student_model`.
+    membank : fine_tune.contrast_util.Memorybank
+        Memory bank for contrastive learning.
+    softmax_temp : float, optional
+        Softmax temperature.
+    use_logits_loss : bool, optional
+        Total loss function include hard target and soft target logits loss, by default True
     """
 
-    # Set teacher model as evaluation mode.
+    # Set teacher model to evalutation mode.
     teacher_model.eval()
 
     # Set student model as training mode.
@@ -94,6 +94,9 @@ def distill_mgpu(
     # Model running device of teacher and student model.
     teacher_device = teacher_config.device
     student_device = student_config.device
+
+    # Memory bank device
+    memdevice = membank.device
 
     # Clean all gradient.
     optimizer.zero_grad()
@@ -127,22 +130,7 @@ def distill_mgpu(
 
     # Create objective functions.
     logits_objective = fine_tune.objective.distill_loss
-    attn_objective =fine_tune.objective.attention_KL_loss
-    hidden_objective = fine_tune.objective.hidden_MSE_loss
-
-    # TODO: Restore this block to use adaptive layer
-    # Create adaptive layer.
-    # Transform dimension of student hidden states as teacher's.
-    # adaptvive_layers = []
-    # for _ in range(student_config.num_hidden_layers):
-    #     adaptvive_layers.append(
-    #         torch.nn.Linear(
-    #             in_features=student_config.d_model,
-    #             out_features=teacher_model.allow_ptrain_ver[
-    #                 teacher_config.ptrain_ver
-    #             ]
-    #         ).to(student_config.device_id)
-    #     )
+    contrastive_objective = nn.CrossEntropyLoss()
 
     # Accumulation step counter.
     step = 0
@@ -154,20 +142,17 @@ def distill_mgpu(
     # For CLI and tensorboard logger.
     loss = 0
     logits_loss = 0
-    hidden_loss = 0
-    attn_loss = 0
+    contrast_loss = 0
 
     # torch.Tensor placeholder.
     batch_logits_loss = 0
-    batch_hidden_loss = 0
-    batch_attn_loss = 0
+    batch_contrast_loss = 0
 
     # `tqdm` CLI Logger. We will manually update progress bar.
     cli_logger = tqdm(
         desc=f'loss: {loss:.6f} ' +
             f'logits_loss: {logits_loss:.6f} ' +
-            f'hidden_loss: {hidden_loss:.6f} ' +
-            f'attn_loss: {attn_loss:.6f}',
+            f'contrast_loss: {contrast_loss:.6f}',
         total=student_config.total_step
     )
 
@@ -175,10 +160,11 @@ def distill_mgpu(
     while accum_step < total_accum_step:
 
         # Mini-batch loop.
-        for text, text_pair, label in dataloader:
+        for text, text_pair, label, _, n_indices in dataloader:
 
-            # Transform `label` to a Tensor.
+            # Transform `label` and `n_indices` to tensor.
             label = torch.LongTensor(label)
+            n_indices = torch.LongTensor(n_indices).to(memdevice)
 
             # Get `input_ids`, `token_type_ids` and `attention_mask` from via tokenizer.
             teacher_batch_encode = teacher_tokenizer(
@@ -205,28 +191,24 @@ def distill_mgpu(
             student_token_type_ids = student_batch_encode['token_type_ids']
             student_attention_mask = student_batch_encode['attention_mask']
 
-            # Get output logits, hidden states and attentions from teacher and student.
+            # Get output logits, [CLS] hidden from teacher.
             with torch.no_grad():
-                teacher_logits, teacher_hiddens, teacher_attns = teacher_model(
+                teacher_logits, teacher_pooler = teacher_model(
                     input_ids = teacher_input_ids.to(teacher_device),
                     token_type_ids=teacher_token_type_ids.to(teacher_device),
-                    attention_mask=teacher_attention_mask.to(teacher_device),
-                    return_hidden_and_attn=True
+                    attention_mask=teacher_attention_mask.to(teacher_device)
                 )
 
-            # Get output logits, hidden states and attentions from student.
-            student_logits, student_hiddens, student_attns = student_model(
+            # Get output logits, [CLS] hidden from student.
+            student_logits, student_pooler = student_model(
                 input_ids = student_input_ids.to(student_device),
                 token_type_ids=student_token_type_ids.to(student_device),
-                attention_mask=student_attention_mask.to(student_device),
-                return_hidden_and_attn=True
+                attention_mask=student_attention_mask.to(student_device)
             )
 
             # Calculate logits loss.
-            # Cause parameter update in Mixed Precision Training use 32-bit fp.
-            # We need to leave context manager before `backward`.
-
             if use_logits_loss:
+                # Calculate batch loss of logits.
                 # Calculate batch loss of logits.
                 batch_logits_loss = logits_objective(
                     hard_target=label.to(student_device),
@@ -243,69 +225,70 @@ def distill_mgpu(
                 # Accumulate gradients.
                 batch_logits_loss.backward(retain_graph=True)
 
-            if use_hidden_loss:
-                # Calculate batch hidden states loss.
-                if not use_last_hidden:
-                    skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
-                    for t_hidden, s_hidden in zip(
-                        teacher_hiddens[1::skip],
-                        student_hiddens[1:]
-                    ):
+            # Calculate contrastive loss of last [CLS] hidden.
+            # `q`: student last [CLS] hidden state.
+            # `k+`: teacher last [CLS] hidden state.
+            # `k-(negatives)`: Sample from memory bank.
+            # B: batch size.
+            # D: dimension.
+            # K: number of negative samples.
 
-                        batch_hidden_loss = hidden_objective(
-                            teacher_hidden=t_hidden.to(student_device),
-                            student_hidden= s_hidden
-                        )
+            # Get hidden batch size and dim.
+            B = teacher_pooler.shape[0]
+            D = teacher_pooler.shape[1]
 
-                        # Normalize loss.
-                        batch_hidden_loss = batch_hidden_loss / student_config.accum_step
+            # Normalize `Query` and `K+`.
+            q = nn.functional.normalize(student_pooler)
+            k_pos = nn.functional.normalize(teacher_pooler).to(student_device)
 
-                        # Log loss.
-                        hidden_loss += batch_hidden_loss.item()
-                        loss += batch_hidden_loss.item()
+            # Compute logits of positive pairs.
+            # `pos_logits`: tensor of shape Bx1x1
+            pos_logits = torch.bmm(q.view(B, 1, D), k_pos.view(B, D, 1))
 
-                        # Accumulate gradient.
-                        batch_hidden_loss.backward(retain_graph=True)
-                else:
-                    teacher_last_hidden = teacher_hiddens[-1]
-                    student_last_hidden = student_hiddens[-1]
-                    batch_hidden_loss = hidden_objective(
-                        teacher_hidden=teacher_last_hidden.to(student_device),
-                        student_hidden=student_last_hidden
-                    )
-                    # Normalize loss.
-                    batch_hidden_loss = batch_hidden_loss / student_config.accum_step
+            # `pos_logits`: tensor of shape Bx1
+            pos_logits = pos_logits.view(B,-1)
 
-                    # Log loss.
-                    hidden_loss += batch_hidden_loss.item()
-                    loss += batch_hidden_loss.item()
+            # Init a temporary list to store all negative logits.
+            neg_logits = []
 
-                    # Accumulate gradient.
-                    batch_hidden_loss.backward(retain_graph=True)
+            # Compute relative negative logit.
+            for qi, idx in zip(q, n_indices):
+                # `qi`: D shape tensor, represent a single query.
+                # `indx`: K shape tensor, represent relative negative index.
+                # Sample negative paris w.r.t a single query.
+                #TODO: move membank to 'student_device'
+                # k_neg = membank(idx)
+                k_neg = membank(idx).to(student_device)
 
-            if use_attn_loss:
-                # Calculate batch attentions loss.
+                # `k_neg` is a tensor of shape: DxK.
+                # Compute negative logit w.r.t `qi`.
+                # `n_logit` is a tensor of shape K.
+                neg_logits.append(qi @ k_neg)
 
-                skip = len(teacher_attns) // len(student_attns)
-                for t_attn, s_attn in zip(
-                    teacher_attns[skip-1::skip],
-                    student_attns
-                ):
+            # Convert to tensor of shape BxK.
+            neg_logits = torch.stack(neg_logits)
 
-                    batch_attn_loss = attn_objective(
-                        teacher_attn=t_attn.to(student_device),
-                        student_attn=s_attn
-                    )
+            # Get `output` tensor of shape Bx(1+K).
+            output = torch.cat([pos_logits, neg_logits], dim=1)
 
-                    # Normalize loss.
-                    batch_attn_loss = batch_attn_loss / student_config.accum_step
+            # Apply temperature.
+            output /= sotfmax_temp
 
-                    # Log loss.
-                    attn_loss += batch_attn_loss.item()
-                    loss += batch_attn_loss.item()
+            # Construct labels: positive key indicators.
+            targets = torch.zeros(output.shape[0], dtype=torch.long).to(student_device)
 
-                    # Accumulate gradient.
-                    batch_attn_loss.backward(retain_graph=True)
+            # Compute contrastive loss.
+            batch_contrast_loss = contrastive_objective(output, targets)
+
+            # Normalize loss.
+            batch_contrast_loss = batch_contrast_loss / student_config.accum_step
+
+            # Log loss.
+            contrast_loss += batch_contrast_loss.item()
+            loss += batch_contrast_loss.item()
+
+            # Accumulate gradient.
+            batch_contrast_loss.backward(retain_graph=True)
 
             # Increment accumulation step.
             accum_step += 1
@@ -329,8 +312,7 @@ def distill_mgpu(
                 cli_logger.set_description(
                     f'loss: {loss:.6f} ' +
                     f'logits_loss: {logits_loss:.6f} ' +
-                    f'hidden_loss: {hidden_loss:.6f} ' +
-                    f'attn_loss: {attn_loss:.6f}'
+                    f'contrast_loss: {contrast_loss:.6f}'
                 )
 
                 # Increment actual step.
@@ -352,14 +334,8 @@ def distill_mgpu(
                     )
                     writer.add_scalar(
                         f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
-                        '/hidden_loss',
-                        hidden_loss,
-                        step
-                    )
-                    writer.add_scalar(
-                        f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
-                        '/attn_loss',
-                        attn_loss,
+                        '/contrast_loss',
+                        contrast_loss,
                         step
                     )
                     writer.add_scalar(
@@ -371,8 +347,7 @@ def distill_mgpu(
                 # Clean up mini-batch loss.
                 loss = 0
                 logits_loss = 0
-                hidden_loss = 0
-                attn_loss = 0
+                contrast_loss = 0
 
                 # Clean up gradient.
                 optimizer.zero_grad()
@@ -383,8 +358,6 @@ def distill_mgpu(
                         student_model.state_dict(),
                         os.path.join(experiment_dir, f'model-{step}.pt')
                     )
-
-                    # TODO: if use adaptive layer we have to save it.
 
             # Stop training condition.
             if accum_step >= total_accum_step:
