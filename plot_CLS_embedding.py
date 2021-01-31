@@ -210,19 +210,18 @@ if __name__ == "__main__":
             attention_mask = batch_encode['attention_mask']
 
             # Mini-batch inference
-            logits, hidden_states, attns = model(
+            _, CLS = model(
                 input_ids = input_ids.to(config.device),
                 token_type_ids = token_type_ids.to(config.device),
-                attention_mask = attention_mask.to(config.device),
-                return_hidden_and_attn = True
+                attention_mask = attention_mask.to(config.device)
             )
 
             # extract CLS of last layer
-            last_hidden = hidden_states[-1].to('cpu')
+            CLS = CLS.to('cpu')
             if steps == 0:
-                all_CLS = last_hidden[:,0,:]
+                all_CLS = CLS
             else:
-                all_CLS = torch.cat((all_CLS, last_hidden[:,0,:]), dim=0)
+                all_CLS = torch.cat((all_CLS, CLS), dim=0)
 
             # record labels
             all_label.extend(label)
