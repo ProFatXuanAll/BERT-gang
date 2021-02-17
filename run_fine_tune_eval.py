@@ -80,6 +80,12 @@ if __name__ == '__main__':
         help='Run evaluation on dedicated device.',
         type=int,
     )
+    parser.add_argument(
+        '--ckpt',
+        default=0,
+        help='Start evaluation from specified checkpoint',
+        type=int
+    )
 
     # Parse arguments.
     args = parser.parse_args()
@@ -164,6 +170,9 @@ if __name__ == '__main__':
             os.listdir(experiment_dir)
         ),
     ))
+
+    # Filt unnecessary checkpoint.
+    all_ckpts = list(filter(lambda ckpt: ckpt >= args.ckpt, all_ckpts))
 
     # Create tensorboard's `SummaryWriter`.
     writer = torch.utils.tensorboard.SummaryWriter(
