@@ -1,10 +1,11 @@
-r"""Helper function for knowledge distillation with contrastive learning.
+r"""Helper function for two-stage knowledge distillation with contrastive learning.
 Note: This functions use 2 GPU device to perform distillation.
 Usage:
     import fine_tune
 
-    fine_tune.util.contrast_distill(...)
+    fine_tune.util.contrast_distill_twostage(...)
 """
+
 
 # built-in modules
 
@@ -34,8 +35,7 @@ import fine_tune.model
 import fine_tune.path
 import fine_tune.contrast_util
 
-
-def contrast_distill(
+def contrast_distill_twostage(
     teacher_config: fine_tune.config.TeacherConfig,
     student_config: fine_tune.config.StudentConfig,
     dataset: fine_tune.task.ContrastDataset,
@@ -46,6 +46,7 @@ def contrast_distill(
     teacher_tokenizer: transformers.PreTrainedTokenizer,
     student_tokenizer: transformers.PreTrainedTokenizer,
     membank: fine_tune.contrast_util.Memorybank,
+    contrast_steps: int,
     sotfmax_temp: float = 0.07,
     logit_loss_weight: float = 0.2
 ):
@@ -81,6 +82,8 @@ def contrast_distill(
         Memory bank for contrastive learning.
     softmax_temp : float, optional
         Softmax temperature, by default `0.07`.
+    contrast_partion : float, optional
+        Partion of training iteration for contrastive loss, by default `0.8`.
     logit_loss_weight: float, optional
         loss weight of soft target cross entropy, by default `0.2`.
     """
@@ -136,6 +139,10 @@ def contrast_distill(
     step = 0
     accum_step = 0
     total_accum_step = student_config.total_step * student_config.accum_step
+    total_contrast_step = contrast_steps * student_config.accum_step
+
+    # Set `use_logit_loss` to `False`.
+    use_logit_loss = False
 
     # Mini-batch loss and accmulate loss.
     # Update when accumulate to `config.batch_size`.
@@ -164,6 +171,8 @@ def contrast_distill(
 
             # Transform `label` and `n_indices` to tensor.
             label = torch.LongTensor(label)
+            print(n_indices)
+            input()
             n_indices = torch.LongTensor(n_indices).to(memdevice)
 
             # Get `input_ids`, `token_type_ids` and `attention_mask` from via tokenizer.
@@ -206,20 +215,21 @@ def contrast_distill(
                 attention_mask=student_attention_mask.to(student_device)
             )
 
-            # Calculate logits loss.
-            batch_logits_loss = logits_objective(
-                hard_target=label.to(student_device),
-                teacher_logits=teacher_logits.to(student_device),
-                student_logits=student_logits,
-                alpha=logit_loss_weight
-            )
-            # Normalize loss.
-            batch_logits_loss = batch_logits_loss / student_config.accum_step
-            # Log loss.
-            logits_loss += batch_logits_loss.item()
-            loss += batch_logits_loss.item()
-            # Accumulate gradients.
-            batch_logits_loss.backward(retain_graph=True)
+            if use_logit_loss:
+                # Calculate logits loss.
+                batch_logits_loss = logits_objective(
+                    hard_target=label.to(student_device),
+                    teacher_logits=teacher_logits.to(student_device),
+                    student_logits=student_logits,
+                    alpha=logit_loss_weight
+                )
+                # Normalize loss.
+                batch_logits_loss = batch_logits_loss / student_config.accum_step
+                # Log loss.
+                logits_loss += batch_logits_loss.item()
+                loss += batch_logits_loss.item()
+                # Accumulate gradients.
+                batch_logits_loss.backward(retain_graph=True)
 
             # Calculate contrastive loss of last [CLS] hidden.
             # `q`: student last [CLS] hidden state.
@@ -353,6 +363,10 @@ def contrast_distill(
                         student_model.state_dict(),
                         os.path.join(experiment_dir, f'model-{step}.pt')
                     )
+
+            # Start to use `logit_loss`
+            if accum_step == total_contrast_step and use_logit_loss is False:
+                use_logit_loss = True
 
             # Stop training condition.
             if accum_step >= total_accum_step:

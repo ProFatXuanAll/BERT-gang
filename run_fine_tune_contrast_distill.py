@@ -17,7 +17,6 @@ import logging
 
 import torch
 
-from tqdm import tqdm
 # my own modules
 
 import fine_tune
@@ -50,6 +49,13 @@ if __name__ == "__main__":
         help='Number of negative samples.',
         required=True,
         type=int,
+    )
+    parser.add_argument(
+        '--contrast_steps',
+        help='Training iterations for contrastive loss' +
+            'This argument is only feasible when two stage distillation flag is True',
+        required=True,
+        type=int
     )
 
     # Required arguments of teacher model.
@@ -94,8 +100,8 @@ if __name__ == "__main__":
 
     # Optional shared arguments.
     parser.add_argument(
-        '--use_logits_loss',
-        help='Use logits loss of output labels during distillation',
+        '--two_stage',
+        help='Use two stage distillation.',
         action='store_true'
     )
     parser.add_argument(
@@ -128,6 +134,14 @@ if __name__ == "__main__":
         type=int
     )
 
+    # Optional arguments of teacher model.
+    parser.add_argument(
+        '--teacher_device',
+        help='Teacher model device id',
+        default=-1,
+        type=int
+    )
+
     # Optional arguments of student model.
     parser.add_argument(
         '--beta1',
@@ -140,6 +154,13 @@ if __name__ == "__main__":
         default=0.999,
         help="Optimizer `torch.optim.AdamW`'s beta coefficients.",
         type=float,
+    )
+    parser.add_argument(
+        '--logit_loss_weight',
+        default=0.2,
+        help="loss weight (alpha) of soft target cross entropy." +
+            "See 'distill_loss' in `fine_tune.objective`",
+        type=float
     )
     parser.add_argument(
         '--ckpt_step',
@@ -246,7 +267,12 @@ if __name__ == "__main__":
     teacher_config.batch_size = args.batch_size
     teacher_config.accum_step = args.accum_step
 
-        # Construct student model configuration.
+    # Check teacher model device.
+    if args.teacher_device > -1:
+        teacher_config.device_id = args.teacher_device
+        logger.info("Move teacher model to device %s", teacher_config.device)
+
+    # Construct student model configuration.
     student_config = fine_tune.config.StudentConfig(
         accum_step=args.accum_step,
         amp=args.amp,
@@ -343,10 +369,8 @@ if __name__ == "__main__":
     # TODO: more flexible `dim`.
     membank = fine_tune.contrast_util.Memorybank(
         N=len(dataset),
-        dim=768,
-        device_id=args.membank_device
+        dim=768
     )
-    membank.to(membank.device)
 
     # Check memory bank with teacher representations existence.
     t_membank_path = os.path.join(
@@ -362,13 +386,26 @@ if __name__ == "__main__":
                 "Please run `build_membank.py` first")
 
     # Perform contrastive distillation.
-    if args.amp:
-        # perform amp distillation.
-        logger.info("Perform distillation with mixed precesion")
-        raise NotImplementedError("amp contrastive distillation")
+    if args.two_stage:
+        logger.info("Perform two stage distillation")
+        fine_tune.util.contrast_distill_twostage(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            membank=membank,
+            contrast_steps=args.contrast_steps,
+            sotfmax_temp=args.softmax_temp,
+            logit_loss_weight=args.logit_loss_weight
+        )
     else:
         # perform distillation.
-        logger.info("Perform distillation WITHOUT mixed precesion")
+        logger.info("Perform one stage distillation")
         fine_tune.util.contrast_distill(
             teacher_config=teacher_config,
             student_config=student_config,
@@ -380,5 +417,6 @@ if __name__ == "__main__":
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
             membank=membank,
-            sotfmax_temp=args.softmax_temp
+            sotfmax_temp=args.softmax_temp,
+            logit_loss_weight=args.logit_loss_weight
         )
