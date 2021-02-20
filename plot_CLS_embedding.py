@@ -237,5 +237,5 @@ if __name__ == "__main__":
 
     # Add embeddings to tensorboard projector.
     logger.info("Plot [CLS] embeddings to tensorboard projector")
-    writer.add_embedding(mat=all_CLS, metadata=all_label)
+    writer.add_embedding(mat=all_CLS, metadata=all_label, tag=config.dataset)
     logger.info("Done!")
