@@ -111,7 +111,7 @@ python3.8 run_fine_tune_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment contrast_2_10K             \
+--experiment debug             \
 --model bert                       \
 --task mnli                        \
 --accum_step 4                     \
@@ -128,47 +128,83 @@ python3.8 run_fine_tune_contrast_distill.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 200000                \
+--total_step 122720                \
 --type_vocab_size 2                \
---warmup_step  60000               \
+--warmup_step  30000               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --membank_device 1                 \
---use_logits_loss                  \
---neg_num 10000
+--neg_num 10                    \
+--two_stage                        \
+--teacher_device 1                 \
+--contrast_steps 98176
 ```
+
+#### Fine-Tune Distillation with Contrastive learning layer wise
+
+python3.8 run_layerwise_contrast_distill.py \
+--teacher_exp test                \
+--tmodel bert                      \
+--tckpt  36816 \
+--experiment contrast_13_lwise_500             \
+--model bert                       \
+--task mnli                        \
+--accum_step 2                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 1000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 500                     \
+--lr 3e-5                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 122720                \
+--type_vocab_size 2                \
+--warmup_step  30000               \
+--weight_decay 0.01                \
+--device_id 1                      \
+--neg_num 500                    \
+--contrast_steps 0
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_2_10K          \
+--experiment contrast_13_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 0                   \
+--ckpt 99000
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_2_10K          \
+--experiment contrast_13_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
---batch_size 512
+--batch_size 512                \
+--device_id 1
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_2_10K          \
+--experiment contrast_13_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
---batch_size 512
+--batch_size 512 \
+--device_id 1
 ```
 
 ### Build memory bank
@@ -181,19 +217,19 @@ python3.8 build_membank.py \
 --dataset train \
 --ckpt 36816 \
 --batch_size 256 \
---device_id 1 \
---membank_device 1
+--device_id 0 \
+-- layer_wise
 ```
 
 ### Plot CLS embedding of last Transformer block
 
 ```sh
 python3.8 plot_CLS_embedding.py  \
---ckpt 94000                     \
---experiment distill_2_6_2             \
+--ckpt 122720                     \
+--experiment contrast_9_2stage_lwise_500             \
 --model bert                     \
 --task mnli                      \
---dataset dev_matched            \
+--dataset train            \
 --batch_size 128                 \
---device_id 1
+--device_id 0
 ```
