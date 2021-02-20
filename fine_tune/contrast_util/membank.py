@@ -28,12 +28,11 @@ class Memorybank(nn.Module):
     device_id : int, optional
         device id of memory bank, by default -1
     """
-    def __init__(self,  N: int, dim: int, device_id: int = -1):
+    def __init__(self,  N: int, dim: int):
         super(Memorybank, self).__init__()
 
         self.N = N
         self.dim = dim
-        self.device_id = device_id
         # self.K = K
 
         # create memory bank with random initialization and normalization.
@@ -42,19 +41,6 @@ class Memorybank(nn.Module):
         # N: dataset size.
         self.register_buffer("membank", torch.randn(dim, self.N))
         self.membank = nn.functional.normalize(self.membank, dim=0)
-
-    @property
-    def device(self) -> torch.device:
-        r"""Get memory bank device.
-
-        Returns
-        -------
-        torch.device
-            Device create by `torch.device`
-        """
-        if self.device_id == -1:
-            return torch.device('cpu')
-        return torch.device(f'cuda:{self.device_id}')
 
     @torch.no_grad()
     def update_memory(self, new: torch.Tensor, index: torch.LongTensor):
