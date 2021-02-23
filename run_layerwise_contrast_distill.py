@@ -102,11 +102,6 @@ if __name__ == "__main__":
 
     # Optional shared arguments.
     parser.add_argument(
-        '--two_stage',
-        help='Use two stage distillation.',
-        action='store_true'
-    )
-    parser.add_argument(
         '--softmax_temp',
         help='Softmax temperature',
         default=0.07,
