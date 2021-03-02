@@ -146,7 +146,7 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment contrast_13_lwise_500             \
+--experiment contrast_16_lwise_500             \
 --model bert                       \
 --task mnli                        \
 --accum_step 2                     \
@@ -169,42 +169,45 @@ python3.8 run_layerwise_contrast_distill.py \
 --weight_decay 0.01                \
 --device_id 1                      \
 --neg_num 500                    \
---contrast_steps 0
+--contrast_steps 98176           \
+--contrast_weight 0.001
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_13_lwise_500          \
+--experiment contrast_16_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
 --batch_size 512                \
 --device_id 0                   \
---ckpt 99000
+--ckpt 98176
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_13_lwise_500          \
+--experiment contrast_16_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
 --batch_size 512                \
---device_id 1
+--device_id 1                   \
+--ckpt 98176
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_13_lwise_500          \
+--experiment contrast_16_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
 --batch_size 512 \
---device_id 1
+--device_id 1 \
+--ckpt 98176
 ```
 
 ### Build memory bank
@@ -225,11 +228,11 @@ python3.8 build_membank.py \
 
 ```sh
 python3.8 plot_CLS_embedding.py  \
---ckpt 122720                     \
---experiment contrast_9_2stage_lwise_500             \
+--ckpt 31000                     \
+--experiment contrast_14_lwise_500             \
 --model bert                     \
 --task mnli                      \
---dataset train            \
+--dataset dev_matched            \
 --batch_size 128                 \
 --device_id 0
 ```

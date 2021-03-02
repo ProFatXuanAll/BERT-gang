@@ -48,7 +48,8 @@ def contrast_distill_layerwise(
     membanks: List[fine_tune.contrast_util.Memorybank],
     softmax_temp: float = 0.07,
     contrast_steps: int = 0,
-    logit_loss_weight: float = 0.2
+    logit_loss_weight: float = 0.2,
+    contrast_loss_weight: float = 1
 ):
     """Perform layerwise knowledge distillation with contrastive loss
     from given fine-tuned teacher model
@@ -86,6 +87,8 @@ def contrast_distill_layerwise(
         Set this greater than zero means two-stage trainig, by default 0
     logit_loss_weight: float, optional
         loss weight of soft target cross entropy, by default `0.2`.
+    contrast_loss_weight: float, optional
+        weight of contrastive loss, by default `1`
     """
 
     # Set teacher model to evalutation mode.
@@ -138,10 +141,13 @@ def contrast_distill_layerwise(
     total_accum_step = student_config.total_step * student_config.accum_step
     total_contrast_step = contrast_steps * student_config.accum_step
 
+    # Init contrast step and contrast loss weight `beta`
     if total_contrast_step > 0:
         use_logit_loss = False
+        beta = 1
     else:
         use_logit_loss = True
+        beta = contrast_loss_weight
 
     # Mini-batch loss and accmulate loss.
     # Update when accumulate to `config.batch_size`.
@@ -300,7 +306,7 @@ def contrast_distill_layerwise(
                 targets = torch.zeros(output.shape[0], dtype=torch.long).to(student_device)
 
                 # Compute contrastive loss.
-                batch_contrast_loss = contrastive_objective(output, targets)
+                batch_contrast_loss = contrastive_objective(output, targets) * beta
 
                 # Normalize loss.
                 batch_contrast_loss = batch_contrast_loss / student_config.accum_step
@@ -384,6 +390,7 @@ def contrast_distill_layerwise(
             # Start to use `logit_loss`
             if accum_step == total_contrast_step and use_logit_loss is False:
                 use_logit_loss = True
+                beta = contrast_loss_weight
 
             # Stop training condition.
             if accum_step >= total_accum_step:

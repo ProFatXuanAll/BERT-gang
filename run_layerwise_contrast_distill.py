@@ -54,8 +54,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '--contrast_steps',
-        help='Training iterations for contrastive loss' +
-            'This argument is only feasible when two stage distillation flag is True',
+        help='Training iterations for contrastive loss only',
         required=True,
         type=int
     )
@@ -118,6 +117,12 @@ if __name__ == "__main__":
         default=32,
         help='Distillation batch size.',
         type=int,
+    )
+    parser.add_argument(
+        '--contrast_weight',
+        default=1,
+        help='Weight of contrast loss.',
+        type=float
     )
 
     # Optional arguments of teacher model.
@@ -416,5 +421,6 @@ if __name__ == "__main__":
         membanks=membanks,
         softmax_temp=args.softmax_temp,
         contrast_steps=args.contrast_steps,
-        logit_loss_weight=args.logit_loss_weight
+        logit_loss_weight=args.logit_loss_weight,
+        contrast_loss_weight=args.contrast_weight
     )
