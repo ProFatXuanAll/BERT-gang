@@ -77,7 +77,8 @@ def distill_loss(
         hard_target: torch.Tensor,
         student_logits: torch.Tensor,
         teacher_logits: torch.Tensor,
-        alpha: float = 0.2
+        alpha: float = 0.2,
+        softmax_temp: float = 1.0
 ) -> torch.Tensor:
     r"""Knowledge distillation loss function.
 
@@ -124,10 +125,17 @@ def distill_loss(
             `torch.float32` and size (B, C).
         alpha (optional):
             loss weight of soft target cross entropy.
+        softmax_temp (optional):
+            softmax temperature, it will apply to both student and teacher logits.
     Returns:
         Hard-target + soft-target cross-entropy loss. See Hinton, G. (2014).
         Distilling the Knowledge in a Neural Network.
     """
+
+    if softmax_temp != 1.0:
+        student_logits = student_logits / softmax_temp
+        teacher_logits = teacher_logits / softmax_temp
+
     return (
         ( 1 - alpha ) * F.cross_entropy(student_logits, hard_target) +
         alpha * soft_target_cross_entropy_loss(student_logits, teacher_logits)
