@@ -116,7 +116,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--device_id',
-        help='Device ID of student model.',
+        help='Device ID of model.',
         required=True,
         type=int,
     )

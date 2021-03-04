@@ -34,19 +34,19 @@ import fine_tune.path
 
 
 def distill_mgpu(
-        teacher_config: fine_tune.config.TeacherConfig,
-        student_config: fine_tune.config.StudentConfig,
-        dataset: fine_tune.task.Dataset,
-        teacher_model: fine_tune.model.TeacherModel,
-        student_model: fine_tune.model.StudentModel,
-        optimizer: torch.optim.AdamW,
-        scheduler: torch.optim.lr_scheduler.LambdaLR,
-        teacher_tokenizer: transformers.PreTrainedTokenizer,
-        student_tokenizer: transformers.PreTrainedTokenizer,
-        use_logits_loss: bool = True,
-        use_hidden_loss: bool = True,
-        use_attn_loss: bool = True,
-        use_last_hidden: bool = False
+    teacher_config: fine_tune.config.TeacherConfig,
+    student_config: fine_tune.config.StudentConfig,
+    dataset: fine_tune.task.Dataset,
+    teacher_model: fine_tune.model.TeacherModel,
+    student_model: fine_tune.model.StudentModel,
+    optimizer: torch.optim.AdamW,
+    scheduler: torch.optim.lr_scheduler.LambdaLR,
+    teacher_tokenizer: transformers.PreTrainedTokenizer,
+    student_tokenizer: transformers.PreTrainedTokenizer,
+    use_logits_loss: bool = True,
+    use_hidden_loss: bool = True,
+    use_attn_loss: bool = True,
+    use_last_hidden: bool = False
 ):
     r"""Perform knowledge distillation from given fine-tuned teacher model
     with automatic mixed precision.

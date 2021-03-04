@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 
 from fine_tune.util.amp_distill_mgpu import amp_distill_mgpu
 from fine_tune.util.distill_mgpu import distill_mgpu
+from fine_tune.util.reversed_KD import reversed_KD
 from fine_tune.util.evaluation import evaluation
 from fine_tune.util.amp_evaluation import amp_evaluation
 from fine_tune.util.amp_gen_logits import amp_gen_logits
