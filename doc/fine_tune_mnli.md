@@ -146,10 +146,10 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment contrast_17_lwise_500             \
+--experiment contrast_18_lwise_500             \
 --model bert                       \
 --task mnli                        \
---accum_step 2                     \
+--accum_step 4                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
@@ -163,21 +163,21 @@ python3.8 run_layerwise_contrast_distill.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 147264                \
+--total_step 122720                \
 --type_vocab_size 2                \
 --warmup_step  30000               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --neg_num 500                    \
 --contrast_steps 98176           \
---softmax_temp 0.007
+--softmax_temp 0.01
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_17_lwise_500          \
+--experiment contrast_18_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
@@ -189,7 +189,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_17_lwise_500          \
+--experiment contrast_18_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -201,7 +201,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_17_lwise_500          \
+--experiment contrast_18_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
