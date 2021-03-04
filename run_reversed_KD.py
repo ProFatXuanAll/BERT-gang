@@ -230,7 +230,7 @@ if __name__ == "__main__":
     )
 
     # Load model from checkpoint.
-    teacher_model.load_state_dict(torch.load(model_name, map_location=teacher_config.device_id))
+    teacher_model.load_state_dict(torch.load(model_name, map_location=teacher_config.device))
 
 
     # Load student model from given checkpoint.
