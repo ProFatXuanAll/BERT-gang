@@ -184,10 +184,10 @@ if __name__ == '__main__':
         model.zero_grad()
 
         # Load model from checkpoint.
-        model.load_state_dict(torch.load(os.path.join(
-            experiment_dir,
-            f'model-{ckpt}.pt'
-        )))
+        model.load_state_dict(torch.load(
+            os.path.join(experiment_dir,f'model-{ckpt}.pt'),
+            map_location=config.device
+        ))
 
         # Calculate accuracy.
         if config.amp:
