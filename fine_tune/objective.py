@@ -132,13 +132,9 @@ def distill_loss(
         Distilling the Knowledge in a Neural Network.
     """
 
-    if softmax_temp != 1.0:
-        student_logits = student_logits / softmax_temp
-        teacher_logits = teacher_logits / softmax_temp
-
     return (
         ( 1 - alpha ) * F.cross_entropy(student_logits, hard_target) +
-        alpha * soft_target_cross_entropy_loss(student_logits, teacher_logits)
+        alpha * soft_target_cross_entropy_loss(student_logits / softmax_temp, teacher_logits / softmax_temp)
     )
 
 def attention_KL_loss(
