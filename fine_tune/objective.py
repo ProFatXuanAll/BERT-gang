@@ -134,7 +134,7 @@ def distill_loss(
 
     return (
         ( 1 - alpha ) * F.cross_entropy(student_logits, hard_target) +
-        alpha * soft_target_cross_entropy_loss(student_logits / softmax_temp, teacher_logits / softmax_temp)
+        alpha * soft_target_cross_entropy_loss(student_logits / softmax_temp, teacher_logits / softmax_temp) * pow(softmax_temp, 2)
     )
 
 def attention_KL_loss(
