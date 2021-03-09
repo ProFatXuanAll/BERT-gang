@@ -126,6 +126,26 @@ if __name__ == "__main__":
         help='Use automatic mixed precision during distillation.',
         action='store_true'
     )
+    parser.add_argument(
+        '--soft_weight',
+        help='Weight of soft label.',
+        default=0.2,
+        type=float
+    )
+    parser.add_argument(
+        '--softmax_temp',
+        help='Softmax temperature of soft target cross entropy loss.',
+        default=1.0,
+        type=float
+    )
+
+    # Arguments of teacher model.
+    parser.add_argument(
+        '--tdevice_id',
+        help='Device ID of teacher model. If not specified then load from config',
+        default=-1,
+        type=int
+    )
 
     # Arguments of student model.
     parser.add_argument(
@@ -251,6 +271,10 @@ if __name__ == "__main__":
     teacher_config.batch_size = args.batch_size
     teacher_config.accum_step = args.accum_step
 
+    # Set new device ID for teacher model if needed.
+    if args.tdevice_id > -1:
+        teacher_config.device_id = args.tdevice_id
+
     # Construct student model configuration.
     student_config = fine_tune.config.StudentConfig(
         accum_step=args.accum_step,
@@ -323,7 +347,7 @@ if __name__ == "__main__":
         f'model-{args.tckpt}.pt'
     )
     # Load model from checkpoint.
-    teacher_model.load_state_dict(torch.load(model_name))
+    teacher_model.load_state_dict(torch.load(model_name, map_location=teacher_config.device))
 
     # Load student model.
     student_model = fine_tune.util.load_student_model_by_config(
@@ -387,5 +411,7 @@ if __name__ == "__main__":
             use_logits_loss=args.use_logits_loss,
             use_hidden_loss=args.use_hidden_loss,
             use_attn_loss=args.use_attn_loss,
-            use_last_hidden=args.use_last_hidden
+            use_last_hidden=args.use_last_hidden,
+            alpha=args.soft_weight,
+            softmax_temp=args.softmax_temp
         )

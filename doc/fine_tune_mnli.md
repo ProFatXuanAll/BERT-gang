@@ -111,7 +111,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment distill_2_6_2             \
+--experiment soft_baseline             \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -128,15 +128,14 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 100000                \
+--total_step 122720                \
 --type_vocab_size 2                \
 --warmup_step  30000               \
 --weight_decay 0.01                \
 --device_id 1                      \
+--tdevice_id 1                     \
 --use_logits_loss                  \
---use_hidden_loss                  \
---use_attn_loss                    \
---amp
+--use_hidden_loss
 ```
 
 ### BERT Fine-Tune Distillation Evaluation Scripts

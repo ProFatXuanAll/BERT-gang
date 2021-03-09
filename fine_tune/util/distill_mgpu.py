@@ -43,6 +43,8 @@ def distill_mgpu(
     scheduler: torch.optim.lr_scheduler.LambdaLR,
     teacher_tokenizer: transformers.PreTrainedTokenizer,
     student_tokenizer: transformers.PreTrainedTokenizer,
+    alpha: float = 0.2,
+    softmax_temp: float = 1.0,
     use_logits_loss: bool = True,
     use_hidden_loss: bool = True,
     use_attn_loss: bool = True,
@@ -232,7 +234,9 @@ def distill_mgpu(
                 batch_logits_loss = logits_objective(
                     hard_target=label.to(student_device),
                     teacher_logits=teacher_logits.to(student_device),
-                    student_logits=student_logits
+                    student_logits=student_logits,
+                    alpha = alpha,
+                    softmax_temp = softmax_temp
                 )
                 # Normalize loss.
                 batch_logits_loss = batch_logits_loss / student_config.accum_step
