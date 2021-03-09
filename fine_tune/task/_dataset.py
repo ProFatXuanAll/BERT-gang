@@ -243,36 +243,6 @@ class Dataset(torch.utils.data.Dataset):
         return collate_fn
 
 
-# Define dataset utility.
-
-
-def label_encoder(
-        cls: Type[Dataset],
-        label: Label
-) -> int:
-    r"""Encode label into number.
-
-    Args:
-        cls:
-            `fine_tune.task.Dataset` subclass which has class attribute
-            `allow_labels`.
-        label:
-            `label` is encoded as its respective index of `allow_labels`.
-
-    Raises:
-        ValueError:
-            When `label` is not in values of `cls.allow_labels`.
-
-    Returns:
-        Encoded label id.
-    """
-    try:
-        return cls.allow_labels.index(label)
-    except ValueError:
-        raise ValueError(
-            f'unexpected {cls.__name__} label: {label}'
-        )
-
 class ContrastDataset(torch.utils.data.Dataset):
     r"""Fine-tune task's dataset and its utilities.
 
@@ -473,6 +443,35 @@ class ContrastDataset(torch.utils.data.Dataset):
             )
 
         return collate_fn
+
+# Define dataset utility.
+
+def label_encoder(
+        cls: Type[Dataset],
+        label: Label
+) -> int:
+    r"""Encode label into number.
+
+    Args:
+        cls:
+            `fine_tune.task.Dataset` subclass which has class attribute
+            `allow_labels`.
+        label:
+            `label` is encoded as its respective index of `allow_labels`.
+
+    Raises:
+        ValueError:
+            When `label` is not in values of `cls.allow_labels`.
+
+    Returns:
+        Encoded label id.
+    """
+    try:
+        return cls.allow_labels.index(label)
+    except ValueError:
+        raise ValueError(
+            f'unexpected {cls.__name__} label: {label}'
+        )
 
 def label_decoder(
         cls: Type[Dataset],
