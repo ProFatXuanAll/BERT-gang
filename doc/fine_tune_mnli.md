@@ -190,7 +190,7 @@ python3.8 plot_CLS_embedding.py  \
 
 ```sh
 python3 run_reversed_KD.py \
---experiment Re_KD_1       \
+--experiment Re_KD_6_2       \
 --task mnli                \
 --teacher_exp test         \
 --tmodel bert              \
@@ -198,8 +198,8 @@ python3 run_reversed_KD.py \
 --student_exp distill_2_6  \
 --smodel bert              \
 --sckpt 100000             \
---teacher_device 0         \
---student_device 0         \
+--teacher_device 1         \
+--student_device 1         \
 --accum_step 1             \
 --batch_size 32            \
 --ckpt_step 3000           \
@@ -207,8 +207,8 @@ python3 run_reversed_KD.py \
 --lr 3e-5                  \
 --total_step 36816         \
 --warmup_step  10000       \
---softmax_temp 1          \
---soft_target_weight 0.4
+--softmax_temp 10          \
+--soft_target_weight 0.8
 ```
 
 ### BERT Reversed Distillation Evaluation Scripts
@@ -216,7 +216,7 @@ python3 run_reversed_KD.py \
 ```sh
 # Reversed distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment Re_KD_1          \
+--experiment from_scratch_1          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
@@ -227,7 +227,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Reversed distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment test          \
+--experiment from_scratch_1          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -238,9 +238,40 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Reversed distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment Re_KD_1          \
+--experiment from_scratch_1          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
 --batch_size 512                \
 --device_id 1
+```
+
+### Train student from scratch.
+```sh
+python3.8 student_train_from_scratch.py     \
+--experiment from_scratch_1                 \
+--task mnli                                \
+--model bert                                \
+--dataset train                             \
+--num_class 3                               \
+--accum_step 2                              \
+--batch_size 32                             \
+--beta1 0.9                                 \
+--beta2 0.999                               \
+--ckpt_step 1000                            \
+--d_emb 128                                 \
+--d_ff 3072                                 \
+--d_model 768                               \
+--dropout 0.1                               \
+--log_step 500                     \
+--lr 3e-5                          \
+--max_norm 1.0                     \
+--max_seq_len 128                  \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 36816                \
+--type_vocab_size 2                \
+--warmup_step 10000                \
+--weight_decay 0.01                \
+--device_id 1
+```
