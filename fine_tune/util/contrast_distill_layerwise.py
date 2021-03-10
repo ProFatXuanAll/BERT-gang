@@ -46,7 +46,8 @@ def contrast_distill_layerwise(
     teacher_tokenizer: transformers.PreTrainedTokenizer,
     student_tokenizer: transformers.PreTrainedTokenizer,
     membanks: List[fine_tune.contrast_util.Memorybank],
-    softmax_temp: float = 0.07,
+    softmax_temp: float = 1,
+    contrast_temp: float = 0.07,
     contrast_steps: int = 0,
     logit_loss_weight: float = 0.2,
     contrast_loss_weight: float = 1
@@ -80,8 +81,10 @@ def contrast_distill_layerwise(
         Tokenizer paired with `student_model`.
     membanks : List[fine_tune.contrast_util.Memorybank]
         A list of memory banks for contrastive learning.
-    softmax_temp : float, optional
-        Softmax temperature, by default 0.07
+    softmax_temp: float, optional
+        Softmax temperature, by default 1
+    contrast_temp : float, optional
+        Temperature term of InfoNCE loss, by default 0.07
     contrast_steps : int, optional
         Training iterations for contrastive loss only
         Set this greater than zero means two-stage trainig, by default 0
@@ -225,7 +228,8 @@ def contrast_distill_layerwise(
                     hard_target=label.to(student_device),
                     teacher_logits=teacher_logits.to(student_device),
                     student_logits=student_logits,
-                    alpha=logit_loss_weight
+                    alpha=logit_loss_weight,
+                    softmax_temp=softmax_temp
                 )
                 # Normalize loss.
                 batch_logits_loss = batch_logits_loss / student_config.accum_step
@@ -300,7 +304,7 @@ def contrast_distill_layerwise(
                 output = torch.cat([pos_logits, neg_logits], dim=1)
 
                 # Apply temperature.
-                output /= softmax_temp
+                output /= contrast_temp
 
                 # Construct labels: positive key indicators.
                 targets = torch.zeros(output.shape[0], dtype=torch.long).to(student_device)

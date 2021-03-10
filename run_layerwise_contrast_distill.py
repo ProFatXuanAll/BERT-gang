@@ -102,7 +102,13 @@ if __name__ == "__main__":
     # Optional shared arguments.
     parser.add_argument(
         '--softmax_temp',
-        help='Softmax temperature',
+        help='Softmax temeprature',
+        default=1.0,
+        type=float
+    )
+    parser.add_argument(
+        '--contrast_temp',
+        help='Temperature term of InfoNCE loss',
         default=0.07,
         type=float
     )
@@ -420,6 +426,7 @@ if __name__ == "__main__":
         student_tokenizer=student_tokenizer,
         membanks=membanks,
         softmax_temp=args.softmax_temp,
+        contrast_temp=args.contrast_temp,
         contrast_steps=args.contrast_steps,
         logit_loss_weight=args.logit_loss_weight,
         contrast_loss_weight=args.contrast_weight
