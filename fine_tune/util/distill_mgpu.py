@@ -44,6 +44,7 @@ def distill_mgpu(
     teacher_tokenizer: transformers.PreTrainedTokenizer,
     student_tokenizer: transformers.PreTrainedTokenizer,
     alpha: float = 0.2,
+    mu: int = 100,
     softmax_temp: float = 1.0,
     use_logits_loss: bool = True,
     use_hidden_loss: bool = True,
@@ -259,7 +260,8 @@ def distill_mgpu(
 
                         batch_hidden_loss = hidden_objective(
                             teacher_hidden=t_hidden.to(student_device),
-                            student_hidden= s_hidden
+                            student_hidden= s_hidden,
+                            mu=mu
                         )
 
                         # Normalize loss.

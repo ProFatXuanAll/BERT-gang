@@ -138,6 +138,12 @@ if __name__ == "__main__":
         default=1.0,
         type=float
     )
+    parser.add_argument(
+        '--mu',
+        help='Hidden MSE loss weight',
+        default=100,
+        type=int
+    )
 
     # Arguments of teacher model.
     parser.add_argument(
@@ -413,5 +419,6 @@ if __name__ == "__main__":
             use_attn_loss=args.use_attn_loss,
             use_last_hidden=args.use_last_hidden,
             alpha=args.soft_weight,
+            mu=args.mu,
             softmax_temp=args.softmax_temp
         )

@@ -111,10 +111,10 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment soft_baseline             \
+--experiment soft_baseline_gold_2             \
 --model bert                       \
 --task mnli                        \
---accum_step 1                     \
+--accum_step 4                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
@@ -124,18 +124,19 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 500                     \
---lr 3e-5                          \
+--lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 122720                \
+--total_step 73632                \
 --type_vocab_size 2                \
---warmup_step  30000               \
+--warmup_step  24544               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --tdevice_id 1                     \
 --use_logits_loss                  \
---use_hidden_loss
+--softmax_temp 10                  \
+--soft_weight 0.5                  \
 ```
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
@@ -143,7 +144,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment Re_KD_1          \
+--experiment soft_baseline_MSE_gold          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
@@ -154,23 +155,23 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment Re_KD_1          \
+--experiment soft_baseline_MSE_gold          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
 --batch_size 512                \
---device_id 1
+--device_id 0
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment Re_KD_1          \
+--experiment soft_baseline_MSE_gold          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
---batch_size 512                \
---device_id 1
+--batch_size 256                \
+--device_id 0
 ```
 
 ### Plot CLS embedding of last Transformer block
