@@ -30,13 +30,13 @@ rm ./data/fine_tune/mnli.zip
 ```sh
 # Fine-tune on MNLI.
 python3.8 run_fine_tune.py     \
---experiment test                 \
+--experiment bert_base_teacher                 \
 --model bert                   \
 --ptrain_ver bert-base-uncased \
 --task mnli                    \
 --dataset train                \
 --num_class 3                  \
---accum_step 8                 \
+--accum_step 1                 \
 --batch_size 32                \
 --beta1 0.9                    \
 --beta2 0.999                  \
@@ -47,7 +47,7 @@ python3.8 run_fine_tune.py     \
 --lr 3e-5                      \
 --max_norm 1.0                 \
 --max_seq_len 128              \
---device_id 0                     \
+--device_id 1                     \
 --seed 42                      \
 --total_step 36816             \
 --warmup_step  10000           \
@@ -60,31 +60,34 @@ python3.8 run_fine_tune.py     \
 ```sh
 # Fine-tune evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment test                  \
+--experiment bert_base_teacher                  \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
---batch_size 128
+--batch_size 256                \
+--device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment test                  \
+--experiment bert_base_teacher                  \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
---batch_size 128
+--batch_size 512                \
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment test                  \
+--experiment bert_base_teacher                  \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
---batch_size 128
+--batch_size 512                \
+--device_id 1
 ```
 
 ### BERT Fine-Tune Experiment Results
@@ -146,10 +149,10 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment contrast_20_lwise_500             \
+--experiment debug             \
 --model bert                       \
 --task mnli                        \
---accum_step 4                     \
+--accum_step 2                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
@@ -170,26 +173,28 @@ python3.8 run_layerwise_contrast_distill.py \
 --device_id 1                      \
 --neg_num 500                    \
 --contrast_steps 98176           \
---softmax_temp 0.06
+--contrast_temp 0.05             \
+--softmax_temp 5                \
+--soft_label_weight 0.5
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_20_lwise_500          \
+--experiment contrast_19_3_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
 --batch_size 512                \
 --device_id 0                   \
---ckpt 98176
+--ckpt 93000
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_20_lwise_500          \
+--experiment contrast_19_3_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -201,7 +206,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_19_lwise_500          \
+--experiment contrast_19_3_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
@@ -220,8 +225,8 @@ python3.8 build_membank.py \
 --dataset train \
 --ckpt 36816 \
 --batch_size 256 \
---device_id 0 \
--- layer_wise
+--device_id 1 \
+--layer_wise
 ```
 
 ### Plot CLS embedding of last Transformer block
