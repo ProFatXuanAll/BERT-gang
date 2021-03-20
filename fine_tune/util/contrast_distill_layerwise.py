@@ -49,7 +49,7 @@ def contrast_distill_layerwise(
     softmax_temp: float = 1,
     contrast_temp: float = 0.07,
     contrast_steps: int = 0,
-    logit_loss_weight: float = 0.2,
+    soft_label_weight: float = 0.2,
     contrast_loss_weight: float = 1
 ):
     """Perform layerwise knowledge distillation with contrastive loss
@@ -88,7 +88,7 @@ def contrast_distill_layerwise(
     contrast_steps : int, optional
         Training iterations for contrastive loss only
         Set this greater than zero means two-stage trainig, by default 0
-    logit_loss_weight: float, optional
+    soft_label_weight: float, optional
         loss weight of soft target cross entropy, by default `0.2`.
     contrast_loss_weight: float, optional
         weight of contrastive loss, by default `1`
@@ -228,7 +228,7 @@ def contrast_distill_layerwise(
                     hard_target=label.to(student_device),
                     teacher_logits=teacher_logits.to(student_device),
                     student_logits=student_logits,
-                    alpha=logit_loss_weight,
+                    alpha=soft_label_weight,
                     softmax_temp=softmax_temp
                 )
                 # Normalize loss.
