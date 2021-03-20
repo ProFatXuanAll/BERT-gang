@@ -25,8 +25,6 @@ class Memorybank(nn.Module):
         dataset size
     dim : int
         hidden state dimension
-    device_id : int, optional
-        device id of memory bank, by default -1
     """
     def __init__(self,  N: int, dim: int):
         super(Memorybank, self).__init__()
