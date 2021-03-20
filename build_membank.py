@@ -147,7 +147,7 @@ if __name__ == "__main__":
     )
 
     # Load model from checkpoint.
-    teacher_model.load_state_dict(torch.load(model_name))
+    teacher_model.load_state_dict(torch.load(model_name, map_location=config.device))
 
     # Init data loader.
     temp_loader = torch.utils.data.DataLoader(
@@ -205,7 +205,7 @@ if __name__ == "__main__":
                 # hidden: BxSxH
                 # We only need first token [CLS] hidden states
                 membank.update_memory(
-                    new=hidden[:,0,:].to(membank.device),
+                    new=hidden[:,0,:].to('cpu'),
                     index=torch.LongTensor(p_indices)
                 )
 
@@ -261,7 +261,7 @@ if __name__ == "__main__":
                 )
 
             membank.update_memory(
-                new=pooler.to(membank.device),
+                new=pooler.to("cpu"),
                 index=torch.LongTensor(p_indices)
             )
 
