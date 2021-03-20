@@ -153,7 +153,7 @@ if __name__ == "__main__":
         type=float,
     )
     parser.add_argument(
-        '--logit_loss_weight',
+        '--soft_label_weight',
         default=0.2,
         help="loss weight (alpha) of soft target cross entropy." +
             "See 'distill_loss' in `fine_tune.objective`",
@@ -428,6 +428,6 @@ if __name__ == "__main__":
         softmax_temp=args.softmax_temp,
         contrast_temp=args.contrast_temp,
         contrast_steps=args.contrast_steps,
-        logit_loss_weight=args.logit_loss_weight,
+        soft_label_weight=args.soft_label_weight,
         contrast_loss_weight=args.contrast_weight
     )
