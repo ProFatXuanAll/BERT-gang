@@ -219,13 +219,13 @@ python3.8 run_fine_tune_eval.py \
 
 ```sh
 python3.8 build_membank.py \
---experiment test \
+--experiment teacher_base \
 --model bert \
 --task mnli \
 --dataset train \
 --ckpt 36816 \
---batch_size 256 \
---device_id 1 \
+--batch_size 512 \
+--device_id 0 \
 --layer_wise
 ```
 

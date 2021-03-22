@@ -22,8 +22,6 @@ from __future__ import unicode_literals
 
 from fine_tune.util.amp_distill_mgpu import amp_distill_mgpu
 from fine_tune.util.distill_mgpu import distill_mgpu
-from fine_tune.util.contrast_distill import contrast_distill
-from fine_tune.util.contrast_distill_twostage import contrast_distill_twostage
 from fine_tune.util.contrast_distill_layerwise import contrast_distill_layerwise
 from fine_tune.util.device import genDevice
 from fine_tune.util.evaluation import evaluation
