@@ -149,7 +149,7 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment debug             \
+--experiment contrast_19_2_2_lwise_500             \
 --model bert                       \
 --task mnli                        \
 --accum_step 2                     \
@@ -174,27 +174,27 @@ python3.8 run_layerwise_contrast_distill.py \
 --neg_num 500                    \
 --contrast_steps 98176           \
 --contrast_temp 0.05             \
---softmax_temp 5                \
---soft_label_weight 0.5
+--softmax_temp 10                \
+--soft_label_weight 0.2
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_19_3_lwise_500          \
+--experiment contrast_19_2_2_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
 --batch_size 512                \
 --device_id 0                   \
---ckpt 93000
+--ckpt 98176
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_19_3_lwise_500          \
+--experiment contrast_19_2_2_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -206,7 +206,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_19_3_lwise_500          \
+--experiment contrast_19_3_2_lwise_500          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
