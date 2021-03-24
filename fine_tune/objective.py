@@ -77,6 +77,7 @@ def distill_loss(
         hard_target: torch.Tensor,
         student_logits: torch.Tensor,
         teacher_logits: torch.Tensor,
+        gamma: float = 0.8,
         alpha: float = 0.2,
         softmax_temp: float = 1.0
 ) -> torch.Tensor:
@@ -123,8 +124,10 @@ def distill_loss(
         teacher_logits:
             Teacher model's output unnormalized logits with numeric type
             `torch.float32` and size (B, C).
+        gamma (optional):
+            loss weight of hard target cross entropy, default 0.8
         alpha (optional):
-            loss weight of soft target cross entropy.
+            loss weight of soft target cross entropy, default 0.2
         softmax_temp (optional):
             softmax temperature, it will apply to both student and teacher logits.
     Returns:
@@ -133,7 +136,7 @@ def distill_loss(
     """
 
     return (
-        ( 1 - alpha ) * F.cross_entropy(student_logits, hard_target) +
+        gamma * F.cross_entropy(student_logits, hard_target) +
         alpha * soft_target_cross_entropy_loss(student_logits / softmax_temp, teacher_logits / softmax_temp) * pow(softmax_temp, 2)
     )
 
