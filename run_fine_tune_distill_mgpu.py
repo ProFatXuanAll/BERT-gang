@@ -127,6 +127,13 @@ if __name__ == "__main__":
         action='store_true'
     )
     parser.add_argument(
+        '--hard_weight',
+        help='Weight of hard target.',
+        default=0.8,
+        type=float
+    )
+    #TODO: Add `hard_weight` to training function
+    parser.add_argument(
         '--soft_weight',
         help='Weight of soft label.',
         default=0.2,
@@ -398,7 +405,11 @@ if __name__ == "__main__":
             use_logits_loss=args.use_logits_loss,
             use_hidden_loss=args.use_hidden_loss,
             use_attn_loss=args.use_attn_loss,
-            use_last_hidden=args.use_last_hidden
+            use_last_hidden=args.use_last_hidden,
+            alpha=args.soft_weight,
+            gamma=args.hard_weight,
+            mu=args.mu,
+            softmax_temp=args.softmax_temp
         )
     else:
         # perform distillation.
@@ -419,6 +430,7 @@ if __name__ == "__main__":
             use_attn_loss=args.use_attn_loss,
             use_last_hidden=args.use_last_hidden,
             alpha=args.soft_weight,
+            gamma=args.hard_weight,
             mu=args.mu,
             softmax_temp=args.softmax_temp
         )
