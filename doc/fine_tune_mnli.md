@@ -114,7 +114,7 @@ python3.8 run_fine_tune_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment debug             \
+--experiment contrast_by_label_1             \
 --model bert                       \
 --task mnli                        \
 --accum_step 4                     \
@@ -149,7 +149,7 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment contrast_19_2_2_lwise_500             \
+--experiment Contrast_by_label_1             \
 --model bert                       \
 --task mnli                        \
 --accum_step 2                     \
@@ -171,11 +171,12 @@ python3.8 run_layerwise_contrast_distill.py \
 --warmup_step  30000               \
 --weight_decay 0.01                \
 --device_id 1                      \
---neg_num 500                    \
+--neg_num 20                    \
 --contrast_steps 98176           \
---contrast_temp 0.05             \
---softmax_temp 10                \
---soft_label_weight 0.2
+--contrast_temp 0.07             \
+--softmax_temp 1                \
+--soft_label_weight 0.2         \
+--defined_by_label
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 

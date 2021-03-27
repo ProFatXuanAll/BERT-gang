@@ -258,6 +258,8 @@ class ContrastDataset(torch.utils.data.Dataset):
             the model of that experiment.
         k:
             numbers of negative samples.
+        defined_by_label:
+            Use label information to define positive and negative sample.
 
     Attributes:
     ---
@@ -270,6 +272,14 @@ class ContrastDataset(torch.utils.data.Dataset):
             A list of samples of the dataset.
         task_path:
             Path of the task contains all dataset.
+        k:
+            numbers of negative samples.
+        defined_by_label:
+            Use label information to define positive and negative sample.
+        label_indices:
+            If we use label information to define negative samples, this attribute will use a hashmap
+            to record sample indices of each class.
+            For example: label_indices = {0:[1,4,7,9], 1:[3,5,6,8]}
     """
     allow_dataset: List[str] = []
 
@@ -277,7 +287,11 @@ class ContrastDataset(torch.utils.data.Dataset):
 
     task_path: str = ''
 
-    def __init__(self, dataset: str, k: int):
+    def __init__(self, dataset: str, k: int, defined_by_label: bool):
+        # Set number of negative samples.
+        self.k = k
+        self.defined_by_label = defined_by_label
+        self.label_indices = {}
         # Load task specific dataset.
         if dataset in self.__class__.allow_dataset:
             logger.info(
@@ -292,8 +306,17 @@ class ContrastDataset(torch.utils.data.Dataset):
                 dataset
             )
 
-        # Set number of negative samples.
-        self.k = k
+            if self.defined_by_label:
+                logger.info('Use label information to define negatives.')
+                logger.info('Start to build label to sample index mapping.')
+
+                for idx, sample in enumerate(self.dataset):
+                    if sample['label'] in self.label_indices:
+                        self.label_indices[sample['label']].append(idx)
+                    else:
+                        self.label_indices.update({sample['label']:[idx]})
+
+                logger.info('Finish building label to sample index mapping.')
 
     def __getitem__(self, index: int) -> Tuple[Sample, int, List[int]]:
         r"""Sample dataset by index and generate relative negative sample indices.
@@ -318,19 +341,32 @@ class ContrastDataset(torch.utils.data.Dataset):
         IndexError
             `self.dataset` index out of range.
         """
-        # Get dataset size.
-        data_size = len(self.dataset)
+        if self.defined_by_label:
+            cur_label = self.dataset[index]['label']
+            neg_candidate = []
+            for label, indices in self.label_indices.items():
+                # Use different label data as negatives.
+                if label != cur_label:
+                    neg_candidate.extend(indices)
 
-        # Construct candidate negative sample indices.
-        neg_candidate = np.delete(np.arange(data_size), index)
+            neg_index = np.random.choice(neg_candidate, self.k, replace=False)
+            neg_index = neg_index.tolist()
 
-        # Random choice `k` negative samples.
-        # We have to prevent choosing a negative sample repeatedly.
-        # So set `replace` to `False`.
-        neg_index = np.random.choice(neg_candidate, self.k, replace=False)
-        neg_index = neg_index.tolist()
+            return self.dataset[index], index, neg_index
+        else:
+            # Get dataset size.
+            data_size = len(self.dataset)
 
-        return self.dataset[index], index, neg_index
+            # Construct candidate negative sample indices.
+            neg_candidate = np.delete(np.arange(data_size), index)
+
+            # Random choice `k` negative samples.
+            # We have to prevent choosing a negative sample repeatedly.
+            # So set `replace` to `False`.
+            neg_index = np.random.choice(neg_candidate, self.k, replace=False)
+            neg_index = neg_index.tolist()
+
+            return self.dataset[index], index, neg_index
 
     def __len__(self) -> int:
         """Return dataset size.

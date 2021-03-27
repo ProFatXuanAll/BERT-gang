@@ -4,13 +4,10 @@ Usage:
     import torch.utils.data.Dataloader
     import fine_tune
 
-    dataset = fine_tune.task.MNLIContrast('train')
-    dataset = fine_tune.task.MNLIContrast('dev_matched')
-    dataset = fine_tune.task.MNLIContrast('dev_mismatched')
+    dataset = fine_tune.task.MNLIContrast('train', k=10, defined_by_label=False)
+    dataset = fine_tune.task.MNLIContrast('dev_matched', k=10, defined_by_label=False)
+    dataset = fine_tune.task.MNLIContrast('dev_mismatched', k=10, defined_by_label=False)
     dataset = fine_tune.task.MNLIContrast(...)
-
-    dataset.update_logits(...)
-    dataset.save_for_distill()
 
     assert fine_tune.task.get_num_label(fine_tune.task.MNLIContrast) == 3
 

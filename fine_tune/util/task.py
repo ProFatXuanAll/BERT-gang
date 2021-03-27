@@ -83,7 +83,8 @@ def load_dataset_by_config(
 def load_contrast_dataset(
         dataset: str,
         task: str,
-        neg_num: int
+        neg_num: int,
+        defined_by_label: bool
 ) -> fine_tune.task.ContrastDataset:
     """Load fine-tune task's dataset for contrastive learning.
 
@@ -95,6 +96,8 @@ def load_contrast_dataset(
         Name of the fine-tune task.
     neg_num : int
         Number of negative samples.
+    defined_by_label: bool
+        Use label information to define negative sample.
 
     Returns
     -------
@@ -103,7 +106,7 @@ def load_contrast_dataset(
         If task is `mnli`, return `MNLIContrast`
     """
     if task == 'mnli':
-        return fine_tune.task.MNLIContrast(dataset, neg_num)
+        return fine_tune.task.MNLIContrast(dataset, neg_num, defined_by_label)
 
     raise ValueError(
         f'`task` {task} is not supported.\nSupported options:' +
@@ -117,7 +120,8 @@ def load_contrast_dataset(
 
 def load_contrast_dataset_by_config(
         config:fine_tune.config.BaseConfig,
-        neg_num: int
+        neg_num: int,
+        defined_by_label: bool
 ) -> fine_tune.task.ContrastDataset:
     r"""Load fine-tune task's dataset for contrastive learning.
 
@@ -128,6 +132,8 @@ def load_contrast_dataset_by_config(
         and `dataset`.
     neg_num: int
         Number of negative samples.
+    defined_by_label: bool
+        Use label information to define negative sample.
 
     Returns
     -------
@@ -137,5 +143,6 @@ def load_contrast_dataset_by_config(
     return load_contrast_dataset(
         dataset=config.dataset,
         task=config.task,
-        neg_num=neg_num
+        neg_num=neg_num,
+        defined_by_label=defined_by_label
     )

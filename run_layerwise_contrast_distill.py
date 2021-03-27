@@ -130,6 +130,11 @@ if __name__ == "__main__":
         help='Weight of contrast loss.',
         type=float
     )
+    parser.add_argument(
+        '--defined_by_label',
+        help='Use label information to define negative samples.',
+        action='store_true'
+    )
 
     # Optional arguments of teacher model.
     parser.add_argument(
@@ -316,7 +321,8 @@ if __name__ == "__main__":
     # Load contrast distillation dataset.
     dataset = fine_tune.util.load_contrast_dataset_by_config(
         config=teacher_config,
-        neg_num=args.neg_num
+        neg_num=args.neg_num,
+        defined_by_label=args.defined_by_label
     )
 
     # Load teacher and student tokenizer.
@@ -402,10 +408,13 @@ if __name__ == "__main__":
                 f'membank{i}.pt'
             )))
             #TODO: refactor
-            if l < 6:
-                membank.to(fine_tune.util.genDevice(1))
-            else:
-                membank.to(fine_tune.util.genDevice(0))
+            # if l < 6:
+            #     membank.to(fine_tune.util.genDevice(1))
+            # else:
+            #     membank.to(fine_tune.util.genDevice(0))
+
+            # Move memory bank to `cuda:1`
+            membank.to("cuda:1")
 
         logger.info("Finish membory bank loading")
     except FileNotFoundError as membank_not_found:

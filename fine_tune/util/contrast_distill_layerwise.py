@@ -123,6 +123,7 @@ def contrast_distill_layerwise(
         dataset,
         batch_size=teacher_config.batch_size // teacher_config.accum_step,
         collate_fn=dataset.create_collate_fn(),
+        num_workers=os.cpu_count(),
         shuffle=True
     )
 
@@ -279,15 +280,18 @@ def contrast_distill_layerwise(
 
                 # Compute relative negative logit.
                 # TODO: Refactor
-                if i < 6:
-                    indices = torch.LongTensor(n_indices).to(fine_tune.util.genDevice(1))
-                else:
-                    indices = torch.LongTensor(n_indices).to(fine_tune.util.genDevice(0))
+                # if i < 6:
+                #     indices = torch.LongTensor(n_indices).to(fine_tune.util.genDevice(1))
+                # else:
+                #     indices = torch.LongTensor(n_indices).to(fine_tune.util.genDevice(0))
+
+                # Cause we force memory bank to reside on `cuda:1`
+                indices = torch.LongTensor(n_indices).to("cuda:1")
 
 
                 for qi, idx in zip(q, indices):
                     # `qi`: D shape tensor, represent a single query.
-                    # `indx`: K shape tensor, represent relative negative index.
+                    # `idx`: K shape tensor, represent relative negative index.
                     # Sample negative paris w.r.t a single query.
                     # k_neg = membank(idx)
                     k_neg = membank(idx).to(student_device)
