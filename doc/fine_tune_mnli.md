@@ -149,11 +149,11 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment debug             \
+--experiment Contrast_by_label_1_1             \
 --model bert                       \
 --task mnli                        \
 --accum_step 2                     \
---batch_size 8                    \
+--batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
 --ckpt_step 5000                   \
