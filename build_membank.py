@@ -123,7 +123,8 @@ if __name__ == "__main__":
     # Cause we don't need negative sample, so set it to 1.
     dataset = fine_tune.util.load_contrast_dataset_by_config(
         config=config,
-        neg_num=1
+        neg_num=1,
+        defined_by_label=False
     )
 
     # Load teacher tokenizer.
@@ -148,7 +149,6 @@ if __name__ == "__main__":
 
     # Load model from checkpoint.
     teacher_model.load_state_dict(torch.load(model_name, map_location=config.device))
-
     # Init data loader.
     temp_loader = torch.utils.data.DataLoader(
         dataset=dataset,
