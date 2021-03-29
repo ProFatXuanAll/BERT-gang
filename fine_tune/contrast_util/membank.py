@@ -62,19 +62,19 @@ class Memorybank(nn.Module):
         # Update normalized key(s).
         self.membank.index_copy_(1, index, new.T)
 
-    def forward(self, n_index: torch.LongTensor) -> torch.Tensor:
-        r"""Given negative sample(s) index(ices) and return negative sample(s).
+    def forward(self, index: torch.LongTensor) -> torch.Tensor:
+        r"""Given negative sample(s) index(ices) and return sample(s).
 
         Parameters
         ----------
-        n_index : torch.LongTensor
-            negative sample(s) index(ices), 1D tensor.
+        index : torch.LongTensor
+            Sample(s) index(ices), 1D tensor.
 
         Returns
         -------
         torch.Tensor
-            negative sample(s), shape: DxK.
+            Sample(s), shape: DxK.
             D: dimension
-            K: number of negative samples
+            K: number of samples
         """
-        return torch.index_select(self.membank, 1, n_index).detach()
+        return torch.index_select(self.membank, 1, index).detach()
