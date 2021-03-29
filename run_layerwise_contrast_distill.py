@@ -265,10 +265,6 @@ if __name__ == "__main__":
         task=args.task
     )
 
-    # Sync batch size and accumulation steps.
-    # teacher_config.batch_size = args.batch_size
-    # teacher_config.accum_step = args.accum_step
-
     # Check teacher model device.
     if args.teacher_device > -1:
         teacher_config.device_id = args.teacher_device
@@ -356,18 +352,6 @@ if __name__ == "__main__":
     teacher_logits.to(teacher_config.device)
 
     logger.info("Loading teacher logits complete.")
-
-    # # Load teacher model from given checkpoint.
-    # teacher_model = fine_tune.util.load_teacher_model_by_config(
-    #     config=teacher_config
-    # )
-    # model_name = os.path.join(
-    #     fine_tune.path.FINE_TUNE_EXPERIMENT,
-    #     experiment_name,
-    #     f'model-{args.tckpt}.pt'
-    # )
-    # # Load model from checkpoint.
-    # teacher_model.load_state_dict(torch.load(model_name))
 
     # Load student model.
     student_model = fine_tune.util.load_student_model_by_config(
