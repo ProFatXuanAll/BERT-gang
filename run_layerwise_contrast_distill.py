@@ -266,13 +266,13 @@ if __name__ == "__main__":
     )
 
     # Sync batch size and accumulation steps.
-    teacher_config.batch_size = args.batch_size
-    teacher_config.accum_step = args.accum_step
+    # teacher_config.batch_size = args.batch_size
+    # teacher_config.accum_step = args.accum_step
 
     # Check teacher model device.
     if args.teacher_device > -1:
         teacher_config.device_id = args.teacher_device
-        logger.info("Move teacher model to device %s", teacher_config.device)
+        logger.info("Move teacher logits to device %s", teacher_config.device)
 
     # Construct student model configuration.
     student_config = fine_tune.config.StudentConfig(
@@ -326,29 +326,48 @@ if __name__ == "__main__":
     )
 
     # Load teacher and student tokenizer.
-    teacher_tokenizer = fine_tune.util.load_teacher_tokenizer_by_config(
-        config=teacher_config
-    )
+    # teacher_tokenizer = fine_tune.util.load_teacher_tokenizer_by_config(
+    #     config=teacher_config
+    # )
     student_tokenizer = fine_tune.util.load_student_tokenizer_by_config(
         config=student_config
     )
 
-    # Load teacher model from given checkpoint.
-    teacher_model = fine_tune.util.load_teacher_model_by_config(
-        config=teacher_config
+    # Load teacher output logits bank from given checkpoint.
+    logger.info("Load teacher logits.")
+
+    teacher_logits = fine_tune.model.Logitsbank(
+        N = len(dataset),
+        C = teacher_config.num_class
     )
+
     experiment_name = fine_tune.config.BaseConfig.experiment_name(
         experiment=teacher_config.experiment,
         model=teacher_config.model,
         task=teacher_config.task
     )
-    model_name = os.path.join(
+    logits_fname = os.path.join(
         fine_tune.path.FINE_TUNE_EXPERIMENT,
         experiment_name,
-        f'model-{args.tckpt}.pt'
+        f'logitsbank-{args.tckpt}.pt'
     )
-    # Load model from checkpoint.
-    teacher_model.load_state_dict(torch.load(model_name))
+
+    teacher_logits.load_state_dict(torch.load(logits_fname))
+    teacher_logits.to(teacher_config.device)
+
+    logger.info("Loading teacher logits complete.")
+
+    # # Load teacher model from given checkpoint.
+    # teacher_model = fine_tune.util.load_teacher_model_by_config(
+    #     config=teacher_config
+    # )
+    # model_name = os.path.join(
+    #     fine_tune.path.FINE_TUNE_EXPERIMENT,
+    #     experiment_name,
+    #     f'model-{args.tckpt}.pt'
+    # )
+    # # Load model from checkpoint.
+    # teacher_model.load_state_dict(torch.load(model_name))
 
     # Load student model.
     student_model = fine_tune.util.load_student_model_by_config(
@@ -424,14 +443,13 @@ if __name__ == "__main__":
     # Perform layer wise contrastive distillation.
     logger.info("Perform layer wise contrastive distillation")
     fine_tune.util.contrast_distill_layerwise(
-        teacher_config=teacher_config,
+        teacher_logitsbank=teacher_logits,
+        teacher_device=teacher_config.device,
         student_config=student_config,
         dataset=dataset,
-        teacher_model=teacher_model,
         student_model=student_model,
         optimizer=optimizer,
         scheduler=scheduler,
-        teacher_tokenizer=teacher_tokenizer,
         student_tokenizer=student_tokenizer,
         membanks=membanks,
         softmax_temp=args.softmax_temp,

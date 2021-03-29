@@ -3,7 +3,7 @@ r"""Build memory bank with given teacher model and dataset.
 Usage:
     python build_membank.py ...
 
-Run `python build_membank.py -h` for help, or se documetation for more information.
+Run `python build_membank.py -h` for help, or see documetation for more information.
 """
 
 

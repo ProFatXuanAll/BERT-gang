@@ -17,6 +17,7 @@ from __future__ import unicode_literals
 import torch
 import torch.nn as nn
 
+
 class Logitsbank(nn.Module):
     """Logits bank object
 

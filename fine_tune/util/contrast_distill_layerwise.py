@@ -36,14 +36,13 @@ import fine_tune.path
 import fine_tune.contrast_util
 
 def contrast_distill_layerwise(
-    teacher_config: fine_tune.config.TeacherConfig,
+    teacher_logitsbank: fine_tune.model.Logitsbank,
+    teacher_device: torch.cuda.device,
     student_config: fine_tune.config.StudentConfig,
     dataset: fine_tune.task.ContrastDataset,
-    teacher_model: fine_tune.model.TeacherModel,
     student_model: fine_tune.model.StudentModel,
     optimizer: torch.optim.AdamW,
     scheduler: torch.optim.lr_scheduler.LambdaLR,
-    teacher_tokenizer: transformers.PreTrainedTokenizer,
     student_tokenizer: transformers.PreTrainedTokenizer,
     membanks: List[fine_tune.contrast_util.Memorybank],
     softmax_temp: float = 1,
@@ -58,16 +57,13 @@ def contrast_distill_layerwise(
 
     Parameters
     ----------
-    teacher_config : fine_tune.config.TeacherConfig
-        `fine_tune.config.TeacherConfig` class with attributes are use for experiment setup.
+    teahcer_logitsbank : fine_tune.model.Logitsbank
+        `fine_tune.model.Logitsbank` class which store teacher logits outputs.
     student_config : fine_tune.config.StudentConfig
         `fine_tune.config.StudentConfig` class which attributes are used
         for experiment setup.
     dataset : fine_tune.task.ContrastDataset
         Task specific dataset.
-    teacher_model : fine_tune.model.TeacherModel
-        A fine-tuned teacher model which is used to
-        generate soft targets, hidden states and attentions.
     student_model : fine_tune.model.StudentModel
         Model which will perform disitllation according to
         outputs from given teacher model.
@@ -75,8 +71,6 @@ def contrast_distill_layerwise(
         `torch.optim.AdamW` optimizer.
     scheduler : torch.optim.lr_scheduler.LambdaLR
         Linear warmup scheduler provided by `transformers` package.
-    teacher_tokenizer : transformers.PreTrainedTokenizer
-        Tokenizer paired with `teacher_model`.
     student_tokenizer : transformers.PreTrainedTokenizer
         Tokenizer paired with `student_model`.
     membanks : List[fine_tune.contrast_util.Memorybank]
@@ -94,14 +88,10 @@ def contrast_distill_layerwise(
         weight of contrastive loss, by default `1`
     """
 
-    # Set teacher model to evalutation mode.
-    teacher_model.eval()
-
     # Set student model as training mode.
     student_model.train()
 
-    # Model running device of teacher and student model.
-    teacher_device = teacher_config.device
+    # Model running device of student model.
     student_device = student_config.device
 
     # Clean all gradient.
@@ -121,7 +111,7 @@ def contrast_distill_layerwise(
     # Teacher and student share a dataloader.
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=teacher_config.batch_size // teacher_config.accum_step,
+        batch_size=student_config.batch_size // student_config.accum_step,
         collate_fn=dataset.create_collate_fn(),
         num_workers=os.cpu_count(),
         shuffle=True
@@ -176,22 +166,13 @@ def contrast_distill_layerwise(
     while accum_step < total_accum_step:
 
         # Mini-batch loop.
-        for text, text_pair, label, _, n_indices in dataloader:
+        for text, text_pair, label, p_indices, n_indices in dataloader:
 
             # Transform `label`.
             label = torch.LongTensor(label)
-            # Get `input_ids`, `token_type_ids` and `attention_mask` from via tokenizer.
-            teacher_batch_encode = teacher_tokenizer(
-                text=text,
-                text_pair=text_pair,
-                padding='max_length',
-                max_length=teacher_config.max_seq_len,
-                return_tensors='pt',
-                truncation=True
-            )
-            teacher_input_ids = teacher_batch_encode['input_ids']
-            teacher_token_type_ids = teacher_batch_encode['token_type_ids']
-            teacher_attention_mask = teacher_batch_encode['attention_mask']
+
+            # Convert positive indices list to `torch.LongTensor`.
+            p_indices = torch.LongTensor(p_indices)
 
             student_batch_encode = student_tokenizer(
                 text=text,
@@ -205,15 +186,6 @@ def contrast_distill_layerwise(
             student_token_type_ids = student_batch_encode['token_type_ids']
             student_attention_mask = student_batch_encode['attention_mask']
 
-            # Get output logits, hidden states of all layers from teacher.
-            with torch.no_grad():
-                teacher_logits, teacher_hiddens, _ = teacher_model(
-                    input_ids = teacher_input_ids.to(teacher_device),
-                    token_type_ids=teacher_token_type_ids.to(teacher_device),
-                    attention_mask=teacher_attention_mask.to(teacher_device),
-                    return_hidden_and_attn=True
-                )
-
             # Get output logits, hidden states of all layers form student.
             student_logits, student_hiddens, _ = student_model(
                 input_ids = student_input_ids.to(student_device),
@@ -224,7 +196,10 @@ def contrast_distill_layerwise(
 
             if use_logit_loss:
                 # Calculate logits loss.
-                # Calculate logits loss.
+
+                # Sample teacher logits
+                teacher_logits = teacher_logitsbank(p_indices.to(teacher_device))
+
                 batch_logits_loss = logits_objective(
                     hard_target=label.to(student_device),
                     teacher_logits=teacher_logits.to(student_device),
@@ -242,41 +217,41 @@ def contrast_distill_layerwise(
 
             # Calculate contrastive loss of [CLS] from each layer.
             # `q`: student [CLS] hidden state.
-            # `k+`: teacher [CLS] hidden state.
+            # `t_hidden`: normalized teacher [CLS] hidden state.
             # `k-(negatives)`: Sample from memory bank.
             # B: batch size.
             # D: dimension.
             # K: number of negative samples.
 
             # Skip embedding layers.
-            teacher_hiddens = teacher_hiddens[1:]
             student_hiddens = student_hiddens[1:]
-            skip = len(teacher_hiddens) // len(student_hiddens)
 
             #TODO: Refactor
-            for i, (t_hidden, s_hidden, membank) in enumerate(
-                zip(teacher_hiddens[skip-1::skip], student_hiddens, membanks)):
+            for s_hidden, membank in zip(
+                    student_hiddens,
+                    membanks
+                ):
+
+                # Extract normalized teacher representation (anchor) from memory bank.
+                # `t_hidden`: BxD
+                t_hidden = membank(p_indices.to("cuda:1")).T.to(student_device)
+
                 # Get hidden batch size and dim.
                 B = t_hidden.shape[0]
                 D = t_hidden.shape[-1]
 
                 # Extract [CLS]
-                t_hidden = t_hidden[:,0,:]
                 s_hidden = s_hidden[:,0,:]
 
-                # Normalize `Query` and `K+`.
+                # Normalize `Query`.
                 q = nn.functional.normalize(s_hidden)
-                k_pos = nn.functional.normalize(t_hidden).to(student_device)
 
                 # Compute logits of positive pairs.
                 # `pos_logits`: tensor of shape Bx1x1
-                pos_logits = torch.bmm(q.view(B, 1, D), k_pos.view(B, D, 1))
+                pos_logits = torch.bmm(q.view(B, 1, D), t_hidden.view(B, D, 1))
 
                 # `pos_logits`: tensor of shape Bx1
                 pos_logits = pos_logits.view(B,-1)
-
-                # Init a temporary list to store all negative logits.
-                neg_logits = []
 
                 # Compute relative negative logit.
                 # TODO: Refactor
@@ -288,21 +263,18 @@ def contrast_distill_layerwise(
                 # Cause we force memory bank to reside on `cuda:1`
                 indices = torch.LongTensor(n_indices).to("cuda:1")
 
+                # Extract a batch of negatives
+                N = []
+                for idx in indices:
+                    # `neg`: tensor of shape `DxK`
+                    neg = membank(idx)
+                    N.append(neg)
 
-                for qi, idx in zip(q, indices):
-                    # `qi`: D shape tensor, represent a single query.
-                    # `idx`: K shape tensor, represent relative negative index.
-                    # Sample negative paris w.r.t a single query.
-                    # k_neg = membank(idx)
-                    k_neg = membank(idx).to(student_device)
+                # `N`: BxDxK
+                N = torch.stack(N)
 
-                    # `k_neg` is a tensor of shape: DxK.
-                    # Compute negative logit w.r.t `qi`.
-                    # `n_logit` is a tensor of shape K.
-                    neg_logits.append(qi @ k_neg)
-
-                # Convert to tensor of shape BxK.
-                neg_logits = torch.stack(neg_logits)
+                # Compute similarity between negatives.
+                neg_logits = torch.bmm(q.view(B,1,D), N).view(B,-1)
 
                 # Get `output` tensor of shape Bx(1+K).
                 output = torch.cat([pos_logits, neg_logits], dim=1)

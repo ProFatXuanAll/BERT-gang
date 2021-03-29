@@ -149,14 +149,14 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment Contrast_by_label_1             \
+--experiment debug             \
 --model bert                       \
 --task mnli                        \
 --accum_step 2                     \
---batch_size 32                    \
+--batch_size 8                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 1000                   \
+--ckpt_step 5000                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
@@ -172,7 +172,7 @@ python3.8 run_layerwise_contrast_distill.py \
 --weight_decay 0.01                \
 --device_id 1                      \
 --neg_num 20                    \
---contrast_steps 98176           \
+--contrast_steps 0           \
 --contrast_temp 0.07             \
 --softmax_temp 1                \
 --soft_label_weight 0.2         \
@@ -183,7 +183,7 @@ python3.8 run_layerwise_contrast_distill.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_19_2_2_lwise_500          \
+--experiment Contrast_by_label_2          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
@@ -195,7 +195,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_19_2_2_lwise_500          \
+--experiment Contrast_by_label_2          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -207,7 +207,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment contrast_19_3_2_lwise_500          \
+--experiment Contrast_by_label_2          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
@@ -225,9 +225,22 @@ python3.8 build_membank.py \
 --task mnli \
 --dataset train \
 --ckpt 36816 \
---batch_size 512 \
+--batch_size 256 \
 --device_id 0 \
 --layer_wise
+```
+
+### Build logits bank
+
+```sh
+python3.8 build_logitsbank.py \
+--experiment test \
+--model bert \
+--task mnli \
+--dataset train \
+--ckpt 36816 \
+--batch_size 256 \
+--device_id 1
 ```
 
 ### Plot CLS embedding of last Transformer block
