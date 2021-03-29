@@ -129,6 +129,7 @@ def amp_distill_mgpu(
         dataset,
         batch_size=teacher_config.batch_size // teacher_config.accum_step,
         collate_fn=dataset.create_collate_fn(),
+        num_workers=os.cpu_count(),
         shuffle=True
     )
 
