@@ -29,3 +29,4 @@ from fine_tune.task._dataset import get_num_class
 from fine_tune.task._dataset import label_decoder
 from fine_tune.task._dataset import label_encoder
 from fine_tune.task._mnli import MNLI
+from fine_tune.task._qnli import QNLI
