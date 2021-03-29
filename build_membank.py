@@ -154,6 +154,7 @@ if __name__ == "__main__":
         dataset=dataset,
         batch_size=config.batch_size,
         collate_fn=dataset.create_collate_fn(),
+        num_workers=os.cpu_count(),
         shuffle=False
     )
 
