@@ -1,25 +1,40 @@
-r"""QNLI dataset.
+r"""QNLI dataset for contrastive learning.
 
 Usage:
     import torch.utils.data.Dataloader
     import fine_tune
 
-    dataset = fine_tune.task.QNLI('train')
-    dataset = fine_tune.task.QNLI('dev')
+    dataset = fine_tune.task.QNLIContrast('train', k=10, defined_by_label=False)
+    dataset = fine_tune.task.QNLIContrast('dev_matched', k=10, defined_by_label=False)
+    dataset = fine_tune.task.QNLIContrast('dev_mismatched', k=10, defined_by_label=False)
+    dataset = fine_tune.task.QNLIContrast(...)
 
-    dataloader = torch.utils.data.Dataloader(
+    assert fine_tune.task.get_num_label(fine_tune.task.QNLIContrast) == 3
+
+    assert fine_tune.task.label_encoder(
+        fine_tune.task.QNLIContrast,
+        fine_tune.task.QNLIContrast.allow_labels[0]
+    ) == 0
+
+    assert fine_tune.task.label_decoder(
+        fine_tune.task.QNLIContrast,
+        0
+    ) == fine_tune.task.QNLIContrast.allow_labels[0]
+
+    data_loader = torch.utils.data.Dataloader(
         dataset,
-        collate_fn=QNLI.create_collate_fn(...)
+        collate_fn=QNLIContrast.create_collate_fn(...)
     )
 """
 
-# Built-in modules.
+# built-in modules
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import json
 import logging
 import os
 
@@ -34,7 +49,7 @@ from tqdm import tqdm
 import fine_tune.path
 
 from fine_tune.task._dataset import (
-    Dataset,
+    ContrastDataset,
     Label,
     Sample,
     label_encoder
@@ -44,17 +59,21 @@ from fine_tune.task._dataset import (
 
 logger = logging.getLogger('fine_tune.task')
 
-# Define QNLI dataset.
+# Define QNLIContrast dataset.
 
-class QNLI(Dataset):
-    r"""QNLI dataset and its utilities
+class QNLIContrast(ContrastDataset):
+    r"""QNLI dataset for contrastive learning and its utilities
 
     Parameters
     ----------
-    Dataset : string
-        Name of QNLI dataset file to be loaded.
+        dataset : string
+            Name of QNLI dataset file to be loaded.
+        k:
+            Number of negative samples.
+        defined_by_label:
+            Use label information to define positive and negative sample.
     """
-    #TODO: support testing dataset.
+    # TODO: support testing set.
     allow_dataset: List[str] = [
         'train',
         'dev'
@@ -91,7 +110,7 @@ class QNLI(Dataset):
         """
         try:
             dataset_path = os.path.join(
-                QNLI.task_path,
+                QNLIContrast.task_path,
                 f'{dataset}.tsv'
             )
             with open(dataset_path, 'r') as tsv_file:
@@ -105,7 +124,7 @@ class QNLI(Dataset):
                         Sample({
                             'text': question,
                             'text_pair': sentence,
-                            'label': label_encoder(QNLI, label)
+                            'label': label_encoder(QNLIContrast, label)
                         })
                     )
 

@@ -108,6 +108,9 @@ def load_contrast_dataset(
     if task == 'mnli':
         return fine_tune.task.MNLIContrast(dataset, neg_num, defined_by_label)
 
+    if task == 'qnli':
+        return fine_tune.task.QNLIContrast(dataset, neg_num, defined_by_label)
+
     raise ValueError(
         f'`task` {task} is not supported.\nSupported options:' +
         ''.join(list(map(
