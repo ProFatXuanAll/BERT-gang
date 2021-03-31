@@ -19,34 +19,11 @@ import torch.nn
 import torch.nn.functional as F
 
 
-def soft_target_cross_entropy_loss(
+def soft_target_loss(
         student_logits: torch.Tensor,
         teacher_logits: torch.Tensor
 ) -> torch.Tensor:
-    r"""Soft-target cross-entropy loss function.
-
-    We use the following notation for the rest of the context.
-        - B: batch size.
-        - C: number of class.
-        - P: teacher model's output softmax probability.
-        - P_i: teacher model's output softmax probability on class i.
-        - p: teacher model's output unnormalized logits.
-        - p_i: teacher model's output unnormalized logits on class i.
-        - Q: student model's output softmax probability.
-        - Q_i: student model's output softmax probability on class i.
-        - q: student model's output unnormalized logits.
-        - q_i: student model's output unnormalized logits on class i.
-
-    We first convert logits into prediction using softmax normalization:
-        $$
-        P_i = \text{softmax}(p_i) = \frac{e^{p_i}}{\sum_{j=1}^C e^{p_j}} \\
-        Q_i = \text{softmax}(q_i) = \frac{e^{q_i}}{\sum_{j=1}^C e^{q_j}}
-        $$
-
-    Then we calculate soft-target cross-entropy using following formula:
-        $$
-        -P * \log Q = -\sum_{i = 1}^c P_i * \log Q_i
-        $$
+    r"""Soft-target distillation loss (KL divergence) function.
 
     Args:
         student_logits:
@@ -57,8 +34,9 @@ def soft_target_cross_entropy_loss(
             `torch.float32` and size (B, C).
 
     Returns:
-        Soft-target cross-entropy loss. See Hinton, G. (2014). Distilling the
-        Knowledge in a Neural Network.
+        Soft-target KL divergence loss.
+        Hinton, G. (2014). Distilling the Knowledge in a Neural Network use cross entropy.
+        Here we follow recent KD paper, use KL divergence loss.
     """
     # # `p.size == q.size == (B, C)`.
     # p = F.softmax(teacher_logits, dim=-1)
@@ -142,7 +120,7 @@ def distill_loss(
 
     return (
         gamma * F.cross_entropy(student_logits, hard_target) +
-        alpha * soft_target_cross_entropy_loss(student_logits / softmax_temp, teacher_logits / softmax_temp) * pow(softmax_temp, 2)
+        alpha * soft_target_loss(student_logits / softmax_temp, teacher_logits / softmax_temp) * pow(softmax_temp, 2)
     )
 
 def attention_KL_loss(
