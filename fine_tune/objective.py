@@ -60,17 +60,22 @@ def soft_target_cross_entropy_loss(
         Soft-target cross-entropy loss. See Hinton, G. (2014). Distilling the
         Knowledge in a Neural Network.
     """
-    # `p.size == q.size == (B, C)`.
-    p = F.softmax(teacher_logits, dim=-1)
-    # q = F.softmax(student_logits, dim=-1)
+    # # `p.size == q.size == (B, C)`.
+    # p = F.softmax(teacher_logits, dim=-1)
+    # # q = F.softmax(student_logits, dim=-1)
 
-    # `loss.size == (B, C)`.
-    # loss = -p * q.log()
+    # # `loss.size == (B, C)`.
+    # # loss = -p * q.log()
 
-    # `loss.sum(dim=-1).size == (B)` and `loss.sum(dim=-1).mean().size == (1)`.
-    # return loss.sum(dim=-1).mean()
-    logsoftmax = torch.nn.LogSoftmax(dim=1)
-    return torch.mean(torch.sum(- p * logsoftmax(student_logits), dim=-1))
+    # # `loss.sum(dim=-1).size == (B)` and `loss.sum(dim=-1).mean().size == (1)`.
+    # # return loss.sum(dim=-1).mean()
+    # logsoftmax = torch.nn.LogSoftmax(dim=1)
+    # return torch.mean(torch.sum(- p * logsoftmax(student_logits), dim=-1))
+    soft_loss = torch.nn.KLDivLoss(reduction="batchmean")(
+                    F.log_softmax(student_logits, dim=1),
+                    F.softmax(teacher_logits, dim=1)
+                )
+    return soft_loss
 
 
 def distill_loss(

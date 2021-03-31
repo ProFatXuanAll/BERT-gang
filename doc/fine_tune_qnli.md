@@ -63,7 +63,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment MSE_2             \
+--experiment MSE_KLDiv             \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -84,8 +84,8 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --type_vocab_size 2                \
 --warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
+--device_id 0                      \
+--tdevice_id 0                     \
 --use_hidden_loss                  \
 --use_logits_loss                  \
 --softmax_temp 20                  \
@@ -99,7 +99,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment MSE_1_1                  \
+--experiment MSE_KLDiv                  \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -109,7 +109,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment MSE_1_1                  \
+--experiment MSE_KLDiv                  \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
