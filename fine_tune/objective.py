@@ -38,17 +38,6 @@ def soft_target_loss(
         Hinton, G. (2014). Distilling the Knowledge in a Neural Network use cross entropy.
         Here we follow recent KD paper, use KL divergence loss.
     """
-    # # `p.size == q.size == (B, C)`.
-    # p = F.softmax(teacher_logits, dim=-1)
-    # # q = F.softmax(student_logits, dim=-1)
-
-    # # `loss.size == (B, C)`.
-    # # loss = -p * q.log()
-
-    # # `loss.sum(dim=-1).size == (B)` and `loss.sum(dim=-1).mean().size == (1)`.
-    # # return loss.sum(dim=-1).mean()
-    # logsoftmax = torch.nn.LogSoftmax(dim=1)
-    # return torch.mean(torch.sum(- p * logsoftmax(student_logits), dim=-1))
     soft_loss = torch.nn.KLDivLoss(reduction="batchmean")(
                     F.log_softmax(student_logits, dim=1),
                     F.softmax(teacher_logits, dim=1)
