@@ -234,7 +234,7 @@ def contrast_distill_layerwise(
 
                 # Extract normalized teacher representation (anchor) from memory bank.
                 # `t_hidden`: BxD
-                t_hidden = membank(p_indices.to("cuda:1")).T.to(student_device)
+                t_hidden = membank(p_indices.to(student_device)).T.to(student_device)
 
                 # Get hidden batch size and dim.
                 B = t_hidden.shape[0]
@@ -261,7 +261,7 @@ def contrast_distill_layerwise(
                 #     indices = torch.LongTensor(n_indices).to(fine_tune.util.genDevice(0))
 
                 # Cause we force memory bank to reside on `cuda:1`
-                indices = torch.LongTensor(n_indices).to("cuda:1")
+                indices = torch.LongTensor(n_indices).to(student_device)
 
                 # Extract a batch of negatives
                 N = []
