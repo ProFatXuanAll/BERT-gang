@@ -117,7 +117,6 @@ python3.8 run_fine_tune_eval.py \
 
 ### Train student from scratch.
 
-```sh
 python3.8 student_train_from_scratch.py     \
 --experiment from_scratch_1                 \
 --task qnli                                \
