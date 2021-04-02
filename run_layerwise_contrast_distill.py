@@ -417,7 +417,7 @@ if __name__ == "__main__":
             #     membank.to(fine_tune.util.genDevice(0))
 
             # Move memory bank to `cuda:1`
-            membank.to("cuda:1")
+            membank.to(student_config.device)
 
         logger.info("Finish membory bank loading")
     except FileNotFoundError as membank_not_found:
