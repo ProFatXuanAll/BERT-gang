@@ -83,11 +83,6 @@ if __name__ == "__main__":
         help='Run evaluation on dedicated device.',
         type=int,
     )
-    parser.add_argument(
-        '--layer_wise',
-        help='Generate memory bank of each layer',
-        action='store_true'
-    )
 
     # Parse arguments.
     args = parser.parse_args()
@@ -165,106 +160,56 @@ if __name__ == "__main__":
     logger.info("Build memory bank with teacher representation")
 
 
-    # Build memory bank.
-    if args.layer_wise:
-        logger.info("Build memory bank of each layer")
-        if 'bert-base' in config.ptrain_ver:
-            num_layers = 12
-            dim = 768
-        elif 'bert-large' in config.ptrain_ver:
-            num_layers = 24
-            dim = 1024
 
-        membanks = [fine_tune.contrast_util.Memorybank(
-            N = len(dataset),
-            dim=dim,
-        ) for _ in range(num_layers)]
+    logger.info("Build memory bank of each layer")
+    if 'bert-base' in config.ptrain_ver:
+        num_layers = 12
+        dim = 768
+    elif 'bert-large' in config.ptrain_ver:
+        num_layers = 24
+        dim = 1024
 
-        for text, text_pair, label, p_indices, n_indices in tqdm(temp_loader):
-            t_batch_encode = teacher_tokenizer(
-                text=text,
-                text_pair=text_pair,
-                padding='max_length',
-                max_length=config.max_seq_len,
-                return_tensors='pt',
-                truncation=True
+    membanks = [fine_tune.contrast_util.Memorybank(
+        N = len(dataset),
+        dim=dim,
+    ) for _ in range(num_layers)]
+
+    for text, text_pair, label, p_indices, n_indices in tqdm(temp_loader):
+        t_batch_encode = teacher_tokenizer(
+            text=text,
+            text_pair=text_pair,
+            padding='max_length',
+            max_length=config.max_seq_len,
+            return_tensors='pt',
+            truncation=True
+        )
+
+        t_input_ids = t_batch_encode['input_ids']
+        t_token_type_ids = t_batch_encode['token_type_ids']
+        t_attention_mask = t_batch_encode['attention_mask']
+
+        with torch.no_grad():
+            _, hiddens, _ = teacher_model(
+                input_ids=t_input_ids.to(config.device),
+                token_type_ids=t_token_type_ids.to(config.device),
+                attention_mask=t_attention_mask.to(config.device),
+                return_hidden_and_attn=True
             )
 
-            t_input_ids = t_batch_encode['input_ids']
-            t_token_type_ids = t_batch_encode['token_type_ids']
-            t_attention_mask = t_batch_encode['attention_mask']
-
-            with torch.no_grad():
-                _, hiddens, _ = teacher_model(
-                    input_ids=t_input_ids.to(config.device),
-                    token_type_ids=t_token_type_ids.to(config.device),
-                    attention_mask=t_attention_mask.to(config.device),
-                    return_hidden_and_attn=True
-                )
-
-            for membank, hidden in zip(membanks, hiddens[1:]):
-                # hidden: BxSxH
-                # We only need first token [CLS] hidden states
-                membank.update_memory(
-                    new=hidden[:,0,:].to('cpu'),
-                    index=torch.LongTensor(p_indices)
-                )
-
-        t_membank_path = os.path.join(
-            fine_tune.path.FINE_TUNE_EXPERIMENT,
-            experiment_name
-        )
-
-        for i, membank in enumerate(membanks):
-            membank_fname = os.path.join(t_membank_path, f'membank{i}.pt')
-            logger.info("Save memory bank to: %s", membank_fname)
-            torch.save(membank.state_dict(),membank_fname)
-
-
-    else:
-        # Only build memory bank of last layer.
-        if 'bert-base' in config.ptrain_ver:
-            dim = 768
-        elif 'bert-large' in config.ptrain_ver:
-            dim = 1024
-
-        membank = fine_tune.contrast_util.Memorybank(
-            N=len(dataset),
-            dim=dim,
-        )
-
-        t_membank_path = os.path.join(
-            fine_tune.path.FINE_TUNE_EXPERIMENT,
-            experiment_name,
-            'membank.pt'
-        )
-
-
-        for text, text_pair, label, p_indices, n_indices in tqdm(temp_loader):
-            t_batch_encode = teacher_tokenizer(
-                text=text,
-                text_pair=text_pair,
-                padding='max_length',
-                max_length=config.max_seq_len,
-                return_tensors='pt',
-                truncation=True
-            )
-
-            t_input_ids = t_batch_encode['input_ids']
-            t_token_type_ids = t_batch_encode['token_type_ids']
-            t_attention_mask = t_batch_encode['attention_mask']
-
-            with torch.no_grad():
-                _, pooler = teacher_model(
-                    input_ids=t_input_ids.to(config.device),
-                    token_type_ids=t_token_type_ids.to(config.device),
-                    attention_mask=t_attention_mask.to(config.device),
-                )
-
+        for membank, hidden in zip(membanks, hiddens[1:]):
+            # hidden: BxSxH
+            # We only need first token [CLS] hidden states
             membank.update_memory(
-                new=pooler.to("cpu"),
+                new=hidden[:,0,:].to('cpu'),
                 index=torch.LongTensor(p_indices)
             )
 
-        logger.info("Save memory bank to %s", t_membank_path)
-        torch.save(membank.state_dict(), t_membank_path)
+    t_membank_path = os.path.join(
+        fine_tune.path.FINE_TUNE_EXPERIMENT,
+        experiment_name
+    )
+
+    for i, membank in enumerate(membanks):
+        membank_fname = os.path.join(t_membank_path, f'membank{i}.pt')
+        logger.info("Save memory bank to: %s", membank_fname)
+        torch.save(membank.state_dict(),membank_fname)
