@@ -77,6 +77,11 @@ class StudentBert(nn.Module):
             return_dict=True
         ))
 
+        for key in self.encoder.state_dict().keys():
+            print(key)
+
+        input("Press any key")
+
         # Dropout layer between encoder and linear layer.
         self.dropout = nn.Dropout(dropout)
 

@@ -63,10 +63,10 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment MSE_1             \
+--experiment CE_only             \
 --model bert                       \
 --task qnli                        \
---accum_step 2                     \
+--accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
@@ -80,16 +80,15 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 13096                \
+--total_step 6548                \
 --type_vocab_size 2                \
---warmup_step  4365               \
+--warmup_step  654               \
 --weight_decay 0.01                \
 --device_id 0                      \
 --tdevice_id 0                     \
---use_hidden_loss                  \
 --use_logits_loss                  \
---softmax_temp 20                  \
---soft_weight 0.5
+--softmax_temp 5                  \
+--soft_weight 0.7
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
@@ -97,20 +96,52 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment teacher_base                  \
+--experiment MSE_2                  \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
---batch_size 512
+--batch_size 512                \
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment teacher_base                  \
+--experiment CE_only                  \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
 --batch_size 512 \
+--device_id 1
+```
+
+### Train student from scratch.
+
+```sh
+python3.8 student_train_from_scratch.py     \
+--experiment from_scratch_1                 \
+--task qnli                                \
+--model bert                                \
+--dataset train                             \
+--num_class 3                               \
+--accum_step 1                              \
+--batch_size 32                             \
+--beta1 0.9                                 \
+--beta2 0.999                               \
+--ckpt_step 1000                            \
+--d_emb 128                                 \
+--d_ff 3072                                 \
+--d_model 768                               \
+--dropout 0.1                               \
+--log_step 500                     \
+--lr 3e-5                          \
+--max_norm 1.0                     \
+--max_seq_len 128                  \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 26192                \
+--type_vocab_size 2                \
+--warmup_step 2619                \
+--weight_decay 0.01                \
 --device_id 1
 ```
