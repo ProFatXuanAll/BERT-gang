@@ -58,12 +58,50 @@ python3.8 run_fine_tune.py     \
 --weight_decay 0.01
 ```
 
+### Fine-Tune Distillation with layer wise Contrastive learning
+
+```sh
+python3.8 run_layerwise_contrast_distill.py \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt  9822 \
+--experiment Contrast_by_label_cw_0.7             \
+--model bert                       \
+--task qnli                        \
+--accum_step 2                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 2000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 500                     \
+--lr 3e-5                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 26192                \
+--type_vocab_size 2                \
+--warmup_step  2619               \
+--weight_decay 0.01                \
+--device_id 0                      \
+--neg_num 20                    \
+--contrast_steps 0           \
+--contrast_temp 0.1             \
+--softmax_temp 1                \
+--soft_label_weight 0.2         \
+--contrast_weight 0.7           \
+--defined_by_label
+```
+
 ### BERT Fine-Tune Evaluation Scripts
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment teacher_base                  \
+--experiment Contrast_by_label_1_3                  \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -73,10 +111,36 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment teacher_base                  \
+--experiment Contrast_by_label_1_3                  \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
 --batch_size 512 \
+--device_id 0
+```
+
+### Build memory bank
+
+```sh
+python3.8 build_membank.py \
+--experiment teacher_base \
+--model bert \
+--task qnli \
+--dataset train \
+--ckpt 9822 \
+--batch_size 256 \
 --device_id 1
+```
+
+### Build logits bank
+
+```sh
+python3.8 build_logitsbank.py \
+--experiment teacher_base \
+--model bert \
+--task qnli \
+--dataset train \
+--ckpt 9822 \
+--batch_size 256 \
+--device_id 0
 ```
