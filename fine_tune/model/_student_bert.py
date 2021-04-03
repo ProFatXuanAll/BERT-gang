@@ -13,6 +13,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import logging
+from typing import List
+
 # 3rd party modules
 
 import torch
@@ -21,6 +24,17 @@ import torch.nn.functional as F
 
 from transformers import BertConfig, BertModel
 
+# Get main logger.
+logger = logging.getLogger('fine_tune.model.student_bert')
+logging.basicConfig(
+    format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+    datefmt='%Y/%m/%d %H:%M:%S',
+    level=logging.INFO
+)
+
+# Filter out message not begin with name 'fine_tune'.
+for handler in logging.getLogger().handlers:
+    handler.addFilter(logging.Filter('fine_tune'))
 
 class StudentBert(nn.Module):
     r"""Fine-tune distillation student model based on BERT.
@@ -77,10 +91,8 @@ class StudentBert(nn.Module):
             return_dict=True
         ))
 
-        for key in self.encoder.state_dict().keys():
-            print(key)
-
-        input("Press any key")
+        #TODO: Refactor
+        self.init_from_pre_trained('bert-base-uncased', num_hidden_layers)
 
         # Dropout layer between encoder and linear layer.
         self.dropout = nn.Dropout(dropout)
@@ -99,6 +111,70 @@ class StudentBert(nn.Module):
                 std=0.02
             )
             nn.init.zeros_(self.linear_layer.bias)
+
+    def init_from_pre_trained(self, pretrain_ver: str, num_hidden: int):
+        """Given pre-trained model version and number of hidden layer of model,
+        Initialize model parameters from pre-trained model.
+
+        Parameters
+        ----------
+        pretrain_ver : str
+            pre-trained version string.
+            Now we only support `bert-base-uncased`.
+        num_hidden : int
+            number of hidden layers.
+        """
+        #TODO: Refactor
+        def IsValidLayer(key: str, step: int, keyqueue: List[str])->bool:
+            """Check this encoder layer is we want.
+
+            Parameters
+            ----------
+            key : str
+                Key of model.state_dict(), pattern: `encoder.layer.0.xxx`
+            step : int
+                Step of layer when we iterate.
+            keyqueue: List[str]
+                Store new key.
+
+            Returns
+            -------
+            bool
+                `True` if we want initialize from this layer.
+            """
+            for char in key.split('.'):
+                if char.isdigit() and (int(char)+1) % step == 0:
+                    keyqueue.append(key.replace(char, str((int(char)+1)//2-1)))
+                    return True
+
+            return False
+
+
+        if pretrain_ver != 'bert-base-uncased':
+            raise ValueError(f"Unsupported pre train model: {pretrain_ver}")
+
+        pretrain_model = BertModel.from_pretrained(pretrain_ver)
+
+        if pretrain_ver == 'bert-base-uncased':
+            skip = 12 // num_hidden
+
+        new_state_dict = {}
+        newkey = []
+
+        for key, value in pretrain_model.state_dict().items():
+            # Skip embedding layers.
+            if 'embedding' in key:
+                continue
+            if 'encoder' in key:
+                if IsValidLayer(key, skip, newkey):
+                    new_state_dict.update({newkey.pop():value})
+            if 'pooler' in key:
+                new_state_dict.update({key:value})
+
+        del pretrain_model
+        logger.info("Load model state dict from pre-trained model")
+        self.encoder.load_state_dict(new_state_dict, strict=False)
+        logger.info("Finish initialization from pre-trained model")
 
     def forward(
             self,
