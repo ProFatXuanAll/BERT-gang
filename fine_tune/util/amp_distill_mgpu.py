@@ -44,7 +44,6 @@ def amp_distill_mgpu(
         teacher_tokenizer: transformers.PreTrainedTokenizer,
         student_tokenizer: transformers.PreTrainedTokenizer,
         alpha: float = 0.2,
-        gamma: float = 0.8,
         mu: int = 100,
         softmax_temp: float = 1.0,
         use_logits_loss: bool = True,
@@ -82,8 +81,6 @@ def amp_distill_mgpu(
             Tokenizer paired with `student_model`.
         alpha:
             Weight of soft target loss.
-        gamma:
-            Weight of hard target loss.
         mu:
             Weight of hidden MSE loss.
         softmax_temp:
@@ -252,7 +249,6 @@ def amp_distill_mgpu(
                         teacher_logits=teacher_logits.to(student_device),
                         student_logits=student_logits,
                         alpha = alpha,
-                        gamma=gamma,
                         softmax_temp = softmax_temp
                     )
 
