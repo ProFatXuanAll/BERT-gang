@@ -1,5 +1,4 @@
 r"""QNLI dataset.
-<<<<<<< HEAD
 
 Usage:
     import torch.utils.data.Dataloader
@@ -8,13 +7,6 @@ Usage:
     dataset = fine_tune.task.QNLI('train')
     dataset = fine_tune.task.QNLI('dev')
 
-=======
-Usage:
-    import torch.utils.data.Dataloader
-    import fine_tune
-    dataset = fine_tune.task.QNLI('train')
-    dataset = fine_tune.task.QNLI('dev')
->>>>>>> multi-GPU
     dataloader = torch.utils.data.Dataloader(
         dataset,
         collate_fn=QNLI.create_collate_fn(...)
