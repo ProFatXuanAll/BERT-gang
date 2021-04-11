@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> multi-GPU
 # Fine-tune QNLI
 
 ## Get Data

@@ -30,7 +30,11 @@ rm ./data/fine_tune/mnli.zip
 ```sh
 # Fine-tune on MNLI.
 python3.8 run_fine_tune.py     \
+<<<<<<< HEAD
 --experiment bert_base_teacher                 \
+=======
+--experiment debug                 \
+>>>>>>> multi-GPU
 --model bert                   \
 --ptrain_ver bert-base-uncased \
 --task mnli                    \
@@ -127,13 +131,13 @@ python3.8 run_fine_tune_contrast_distill.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 500                     \
---lr 3e-5                          \
+--lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
 --total_step 122720                \
 --type_vocab_size 2                \
---warmup_step  30000               \
+--warmup_step  8181               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --membank_device 1                 \

@@ -95,6 +95,8 @@ def distill_loss(
         teacher_logits:
             Teacher model's output unnormalized logits with numeric type
             `torch.float32` and size (B, C).
+        gamma (optional):
+            loss weight of hard target cross entropy, default 0.8
         alpha (optional):
             loss weight of soft target cross entropy.
         softmax_temp (optional):
@@ -103,6 +105,7 @@ def distill_loss(
         Hard-target + soft-target cross-entropy loss. See Hinton, G. (2014).
         Distilling the Knowledge in a Neural Network.
     """
+
     return (
         ( 1 - alpha ) * F.cross_entropy(student_logits, hard_target) +
         alpha * soft_target_loss(student_logits / softmax_temp, teacher_logits / softmax_temp) * pow(softmax_temp, 2)

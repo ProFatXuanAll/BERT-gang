@@ -34,19 +34,23 @@ import fine_tune.path
 
 
 def distill_mgpu(
-        teacher_config: fine_tune.config.TeacherConfig,
-        student_config: fine_tune.config.StudentConfig,
-        dataset: fine_tune.task.Dataset,
-        teacher_model: fine_tune.model.TeacherModel,
-        student_model: fine_tune.model.StudentModel,
-        optimizer: torch.optim.AdamW,
-        scheduler: torch.optim.lr_scheduler.LambdaLR,
-        teacher_tokenizer: transformers.PreTrainedTokenizer,
-        student_tokenizer: transformers.PreTrainedTokenizer,
-        use_logits_loss: bool = True,
-        use_hidden_loss: bool = True,
-        use_attn_loss: bool = True,
-        use_last_hidden: bool = False
+    teacher_config: fine_tune.config.TeacherConfig,
+    student_config: fine_tune.config.StudentConfig,
+    dataset: fine_tune.task.Dataset,
+    teacher_model: fine_tune.model.TeacherModel,
+    student_model: fine_tune.model.StudentModel,
+    optimizer: torch.optim.AdamW,
+    scheduler: torch.optim.lr_scheduler.LambdaLR,
+    teacher_tokenizer: transformers.PreTrainedTokenizer,
+    student_tokenizer: transformers.PreTrainedTokenizer,
+    alpha: float = 0.2,
+    gamma: float = 0.8,
+    mu: int = 100,
+    softmax_temp: float = 1.0,
+    use_logits_loss: bool = True,
+    use_hidden_loss: bool = True,
+    use_attn_loss: bool = True,
+    use_last_hidden: bool = False
 ):
     r"""Perform knowledge distillation from given fine-tuned teacher model
     without automatic mixed precision.
@@ -75,6 +79,14 @@ def distill_mgpu(
             Tokenizer paired with `teacher_model`.
         student_tokenizer:
             Tokenizer paired with `student_model`.
+        alpha:
+            Weight of soft target loss.
+        gamma:
+            Weight of hard target loss.
+        mu:
+            Weight of hidden MSE loss.
+        softmax_temp:
+            Softmax temperature.
         use_logits_loss:
             Total loss function include hard target and soft target logits loss.
         use_hidden_loss:
@@ -114,6 +126,7 @@ def distill_mgpu(
         dataset,
         batch_size=teacher_config.batch_size // teacher_config.accum_step,
         collate_fn=dataset.create_collate_fn(),
+        num_workers=os.cpu_count(),
         shuffle=True
     )
 
@@ -231,7 +244,10 @@ def distill_mgpu(
                 batch_logits_loss = logits_objective(
                     hard_target=label.to(student_device),
                     teacher_logits=teacher_logits.to(student_device),
-                    student_logits=student_logits
+                    student_logits=student_logits,
+                    alpha = alpha,
+                    gamma=gamma,
+                    softmax_temp = softmax_temp
                 )
                 # Normalize loss.
                 batch_logits_loss = batch_logits_loss / student_config.accum_step
@@ -254,7 +270,8 @@ def distill_mgpu(
 
                         batch_hidden_loss = hidden_objective(
                             teacher_hidden=t_hidden.to(student_device),
-                            student_hidden= s_hidden
+                            student_hidden= s_hidden,
+                            mu=mu
                         )
 
                         # Normalize loss.

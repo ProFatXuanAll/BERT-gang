@@ -84,6 +84,7 @@ def train(
         dataset,
         batch_size=config.batch_size // config.accum_step,
         collate_fn=dataset.create_collate_fn(),
+        num_workers=os.cpu_count(),
         shuffle=True
     )
 

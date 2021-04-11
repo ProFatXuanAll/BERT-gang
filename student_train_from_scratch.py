@@ -1,23 +1,22 @@
-r"""Run fine-tune training.
-
-Usage:
-    python run_fine_tune.py ...
-
-Run `python run_fine_tune.py -h` for help, or see 'doc/fine_tune_*.md' for more
-information.
+r"""Train student from scratch.
 """
 
 # built-in modules
 
+import os
 import argparse
 import logging
+
+# 3rd party modules
+
+import torch
 
 # my own modules
 
 import fine_tune
 
 # Get main logger.
-logger = logging.getLogger('fine_tune.train')
+logger = logging.getLogger('fine_tune.student_train_from_scratch')
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
     datefmt='%Y/%m/%d %H:%M:%S',
@@ -28,34 +27,34 @@ logging.basicConfig(
 for handler in logging.getLogger().handlers:
     handler.addFilter(logging.Filter('fine_tune'))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Parse arguments from STDIN.
     parser = argparse.ArgumentParser()
 
-    # Required parameters.
+    # Required arguments.
+    parser.add_argument(
+        '--task',
+        help='Name of the distillation task.',
+        required=True,
+        type=str,
+    )
     parser.add_argument(
         '--experiment',
-        help='Name of the current fine-tune experiment.',
+        help='Name of the current distillation experiment.',
         required=True,
         type=str,
     )
     parser.add_argument(
         '--model',
-        help='Name of the model to fine-tune.',
+        help='Name of the model to distill.',
         required=True,
         type=str,
     )
     parser.add_argument(
-        '--ptrain_ver',
-        help='Pretrained model version provided by `transformers` package.',
+        '--device_id',
+        help='Device ID of student model.',
         required=True,
-        type=str,
-    )
-    parser.add_argument(
-        '--task',
-        help='Name of the fine-tune task.',
-        required=True,
-        type=str,
+        type=int,
     )
     parser.add_argument(
         '--dataset',
@@ -71,7 +70,12 @@ if __name__ == '__main__':
         type=int,
     )
 
-    # Optional parameters.
+    # Optional arguments.
+    parser.add_argument(
+        '--amp',
+        help='Use automatic mixed precision during distillation.',
+        action='store_true'
+    )
     parser.add_argument(
         '--accum_step',
         default=1,
@@ -79,15 +83,9 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
-        '--amp',
-        default=False,
-        help='Use automatic mixed precision during training.',
-        action='store_true'
-    )
-    parser.add_argument(
         '--batch_size',
         default=32,
-        help='Training batch size.',
+        help='Distillation batch size.',
         type=int,
     )
     parser.add_argument(
@@ -109,16 +107,28 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
+        '--d_emb',
+        default=128,
+        help='Embedding dimension.',
+        type=int,
+    )
+    parser.add_argument(
+        '--d_ff',
+        default=3072,
+        help='Transformer layers feed forward dimension.',
+        type=int,
+    )
+    parser.add_argument(
+        '--d_model',
+        default=768,
+        help='Transformer layers hidden dimension.',
+        type=int,
+    )
+    parser.add_argument(
         '--dropout',
         default=0.1,
         help='Dropout probability.',
         type=float,
-    )
-    parser.add_argument(
-        '--device_id',
-        help='Device ID of model.',
-        required=True,
-        type=int,
     )
     parser.add_argument(
         '--eps',
@@ -157,9 +167,27 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
+        '--num_attention_heads',
+        default=16,
+        help='Number of attention heads in Transformer layers.',
+        type=int,
+    )
+    parser.add_argument(
+        '--num_hidden_layers',
+        default=6,
+        help='Number of Transformer layers.',
+        type=int,
+    )
+    parser.add_argument(
         '--total_step',
         default=50000,
         help='Total number of step to perform training.',
+        type=int,
+    )
+    parser.add_argument(
+        '--type_vocab_size',
+        default=2,
+        help='BERT-like models token type embedding range.',
         type=int,
     )
     parser.add_argument(
@@ -171,7 +199,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--weight_decay',
         default=0.01,
-        help="Optimizer AdamW's parameter `weight_decay`.",
+        help="Optimizer `torch.optim.AdamW` weight decay regularization.",
         type=float,
     )
 
@@ -179,13 +207,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Construct configuration.
-    config = fine_tune.config.TeacherConfig(
+    config = fine_tune.config.StudentConfig(
         accum_step=args.accum_step,
         amp=args.amp,
         batch_size=args.batch_size,
         beta1=args.beta1,
         beta2=args.beta2,
         ckpt_step=args.ckpt_step,
+        d_emb=args.d_emb,
+        d_ff=args.d_ff,
+        d_model=args.d_model,
         dataset=args.dataset,
         dropout=args.dropout,
         eps=args.eps,
@@ -195,11 +226,13 @@ if __name__ == '__main__':
         max_norm=args.max_norm,
         max_seq_len=args.max_seq_len,
         model=args.model,
+        num_attention_heads=args.num_attention_heads,
         num_class=args.num_class,
-        ptrain_ver=args.ptrain_ver,
+        num_hidden_layers=args.num_hidden_layers,
         seed=args.seed,
         task=args.task,
         total_step=args.total_step,
+        type_vocab_size=args.type_vocab_size,
         warmup_step=args.warmup_step,
         weight_decay=args.weight_decay,
         device_id=args.device_id
@@ -222,13 +255,14 @@ if __name__ == '__main__':
     )
 
     # Load tokenizer.
-    tokenizer = fine_tune.util.load_teacher_tokenizer_by_config(
+    tokenizer = fine_tune.util.load_student_tokenizer_by_config(
         config=config
     )
 
     # Load model.
-    model = fine_tune.util.load_teacher_model_by_config(
-        config=config
+    model = fine_tune.util.load_student_model_by_config(
+        config=config,
+        tokenizer=tokenizer
     )
 
     # Load optimizer.
@@ -244,22 +278,11 @@ if __name__ == '__main__':
     )
 
     # Fine-tune model.
-    if args.amp:
-        # Use automatic mixed precision training
-        fine_tune.util.amp_train(
-            config=config,
-            dataset=dataset,
-            model=model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            tokenizer=tokenizer
-        )
-    else:
-        fine_tune.util.train(
-            config=config,
-            dataset=dataset,
-            model=model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            tokenizer=tokenizer
-        )
+    fine_tune.util.train(
+        config=config,
+        dataset=dataset,
+        model=model,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        tokenizer=tokenizer
+    )
