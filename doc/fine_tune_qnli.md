@@ -65,7 +65,7 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment Contrast_by_label_cw_0.7             \
+--experiment Contrast_by_sample            \
 --model bert                       \
 --task qnli                        \
 --accum_step 2                     \
@@ -86,13 +86,13 @@ python3.8 run_layerwise_contrast_distill.py \
 --type_vocab_size 2                \
 --warmup_step  2619               \
 --weight_decay 0.01                \
---device_id 0                      \
+--device_id 1                      \
 --neg_num 20                    \
 --contrast_steps 0           \
 --contrast_temp 0.1             \
 --softmax_temp 1                \
---soft_label_weight 0.2         \
---contrast_weight 0.7           \
+--soft_label_weight 0.2        \
+--contrast_weight 0.7         \
 --defined_by_label
 ```
 
@@ -101,22 +101,23 @@ python3.8 run_layerwise_contrast_distill.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_label_1_3                  \
+--experiment Contrast_by_sample                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
---batch_size 512
+--batch_size 512                \
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_label_1_3                  \
+--experiment Contrast_by_sample                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 0
+--device_id 1
 ```
 
 ### Build memory bank
