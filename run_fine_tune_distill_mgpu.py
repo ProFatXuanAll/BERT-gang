@@ -61,11 +61,6 @@ if __name__ == "__main__":
         help='Use attention distribution only during distillation',
         action='store_true'
     )
-    parser.add_argument(
-        '--use_last_hidden',
-        help='Use last hidden state only during distillation',
-        action='store_true'
-    )
 
     # Arguments of teacher model.
     parser.add_argument(
@@ -380,13 +375,6 @@ if __name__ == "__main__":
         optimizer=optimizer
     )
 
-    # Log layer-to-layer hidden states distillation or not.
-    if args.use_hidden_loss:
-        if args.use_last_hidden:
-            logger.info("Use LAST hidden states only!")
-        else:
-            logger.info("Layer-to-layer hidden states distillation!")
-
     # Perform disitllation.
     if args.amp:
         # perform amp distillation.
@@ -405,7 +393,6 @@ if __name__ == "__main__":
             use_logits_loss=args.use_logits_loss,
             use_hidden_loss=args.use_hidden_loss,
             use_attn_loss=args.use_attn_loss,
-            use_last_hidden=args.use_last_hidden,
             alpha=args.soft_weight,
             mu=args.mu,
             softmax_temp=args.softmax_temp
@@ -427,7 +414,6 @@ if __name__ == "__main__":
             use_logits_loss=args.use_logits_loss,
             use_hidden_loss=args.use_hidden_loss,
             use_attn_loss=args.use_attn_loss,
-            use_last_hidden=args.use_last_hidden,
             alpha=args.soft_weight,
             mu=args.mu,
             softmax_temp=args.softmax_temp

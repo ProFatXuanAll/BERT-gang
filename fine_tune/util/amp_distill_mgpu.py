@@ -48,8 +48,7 @@ def amp_distill_mgpu(
         softmax_temp: float = 1.0,
         use_logits_loss: bool = True,
         use_hidden_loss: bool = True,
-        use_attn_loss: bool = True,
-        use_last_hidden: bool = False
+        use_attn_loss: bool = False
 ):
     r"""Perform knowledge distillation from given fine-tuned teacher model
     with automatic mixed precision.
@@ -89,8 +88,6 @@ def amp_distill_mgpu(
             Total loss function include hard target and soft target logits loss.
         use_hidden_loss:
             Total loss function include hidden states loss.
-        use_last_hidden:
-            Only use last hidden states as learning objective of student.
         use_attn_loss:
             Total loss function include attention loss.
     """
@@ -267,46 +264,27 @@ def amp_distill_mgpu(
                 # Cause parameter update in Mixed Precision Training use 32-bit fp.
                 # We need to leave context manager before `backward`.
 
-                if not use_last_hidden:
-                    skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
-                    for t_hidden, s_hidden in zip(
-                        teacher_hiddens[1::skip],
-                        student_hiddens[1:]
-                    ):
-
-                        # Enable autocast.
-                        with torch.cuda.amp.autocast():
-                            batch_hidden_loss = hidden_objective(
-                                teacher_hidden=t_hidden.to(student_device),
-                                student_hidden= s_hidden,
-                                mu=mu
-                            )
-
-                            # Normalize loss.
-                            batch_hidden_loss = batch_hidden_loss / student_config.accum_step
-
-                        # Log loss.
-                        hidden_loss += batch_hidden_loss.item()
-                        loss += batch_hidden_loss.item()
-
-                        # Accumulate gradient.
-                        scaler.scale(batch_hidden_loss).backward(retain_graph=True)
-                else:
+                skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
+                for t_hidden, s_hidden in zip(teacher_hiddens[1::skip],student_hiddens[1:]):
+                    # Enable autocast.
                     with torch.cuda.amp.autocast():
-                        teacher_last_hidden = teacher_hiddens[-1]
-                        student_last_hidden = student_hiddens[-1]
                         batch_hidden_loss = hidden_objective(
-                            teacher_hidden=teacher_last_hidden.to(student_device),
-                            student_hidden=student_last_hidden
+                            teacher_hidden=t_hidden.to(student_device),
+                            student_hidden= s_hidden,
+                            mu=mu
                         )
 
+                        # Normalize loss.
                         batch_hidden_loss = batch_hidden_loss / student_config.accum_step
 
+                    # Log loss.
                     hidden_loss += batch_hidden_loss.item()
                     loss += batch_hidden_loss.item()
 
+                    # Accumulate gradient.
                     scaler.scale(batch_hidden_loss).backward(retain_graph=True)
             if use_attn_loss:
+                #TODO: remove this block if attention loss is unnecessary
                 # Calculate batch attentions loss.
                 # Cause parameter update in Mixed Precision Training use 32-bit fp.
                 # We need to leave context manager before `backward`.
