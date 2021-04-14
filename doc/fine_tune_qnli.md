@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> multi-GPU
 # Fine-tune QNLI
 
 ## Get Data
@@ -147,5 +143,18 @@ python3.8 build_logitsbank.py \
 --dataset train \
 --ckpt 9822 \
 --batch_size 256 \
+--device_id 0
+```
+
+### Plot CLS embedding of last Transformer block
+
+```sh
+python3.8 plot_CLS_embedding.py  \
+--ckpt 13096                     \
+--experiment MSE_init_from_pre_trained             \
+--model bert                     \
+--task qnli                      \
+--dataset dev            \
+--batch_size 256                 \
 --device_id 0
 ```
