@@ -47,8 +47,7 @@ def amp_distill_mgpu(
         mu: int = 100,
         softmax_temp: float = 1.0,
         use_logits_loss: bool = True,
-        use_hidden_loss: bool = True,
-        use_attn_loss: bool = False
+        use_hidden_loss: bool = True
 ):
     r"""Perform knowledge distillation from given fine-tuned teacher model
     with automatic mixed precision.
@@ -88,8 +87,6 @@ def amp_distill_mgpu(
             Total loss function include hard target and soft target logits loss.
         use_hidden_loss:
             Total loss function include hidden states loss.
-        use_attn_loss:
-            Total loss function include attention loss.
     """
     # Create a GradScalaer.
     scaler = torch.cuda.amp.GradScaler()
@@ -137,7 +134,6 @@ def amp_distill_mgpu(
 
     # Create objective functions.
     logits_objective = fine_tune.objective.distill_loss
-    attn_objective =fine_tune.objective.attention_KL_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
     # TODO: Restore this block to use adaptive layer
@@ -165,19 +161,16 @@ def amp_distill_mgpu(
     loss = 0
     logits_loss = 0
     hidden_loss = 0
-    attn_loss = 0
 
     # torch.Tensor placeholder.
     batch_logits_loss = 0
     batch_hidden_loss = 0
-    batch_attn_loss = 0
 
     # `tqdm` CLI Logger. We will manually update progress bar.
     cli_logger = tqdm(
         desc=f'loss: {loss:.6f} ' +
             f'logits_loss: {logits_loss:.6f} ' +
-            f'hidden_loss: {hidden_loss:.6f} ' +
-            f'attn_loss: {attn_loss:.6f}',
+            f'hidden_loss: {hidden_loss:.6f} ',
         total=student_config.total_step
     )
 
@@ -217,7 +210,7 @@ def amp_distill_mgpu(
 
             # Get output logits, hidden states and attentions from teacher and student.
             with torch.no_grad():
-                teacher_logits, teacher_hiddens, teacher_attns = teacher_model(
+                teacher_logits, teacher_hiddens, _ = teacher_model(
                     input_ids = teacher_input_ids.to(teacher_device),
                     token_type_ids=teacher_token_type_ids.to(teacher_device),
                     attention_mask=teacher_attention_mask.to(teacher_device),
@@ -226,7 +219,7 @@ def amp_distill_mgpu(
 
             with torch.cuda.amp.autocast():
                 # Get output logits, hidden states and attentions from student.
-                student_logits, student_hiddens, student_attns = student_model(
+                student_logits, student_hiddens, _ = student_model(
                     input_ids = student_input_ids.to(student_device),
                     token_type_ids=student_token_type_ids.to(student_device),
                     attention_mask=student_attention_mask.to(student_device),
@@ -283,34 +276,6 @@ def amp_distill_mgpu(
 
                     # Accumulate gradient.
                     scaler.scale(batch_hidden_loss).backward(retain_graph=True)
-            if use_attn_loss:
-                #TODO: remove this block if attention loss is unnecessary
-                # Calculate batch attentions loss.
-                # Cause parameter update in Mixed Precision Training use 32-bit fp.
-                # We need to leave context manager before `backward`.
-
-                skip = len(teacher_attns) // len(student_attns)
-                for t_attn, s_attn in zip(
-                    teacher_attns[skip-1::skip],
-                    student_attns
-                ):
-
-                    # Enable autocast.
-                    with torch.cuda.amp.autocast():
-                        batch_attn_loss = attn_objective(
-                            teacher_attn=t_attn.to(student_device),
-                            student_attn=s_attn
-                        )
-
-                        # Normalize loss.
-                        batch_attn_loss = batch_attn_loss / student_config.accum_step
-
-                    # Log loss.
-                    attn_loss += batch_attn_loss.item()
-                    loss += batch_attn_loss.item()
-
-                    # Accumulate gradient.
-                    scaler.scale(batch_attn_loss).backward(retain_graph=True)
 
             # Increment accumulation step.
             accum_step += 1
@@ -340,8 +305,7 @@ def amp_distill_mgpu(
                 cli_logger.set_description(
                     f'loss: {loss:.6f} ' +
                     f'logits_loss: {logits_loss:.6f} ' +
-                    f'hidden_loss: {hidden_loss:.6f} ' +
-                    f'attn_loss: {attn_loss:.6f}'
+                    f'hidden_loss: {hidden_loss:.6f} '
                 )
 
                 # Increment actual step.
@@ -368,12 +332,6 @@ def amp_distill_mgpu(
                         step
                     )
                     writer.add_scalar(
-                        f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
-                        '/attn_loss',
-                        attn_loss,
-                        step
-                    )
-                    writer.add_scalar(
                         f'{student_config.task}/{student_config.dataset}/{student_config.model}/lr',
                         optimizer.state_dict()['param_groups'][0]['lr'],
                         step
@@ -383,7 +341,6 @@ def amp_distill_mgpu(
                 loss = 0
                 logits_loss = 0
                 hidden_loss = 0
-                attn_loss = 0
 
                 # Clean up gradient.
                 optimizer.zero_grad()

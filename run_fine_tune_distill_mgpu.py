@@ -56,11 +56,6 @@ if __name__ == "__main__":
         help='Use hidden states only during distillation',
         action='store_true'
     )
-    parser.add_argument(
-        '--use_attn_loss',
-        help='Use attention distribution only during distillation',
-        action='store_true'
-    )
 
     # Arguments of teacher model.
     parser.add_argument(
@@ -392,7 +387,6 @@ if __name__ == "__main__":
             student_tokenizer=student_tokenizer,
             use_logits_loss=args.use_logits_loss,
             use_hidden_loss=args.use_hidden_loss,
-            use_attn_loss=args.use_attn_loss,
             alpha=args.soft_weight,
             mu=args.mu,
             softmax_temp=args.softmax_temp
@@ -413,7 +407,6 @@ if __name__ == "__main__":
             student_tokenizer=student_tokenizer,
             use_logits_loss=args.use_logits_loss,
             use_hidden_loss=args.use_hidden_loss,
-            use_attn_loss=args.use_attn_loss,
             alpha=args.soft_weight,
             mu=args.mu,
             softmax_temp=args.softmax_temp
