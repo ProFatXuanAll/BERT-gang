@@ -11,3 +11,4 @@ from __future__ import unicode_literals
 
 # my own modules
 from fine_tune.contrast_util.membank import Memorybank
+from fine_tune.contrast_util.supconloss import SupConLoss

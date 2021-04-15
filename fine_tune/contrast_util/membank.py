@@ -16,6 +16,7 @@ from __future__ import unicode_literals
 import torch
 import torch.nn as nn
 
+
 class Memorybank(nn.Module):
     r"""Memory bank object.
 

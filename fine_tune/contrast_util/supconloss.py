@@ -1,6 +1,6 @@
 r"""Implement Supervised Contrative Loss for BERT models.
 Our implementation refer to Supervised Contrastive Learning: https://arxiv.org/pdf/2004.11362.pdf.
-We make some modification to fit our tasks.
+We made some modification to fit our tasks.
 For more implementation details, you can refer to follwing link:
 https://github.com/HobbitLong/SupContrast
 
@@ -20,20 +20,20 @@ from __future__ import unicode_literals
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class SupConLoss(nn.Module):
-
-    def __init__(self, temperature: float = 0.1):
-        r"""Supervised Contrastive Loss module.
-        This module implementation refer to
+    r"""Supervised Contrastive Loss module.
+        This module implementation refers to
         Supervised Contrastive Learning: https://arxiv.org/pdf/2004.11362.pdf.
-        We make some modification to fit our tasks.
+        We made some modification to fit our tasks.
 
         Parameters
         ----------
         temperature : float, optional
             Temperature of contrastive loss, by default 0.1
-        """
+    """
+    def __init__(self, temperature: float = 0.1):
         super().__init__()
         self.temperature = temperature
 
@@ -43,7 +43,7 @@ class SupConLoss(nn.Module):
         Parameters
         ----------
         features : torch.Tensor
-            Hidden vector of shape: BxD.
+            Unnormalized [CLS] hidden vector of shape: BxD.
         labels : torch.Tensor
             Ground truth label of shape: B.
 
@@ -52,4 +52,53 @@ class SupConLoss(nn.Module):
         torch.Tensor
             A loss scalar tensor.
         """
-        raise NotImplementedError("Forward of SupConLoss is not implemented")
+        if features.dim() != 2:
+            raise ValueError("`features` should be a 2-dim tensor with shape: [B,D]")
+        if labels.dim() != 1:
+            raise ValueError("`labels` should be a 1-dim tensor with shape: [B]")
+        if features.shape[0] != labels.shape[0]:
+            raise ValueError("Num of labels does not match num of features")
+        if features.device != labels.device:
+            raise ValueError("`features` and `labels` should reside on same device")
+
+        batch_size = features.shape[0]
+        device = features.shape.device
+
+        # Normalized [CLS] hidden vector.
+        features = F.normalize(features, dim=1)
+
+        # Prepare mask matrix.
+        # `logits_mask`: mask out self-contrast.
+        # `mask`: mask out different label contrast.
+        labels = labels.view(-1,1)
+        mask = torch.eq(labels, labels.T).float().to(device)
+        logits_mask = torch.scatter(
+            torch.ones_like(mask),
+            1,
+            torch.arange(batch_size).view(-1,1).to(device),
+            0
+        )
+        mask = mask * logits_mask
+
+        # Compute logits.
+        anchor_dot_contrast = torch.div(
+            torch.matmul(features, features.T),
+            self.temperature
+        )
+        # For numerical stability: prevent NaN.
+        logits_max, _ = torch.max(anchor_dot_contrast, dim=1, keepdim=True)
+        logits = anchor_dot_contrast - logits_max.detach()
+
+        # Compute log_prob.
+        # Note: log(A/B) = log(A) - log(B).
+        exp_logits = torch.exp(logits) * logits_mask
+        log_prob = logits - torch.log(exp_logits.sum(1, keepdim=True))
+
+        # Compute mean of log-likelihood over positive.
+        mean_log_prob_pos = (mask * log_prob).sum(1) / mask.sum(1)
+
+        # Reduction: mean
+        loss = -1 * mean_log_prob_pos
+        loss = loss.mean()
+
+        return loss
