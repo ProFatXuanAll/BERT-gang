@@ -30,11 +30,7 @@ rm ./data/fine_tune/mnli.zip
 ```sh
 # Fine-tune on MNLI.
 python3.8 run_fine_tune.py     \
-<<<<<<< HEAD
 --experiment bert_base_teacher                 \
-=======
---experiment debug                 \
->>>>>>> multi-GPU
 --model bert                   \
 --ptrain_ver bert-base-uncased \
 --task mnli                    \

@@ -96,6 +96,43 @@ python3.8 run_layerwise_contrast_distill.py \
 --defined_by_label
 ```
 
+### BERT Fine-Tune Distillation Scripts with Multi-GPU
+
+```sh
+python3.8 run_fine_tune_distill_mgpu.py \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt  9822 \
+--experiment Knowledge_Transfer_MSE             \
+--model bert                       \
+--task qnli                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 1000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 500                     \
+--lr 5e-5                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 9822                \
+--type_vocab_size 2                \
+--warmup_step  982               \
+--weight_decay 0.01                \
+--device_id 1                      \
+--tdevice_id 1                     \
+--mu 100                           \
+--use_hidden_loss                  \
+--softmax_temp 20                  \
+--soft_weight 0.5                  \
+--use_logits_loss
+```
+
 ### BERT Fine-Tune Evaluation Scripts
 
 ```sh
