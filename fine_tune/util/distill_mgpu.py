@@ -31,6 +31,7 @@ import fine_tune.config
 import fine_tune.task
 import fine_tune.model
 import fine_tune.path
+import fine_tune.contrast_util
 
 
 def distill_mgpu(
@@ -46,46 +47,64 @@ def distill_mgpu(
         alpha: float = 0.2,
         mu: int = 100,
         softmax_temp: float = 1.0,
-        use_logits_loss: bool = True,
+        use_classify_loss: bool = True,
         use_hidden_loss: bool = True,
+        cls_steps: int = 0,
+        ce_weights: float = 1.0,
+        scl_temp: float = 0.1
 ):
-    r"""Perform knowledge distillation from given fine-tuned teacher model
+    """Perform knowledge distillation from given fine-tuned teacher model
     without automatic mixed precision.
-    Note: This function will use two gpu-device.
+    Note: This function may use two gpu-device.
 
-    Args:
-        teacher_config:
-            `fine_tune.config.TeacherConfig` class which attributes are used
-            for experiment setup.
-        student_config:
-            `fine_tune.config.StudentConfig` class which attributes are used
-            for experiment setup.
-        dataset:
-            Task specific dataset.
-        teacher_model:
-            A fine-tuned teacher model which is used to
-            generate soft targets, hidden states and attentions.
-        student_model:
-            Model which will perform disitllation according to
-            outputs from given teacher model.
-        optimizer:
-            `torch.optim.AdamW` optimizer.
-        schduler:
-            Linear warmup scheduler provided by `transformers` package.
-        teacher_tokenizer:
-            Tokenizer paired with `teacher_model`.
-        student_tokenizer:
-            Tokenizer paired with `student_model`.
-        alpha:
-            Weight of soft target loss.
-        mu:
-            Weight of hidden MSE loss.
-        softmax_temp:
-            Softmax temperature.
-        use_logits_loss:
-            Total loss function include hard target and soft target logits loss.
-        use_hidden_loss:
-            Total loss function include hidden states loss.
+    Parameters
+    ----------
+    teacher_config : fine_tune.config.TeacherConfig
+        `fine_tune.config.TeacherConfig` class which attributes are used
+        for experiment setup.
+    student_config : fine_tune.config.StudentConfig
+        `fine_tune.config.StudentConfig` class which attributes are used
+        for experiment setup.
+    dataset : fine_tune.task.Dataset
+        Task specific dataset.
+    teacher_model : fine_tune.model.TeacherModel
+        A fine-tuned teacher model which is used to
+        generate soft targets, hidden states and attentions.
+    student_model : fine_tune.model.StudentModel
+        Model which will perform disitllation according to
+        outputs from given teacher model.
+    optimizer : torch.optim.AdamW
+        `torch.optim.AdamW` optimizer.
+    scheduler : torch.optim.lr_scheduler.LambdaLR
+        Linear warmup scheduler provided by `transformers` package.
+    teacher_tokenizer : transformers.PreTrainedTokenizer
+        Tokenizer paired with `teacher_model`.
+    student_tokenizer : transformers.PreTrainedTokenizer
+        Tokenizer paired with `student_model`.
+    alpha : float, optional
+        Weight of soft target loss, by default 0.2
+    mu : int, optional
+        Weight of hidden MSE loss, by default 100
+    softmax_temp : float, optional
+        Softmax temperature, by default 1.0
+    use_classify_loss : bool, optional
+        Total loss function include classification loss which is defined by:
+            L_{classify} =
+                ce_weights * ( alpha * CE_{soft} + ( 1-alpha ) * CE_{hard} ) +
+                (1-ce_weights) * L_{SCL}
+        by default True
+    use_hidden_loss : bool, optional
+        Total loss function include hidden states loss, by default True
+    cls_steps : int, optional
+        At which steps start to fine-tune classification layer of student, by default 0
+    ce_weights : float, optional
+        Weight of cross entropy loss, classification loss is defined by:
+            L_{classify} =
+                ce_weights * ( alpha * CE_{soft} + ( 1-alpha ) * CE_{hard} ) +
+                (1-ce_weights) * L_{SCL}
+        by default 1.0
+    scl_temp : float, optional
+        Temperature of Supervised Contrastive Learning loss, by default 0.1
     """
 
     # Set teacher model as evaluation mode.
@@ -132,6 +151,7 @@ def distill_mgpu(
     # Create objective functions.
     logits_objective = fine_tune.objective.distill_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
+    scl_objective = fine_tune.contrast_util.SupConLoss(scl_temp)
 
     # TODO: Restore this block to use adaptive layer
     # Create adaptive layer.
@@ -151,6 +171,11 @@ def distill_mgpu(
     step = 0
     accum_step = 0
     total_accum_step = student_config.total_step * student_config.accum_step
+    total_cls_step = cls_steps * student_config.accum_step
+
+    # Set two stage training if needed.
+    if cls_steps > 0:
+        use_classify_loss = False
 
     # Mini-batch loss and accmulate loss.
     # Update when accumulate to `config.batch_size`.
@@ -158,15 +183,18 @@ def distill_mgpu(
     loss = 0
     logits_loss = 0
     hidden_loss = 0
+    scl_loss = 0
 
     # torch.Tensor placeholder.
     batch_logits_loss = 0
     batch_hidden_loss = 0
+    batch_scl_loss = 0
 
     # `tqdm` CLI Logger. We will manually update progress bar.
     cli_logger = tqdm(
         desc=f'loss: {loss:.6f} ' +
             f'logits_loss: {logits_loss:.6f} ' +
+            f'scl_loss: {scl_loss:.6f} '
             f'hidden_loss: {hidden_loss:.6f} ',
         total=student_config.total_step
     )
@@ -222,13 +250,11 @@ def distill_mgpu(
                 return_hidden_and_attn=True
             )
 
-            # Calculate logits loss.
-            # Cause parameter update in Mixed Precision Training use 32-bit fp.
-            # We need to leave context manager before `backward`.
+            # Calculate classify loss.
 
-            if use_logits_loss:
+            if use_classify_loss:
                 # Calculate batch loss of logits.
-                batch_logits_loss = logits_objective(
+                batch_logits_loss = ce_weights * logits_objective(
                     hard_target=label.to(student_device),
                     teacher_logits=teacher_logits.to(student_device),
                     student_logits=student_logits,
@@ -244,6 +270,23 @@ def distill_mgpu(
 
                 # Accumulate gradients.
                 batch_logits_loss.backward(retain_graph=True)
+
+                # Calculate batch SCL loss.
+                # We only use [CLS] of last layer.
+                batch_scl_loss = (1-ce_weights) * scl_objective(
+                    features=student_hiddens[-1][:,0,:],
+                    labels=label.to(student_device)
+                )
+
+                # Normalize liss.
+                batch_scl_loss = batch_scl_loss / student_config.accum_step
+
+                # Log loss.
+                scl_loss += batch_scl_loss.item()
+                loss += batch_scl_loss.item()
+
+                # Accumulate gradients.
+                batch_scl_loss.backward(retain_graph=True)
 
             if use_hidden_loss:
                 # Calculate batch hidden states loss.
@@ -287,7 +330,8 @@ def distill_mgpu(
                 cli_logger.set_description(
                     f'loss: {loss:.6f} ' +
                     f'logits_loss: {logits_loss:.6f} ' +
-                    f'hidden_loss: {hidden_loss:.6f} '
+                    f'scl_loss: {scl_loss:.6f} '
+                    f'hidden_loss: {hidden_loss:.6f} ',
                 )
 
                 # Increment actual step.
@@ -314,6 +358,12 @@ def distill_mgpu(
                         step
                     )
                     writer.add_scalar(
+                        f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
+                        '/scl_loss',
+                        scl_loss,
+                        step
+                    )
+                    writer.add_scalar(
                         f'{student_config.task}/{student_config.dataset}/{student_config.model}/lr',
                         optimizer.state_dict()['param_groups'][0]['lr'],
                         step
@@ -323,6 +373,7 @@ def distill_mgpu(
                 loss = 0
                 logits_loss = 0
                 hidden_loss = 0
+                scl_loss = 0
 
                 # Clean up gradient.
                 optimizer.zero_grad()
@@ -335,6 +386,12 @@ def distill_mgpu(
                     )
 
                     # TODO: if use adaptive layer we have to save it.
+
+            # Start to train classification layer.
+            if not use_classify_loss and accum_step == total_cls_step:
+                use_classify_loss = True
+                #TODO: Turn off hidden loss?
+                use_hidden_loss = False
 
             # Stop training condition.
             if accum_step >= total_accum_step:

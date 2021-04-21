@@ -46,7 +46,7 @@ def amp_distill_mgpu(
         alpha: float = 0.2,
         mu: int = 100,
         softmax_temp: float = 1.0,
-        use_logits_loss: bool = True,
+        use_classify_loss: bool = True,
         use_hidden_loss: bool = True
 ):
     r"""Perform knowledge distillation from given fine-tuned teacher model
@@ -83,7 +83,7 @@ def amp_distill_mgpu(
             Weight of hidden MSE loss.
         softmax_temp:
             Softmax temperature.
-        use_logits_loss:
+        use_classify_loss:
             Total loss function include hard target and soft target logits loss.
         use_hidden_loss:
             Total loss function include hidden states loss.
@@ -231,7 +231,7 @@ def amp_distill_mgpu(
             # We need to leave context manager before `backward`.
 
             # Enable autocast.
-            if use_logits_loss:
+            if use_classify_loss:
                 with torch.cuda.amp.autocast():
                     # Calculate batch loss of logits.
                     batch_logits_loss = logits_objective(

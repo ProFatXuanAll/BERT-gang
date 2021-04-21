@@ -62,7 +62,7 @@ class SupConLoss(nn.Module):
             raise ValueError("`features` and `labels` should reside on same device")
 
         batch_size = features.shape[0]
-        device = features.shape.device
+        device = features.device
 
         # Normalized [CLS] hidden vector.
         features = F.normalize(features, dim=1)

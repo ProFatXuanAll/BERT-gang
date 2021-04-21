@@ -47,7 +47,7 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument(
-        '--use_logits_loss',
+        '--use_classify_loss',
         help='Use logits loss during distillation',
         action='store_true'
     )
@@ -140,6 +140,24 @@ if __name__ == "__main__":
         help='Hidden MSE loss weight',
         default=100,
         type=int
+    )
+    parser.add_argument(
+        '--cls_steps',
+        help='At which steps start to train classification loss',
+        default=0,
+        type=int
+    )
+    parser.add_argument(
+        '--ce_weight',
+        help='Weight of cross entropy loss',
+        default=1.0,
+        type=float
+    )
+    parser.add_argument(
+        '--scl_temp',
+        help='Temperature of SCL loss',
+        default=0.1,
+        type=float
     )
 
     # Arguments of teacher model.
@@ -258,7 +276,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Check user forgot to indicate loss.
-    if not ( args.use_logits_loss or args.use_hidden_loss or args.use_attn_loss ):
+    if not ( args.use_classify_loss or args.use_hidden_loss or args.use_attn_loss ):
         raise ValueError("You forgot to specify loss function!\n" +
             "Please check relative document for more info!"
         )
@@ -385,7 +403,7 @@ if __name__ == "__main__":
             scheduler=scheduler,
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
-            use_logits_loss=args.use_logits_loss,
+            use_classify_loss=args.use_classify_loss,
             use_hidden_loss=args.use_hidden_loss,
             alpha=args.soft_weight,
             mu=args.mu,
@@ -405,9 +423,12 @@ if __name__ == "__main__":
             scheduler=scheduler,
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
-            use_logits_loss=args.use_logits_loss,
+            use_classify_loss=args.use_classify_loss,
             use_hidden_loss=args.use_hidden_loss,
             alpha=args.soft_weight,
             mu=args.mu,
-            softmax_temp=args.softmax_temp
+            softmax_temp=args.softmax_temp,
+            cls_steps=args.cls_steps,
+            ce_weights=args.ce_weight,
+            scl_temp=args.scl_temp
         )
