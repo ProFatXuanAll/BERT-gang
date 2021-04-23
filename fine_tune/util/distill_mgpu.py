@@ -208,7 +208,7 @@ def distill_mgpu(
             # Transform `label` to a Tensor.
             label = torch.LongTensor(label)
 
-            # Get `input_ids`, `token_type_ids` and `attention_mask` from via tokenizer.
+            # Get `input_ids`, `token_type_ids` and `attention_mask` via tokenizer.
             teacher_batch_encode = teacher_tokenizer(
                 text=text,
                 text_pair=text_pair,
@@ -278,7 +278,7 @@ def distill_mgpu(
                     labels=label.to(student_device)
                 )
 
-                # Normalize liss.
+                # Normalize loss.
                 batch_scl_loss = batch_scl_loss / student_config.accum_step
 
                 # Log loss.
