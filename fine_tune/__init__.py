@@ -53,3 +53,4 @@ import fine_tune.objective
 import fine_tune.path
 import fine_tune.task
 import fine_tune.util
+import fine_tune.contrast_util
