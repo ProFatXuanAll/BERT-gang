@@ -276,7 +276,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Check user forgot to indicate loss.
-    if not ( args.use_classify_loss or args.use_hidden_loss or args.use_attn_loss ):
+    if not (args.use_classify_loss or args.use_hidden_loss):
         raise ValueError("You forgot to specify loss function!\n" +
             "Please check relative document for more info!"
         )
