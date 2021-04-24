@@ -139,7 +139,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 
 ```sh
 python3.8 train_scl_from_ckpt.py \
---experiment SCL_2               \
+--experiment SCL_debug               \
 --src_experiment MSE_base        \
 --src_ckpt 9822                  \
 --model bert                     \
@@ -147,7 +147,7 @@ python3.8 train_scl_from_ckpt.py \
 --device_id 0                    \
 --scl_temp 0.1                   \
 --accum_step 1                   \
---batch_size 32                  \
+--batch_size 4                  \
 --ckpt_step 1000                 \
 --log_step 100                   \
 --lr 3e-5                        \

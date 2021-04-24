@@ -5,6 +5,8 @@ which is caused by the imbalanced number of labels in each mini-batch.
 As a result, we need a custom batch sampler to guarantee
 the balanced number of labels in each mini-batch.
 """
+# Built-in modules.
+import warnings
 
 # 3rd-party modules.
 
@@ -18,20 +20,20 @@ from fine_tune.task._mnli import MNLI
 
 class GlueBatchSampler():
     r"""Class `GlueBatchSampler` will sample given GLUE dataset randomly
-    (i.e: shuffle order) and guarantee balanced number of labels in each
-    mini-batch.
-    For example, `QNLI` task with `batch_size` == 4:
+    (i.e: shuffle order) and guarantee number of labels in each mini-batch
+    is greater than 1
+    For example, `MNLI` task with `batch_size` == 8:
 
     Examples
     ----------
-    >>> dataset = fine_tune.task.QNLI('train')
+    >>> dataset = fine_tune.task.MNLI('train')
     >>> dataloader = torch.utils.data.DataLoader(
     ...     dataset,
     ...     batch_sampler=GlueBatchSampler(dataset, 4),
     ...     collate_fn=dataset.create_collate_fn())
     >>> for text, text_pari, labels in dataloader:
     ...     print(labels)
-    [0,0,1,1]
+    [0,1,2,0,1,2,0,1]
 
     Notes
     ----------
@@ -57,10 +59,17 @@ class GlueBatchSampler():
             raise ValueError("Invalid custom dataset!")
 
         if batch_size % 2 != 0:
-            raise ValueError("Batch size should be an even number.")
+            warnings.warn(
+                "It is recommended to use an even batch size\n"+
+                f"Current batch size: {batch_size}"
+            )
 
-        if batch_size <= 2:
-            raise ValueError("Batch size should at least 3")
+        if batch_size <= 6:
+            raise ValueError(
+                "In order to prevent `NaN` runtime error "+
+                "batch size should be greater than 6\n"+
+                f"Current batch size: {batch_size}"
+            )
 
         self.datasets = datasets
         self.batch_size = batch_size
