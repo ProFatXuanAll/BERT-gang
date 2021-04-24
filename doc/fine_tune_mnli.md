@@ -107,6 +107,44 @@ python3.8 run_fine_tune_eval.py \
 
 ### BERT Fine-Tune Distillation Scripts with Multi-GPU
 
+```sh
+python3.8 run_fine_tune_distill_mgpu.py \
+--teacher_exp test                \
+--tmodel bert                      \
+--tckpt  36816 \
+--experiment debug_2            \
+--model bert                       \
+--task mnli                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 1000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 500                     \
+--lr 5e-5                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 49088                \
+--type_vocab_size 2                \
+--warmup_step  4908               \
+--weight_decay 0.01                \
+--device_id 0                      \
+--tdevice_id 0                     \
+--mu 100                           \
+--softmax_temp 20                  \
+--soft_weight 0.5                  \
+--use_classify_loss                \
+--cls_steps 0                   \
+--ce_weight 0.5                      \
+--scl_temp 1                       \
+--use_hidden_loss
+```
+
 #### Fine-Tune Distillation with Contrastive learning
 
 ```sh

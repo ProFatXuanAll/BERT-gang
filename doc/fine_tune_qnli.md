@@ -26,11 +26,10 @@ rm ./data/fine_tune/qnli.zip
 - Learning Rate: 5e-5, 3e-5, 2e-5
 - Number of epochs: 2, 3, 4
 - Dropout: 0.1
-
-### BERT Fine-Tune Script
-
 - 1 epochs = 3274 iters
   - under batch size 32
+
+### BERT Fine-Tune Script
 
 ```sh
 python3.8 run_fine_tune.py     \
@@ -103,7 +102,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment MSE_SCL_2stage_NMSE             \
+--experiment MSE_base            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -115,25 +114,44 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --d_model 768                      \
 --dropout 0.1                      \
 --eps 1e-8                         \
---log_step 500                     \
+--log_step 100                     \
 --lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 13096                \
+--total_step 9822                \
 --type_vocab_size 2                \
---warmup_step  1309               \
+--warmup_step  982               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --mu 100                           \
 --use_hidden_loss                  \
 --softmax_temp 20                  \
 --soft_weight 0.5                  \
 --use_classify_loss                \
---cls_steps 6548                   \
+--cls_steps 0                   \
 --ce_weight 0.5                      \
---scl_temp 0.1
+--scl_temp 1
+```
+
+### Train SCL independently
+
+```sh
+python3.8 train_scl_from_ckpt.py \
+--experiment SCL_2               \
+--src_experiment MSE_base        \
+--src_ckpt 9822                  \
+--model bert                     \
+--task qnli                      \
+--device_id 0                    \
+--scl_temp 0.1                   \
+--accum_step 1                   \
+--batch_size 32                  \
+--ckpt_step 1000                 \
+--log_step 100                   \
+--lr 3e-5                        \
+--total_step 9822
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
@@ -141,7 +159,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment MSE_SCL_1                 \
+--experiment debug_3                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -152,7 +170,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment MSE_SCL_1                 \
+--experiment debug_3                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
