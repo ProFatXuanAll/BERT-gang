@@ -97,6 +97,20 @@ class SupConLoss(nn.Module):
         # Compute mean of log-likelihood over positive.
         mean_log_prob_pos = (mask * log_prob).sum(1) / mask.sum(1)
 
+        # Detect `NaN` and replace it to zero.
+        if torch.isnan(mean_log_prob_pos).any():
+            print('-'*20)
+            print(f'features: {features}')
+            print(f'labels: {labels}')
+            print(f'logits_mask: {logits_mask}')
+            print(f'mask: {mask}')
+            print(f'log_prob: {log_prob}')
+            print(f'exp_logits: {exp_logits}')
+            print(mean_log_prob_pos)
+            mean_log_prob_pos[torch.isnan(mean_log_prob_pos)] = 0
+            print(mean_log_prob_pos)
+            raise ValueError("Detect NaN tensor from `supconloss`")
+
         # Reduction: mean
         loss = -1 * mean_log_prob_pos
         loss = loss.mean()
