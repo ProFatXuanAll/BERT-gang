@@ -29,6 +29,7 @@ def train_SCL(
     train_dataset: fine_tune.task.Dataset,
     student_model: fine_tune.model.StudentModel,
     scl_optimizer: torch.optim.AdamW,
+    scl_scheduler: torch.optim.lr_scheduler.LambdaLR,
     student_tokenizer: transformers.PreTrainedTokenizer,
     scl_temp: float = 0.1
 ):
@@ -45,6 +46,8 @@ def train_SCL(
         Student model.
     scl_optimizer : torch.optim.AdamW
         `torch.optim.AdamW` optimizer.
+    scl_scheduler: torch.optim.lr_scheduler.LambdaLR
+        `torch.optim.lr_scheduler.LambdaLR` scheduler.
     student_tokenizer : transformers.PreTrainedTokenizer
         Tokenizer paired with `student_model`.
     scl_temp : float, optional
@@ -171,6 +174,9 @@ def train_SCL(
 
                 # Gradient descend.
                 scl_optimizer.step()
+
+                # Update learning rate.
+                scl_scheduler.step()
 
                 # Log on CLI.
                 cli_logger.update()
@@ -352,6 +358,12 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument(
+        '--warmup_step',
+        default=10000,
+        help='Linear scheduler warmup step.',
+        type=int,
+    )
+    parser.add_argument(
         '--weight_decay',
         default=0.01,
         help="Optimizer `torch.optim.AdamW` weight decay regularization.",
@@ -428,6 +440,7 @@ if __name__ == "__main__":
     config.lr = args.lr
     config.max_norm = args.max_norm
     config.total_step = args.total_step
+    config.warmup_step = args.warmup_step
     config.weight_decay = args.weight_decay
 
     logger.info("New config for SCL training")
@@ -440,12 +453,19 @@ if __name__ == "__main__":
         model=model
     )
 
+    # Load scheduler.
+    scheduler = fine_tune.util.load_scheduler_by_config(
+        config=config,
+        optimizer=optimizer
+    )
+
     # Start training.
     train_SCL(
         student_config=config,
         train_dataset=dataset,
         student_model=model,
         scl_optimizer=optimizer,
+        scl_scheduler=scheduler,
         student_tokenizer=tokenizer,
         scl_temp=args.scl_temp
     )

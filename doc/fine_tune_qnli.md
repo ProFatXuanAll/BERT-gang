@@ -109,7 +109,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 1000                   \
+--ckpt_step 3274                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
@@ -139,19 +139,20 @@ python3.8 run_fine_tune_distill_mgpu.py \
 
 ```sh
 python3.8 train_scl_from_ckpt.py \
---experiment SCL_debug               \
---src_experiment MSE_base        \
---src_ckpt 9822                  \
+--experiment SCL_12               \
+--src_experiment MSE_base_2E        \
+--src_ckpt 6548                  \
 --model bert                     \
 --task qnli                      \
---device_id 0                    \
---scl_temp 0.1                   \
+--device_id 1                    \
+--scl_temp 0.5                   \
 --accum_step 1                   \
---batch_size 4                  \
+--batch_size 32                  \
 --ckpt_step 1000                 \
 --log_step 100                   \
 --lr 3e-5                        \
---total_step 9822
+--total_step 9822                \
+--warmup_step 982
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
