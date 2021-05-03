@@ -102,7 +102,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment MSE_base            \
+--experiment MSE_base_4layer            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -118,7 +118,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 9822                \
 --type_vocab_size 2                \
 --warmup_step  982               \
@@ -139,20 +139,45 @@ python3.8 run_fine_tune_distill_mgpu.py \
 
 ```sh
 python3.8 train_scl_from_ckpt.py \
---experiment SCL_12               \
---src_experiment MSE_base_2E        \
+--experiment SCL_17               \
+--src_experiment MSE_base        \
 --src_ckpt 6548                  \
 --model bert                     \
 --task qnli                      \
---device_id 1                    \
---scl_temp 0.5                   \
---accum_step 1                   \
---batch_size 32                  \
---ckpt_step 1000                 \
+--device_id 0                    \
+--scl_temp 0.1                   \
+--accum_step 4                   \
+--batch_size 128                  \
+--ckpt_step 3274                 \
 --log_step 100                   \
---lr 3e-5                        \
+--lr 5e-5                        \
 --total_step 9822                \
 --warmup_step 982
+```
+
+### Train KD (output logits CE) independently
+
+```sh
+python3.8 train_kd_from_ckpt.py \
+--teacher_exp teacher_base      \
+--tmodel bert                   \
+--tckpt 9822                    \
+--experiment SCL_17_ce           \
+--src_experiment SCL_17          \
+--src_ckpt 3274                 \
+--model bert                    \
+--task qnli                     \
+--device_id 1                   \
+--tdevice_id 1                  \
+--softmax_temp 20               \
+--soft_weight 0.5               \
+--accum_step 1                   \
+--batch_size 32                  \
+--ckpt_step 3274                 \
+--log_step 100                   \
+--lr 1e-5                        \
+--total_step 6548                \
+--warmup_step 654
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
@@ -160,7 +185,7 @@ python3.8 train_scl_from_ckpt.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment debug_3                 \
+--experiment SCL_17_ce                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -171,7 +196,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment debug_3                 \
+--experiment SCL_17_ce                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
@@ -209,11 +234,11 @@ python3.8 build_logitsbank.py \
 
 ```sh
 python3.8 plot_CLS_embedding.py  \
---ckpt 13096                     \
---experiment MSE_init_from_pre_trained             \
+--ckpt 6548                     \
+--experiment SCL_6_ce             \
 --model bert                     \
 --task qnli                      \
 --dataset dev            \
 --batch_size 256                 \
---device_id 0
+--device_id 1
 ```

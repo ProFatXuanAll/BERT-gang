@@ -50,6 +50,8 @@ def load_dataset(
         return fine_tune.task.BoolQ(dataset)
     if task == 'qnli':
         return fine_tune.task.QNLI(dataset)
+    if task == 'sst2':
+        return fine_tune.task.SST2(dataset)
 
     raise ValueError(
         f'`task` {task} is not supported.\nSupported options:' +

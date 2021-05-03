@@ -131,13 +131,18 @@ def distill_mgpu(
         experiment_name
     )
 
-    # Teacher and student share a dataloader.
+    # Contruct custom batch sampler.
+    glue_sampler = fine_tune.task.GlueBatchSampler(
+        dataset,
+        batch_size=student_config.batch_size // student_config.accum_step
+    )
+
+    # Construct data loader.
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=teacher_config.batch_size // teacher_config.accum_step,
+        batch_sampler=glue_sampler,
         collate_fn=dataset.create_collate_fn(),
         num_workers=os.cpu_count(),
-        shuffle=True
     )
 
     # Create tensorboard's `SummaryWriter`.

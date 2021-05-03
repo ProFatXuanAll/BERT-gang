@@ -112,14 +112,14 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment debug_2            \
+--experiment PKD            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 1000                   \
+--ckpt_step 12272                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
@@ -133,16 +133,17 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --type_vocab_size 2                \
 --warmup_step  4908               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --mu 100                           \
---softmax_temp 20                  \
+--use_hidden_loss                  \
+--softmax_temp 10                  \
 --soft_weight 0.5                  \
 --use_classify_loss                \
 --cls_steps 0                   \
---ce_weight 0.5                      \
---scl_temp 1                       \
---use_hidden_loss
+--ce_weight 1                      \
+--scl_temp 1
+
 ```
 
 #### Fine-Tune Distillation with Contrastive learning
@@ -183,6 +184,7 @@ python3.8 run_fine_tune_contrast_distill.py \
 
 #### Fine-Tune Distillation with Contrastive learning layer wise
 
+```sh
 python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp test                \
 --tmodel bert                      \
@@ -215,13 +217,59 @@ python3.8 run_layerwise_contrast_distill.py \
 --softmax_temp 1                \
 --soft_label_weight 0.2         \
 --defined_by_label
+```
+
+### Train SCL independently
+
+```sh
+python3.8 train_scl_from_ckpt.py \
+--experiment SCL_1               \
+--src_experiment MSE_base        \
+--src_ckpt 24544                  \
+--model bert                     \
+--task mnli                      \
+--device_id 1                    \
+--scl_temp 0.1                   \
+--accum_step 1                   \
+--batch_size 32                  \
+--ckpt_step 2000                 \
+--log_step 100                   \
+--lr 5e-5                        \
+--total_step 24544                \
+--warmup_step 2454
+```
+
+### Train KD (output logits CE) independently
+
+```sh
+python3.8 train_kd_from_ckpt.py \
+--teacher_exp test      \
+--tmodel bert                   \
+--tckpt 36816                    \
+--experiment SCL_1_ce           \
+--src_experiment SCL_1          \
+--src_ckpt 24544                 \
+--model bert                    \
+--task mnli                     \
+--device_id 1                   \
+--tdevice_id 1                  \
+--softmax_temp 10               \
+--soft_weight 0.5               \
+--accum_step 1                   \
+--batch_size 32                  \
+--ckpt_step 1000                 \
+--log_step 100                   \
+--lr 1e-5                        \
+--total_step 24544                \
+--warmup_step 2454
+```
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_label_2          \
+--experiment PKD          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
@@ -233,7 +281,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_label_2          \
+--experiment PKD          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -245,7 +293,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_label_2          \
+--experiment PKD          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
@@ -285,8 +333,8 @@ python3.8 build_logitsbank.py \
 
 ```sh
 python3.8 plot_CLS_embedding.py  \
---ckpt 31000                     \
---experiment contrast_14_lwise_500             \
+--ckpt 24544                     \
+--experiment SCL_1_ce             \
 --model bert                     \
 --task mnli                      \
 --dataset dev_matched            \
