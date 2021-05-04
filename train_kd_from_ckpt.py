@@ -5,6 +5,7 @@ This script will load from a given checkpoint model which is assumed
 to be trained on MSE loss and SCE loss before,
 then train this model with Cross Entropy loss.
 """
+# TODO: remove this file
 
 # built-in modules
 

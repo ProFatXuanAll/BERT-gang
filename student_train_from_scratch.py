@@ -1,5 +1,6 @@
 r"""Train student from scratch.
 """
+# TODO: remove this file
 
 # built-in modules
 

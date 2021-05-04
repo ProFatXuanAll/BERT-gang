@@ -4,6 +4,7 @@ Use this script to find the best training schedule for SCL loss.
 This script will load from a given checkpoint model which is assumed
 to be trained on MSE loss before, then train this model with SCL loss.
 """
+# TODO: remove this file
 
 # built-in modules
 

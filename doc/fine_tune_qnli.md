@@ -182,7 +182,7 @@ python3.8 train_kd_from_ckpt.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_sample                 \
+--experiment PKD_probing_1                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -193,7 +193,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_sample                 \
+--experiment PKD_probing_1                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
@@ -238,4 +238,25 @@ python3.8 plot_CLS_embedding.py  \
 --dataset dev            \
 --batch_size 256                 \
 --device_id 1
+```
+
+### Distill-BERT Fine-tune script
+
+```sh
+python3.8 fine_tune_distillbert.py   \
+--experiment distill_bert_base       \
+--task qnli                          \
+--dataset train                      \
+--num_class 2                        \
+--accum_step 1                       \
+--batch_size 32                      \
+--ckpt_step 1000                     \
+--device_id 0                        \
+--log_step 100                       \
+--lr 3e-5                            \
+--max_norm 1.0                       \
+--seed 42                            \
+--total_step 9822                    \
+--warmup_step 982                    \
+--weight_decay 0.01
 ```
