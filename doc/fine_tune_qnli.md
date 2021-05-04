@@ -76,7 +76,7 @@ python3.8 run_layerwise_contrast_distill.py \
 --d_model 768                      \
 --dropout 0.1                      \
 --eps 1e-8                         \
---log_step 500                     \
+--log_step 100                     \
 --lr 3e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
@@ -102,14 +102,14 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment MSE_base_4layer            \
+--experiment PKD_probing_1            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 3274                   \
+--ckpt_step 1000                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
@@ -118,21 +118,18 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
---total_step 9822                \
+--num_hidden_layers 6              \
+--total_step 13096                \
 --type_vocab_size 2                \
---warmup_step  982               \
+--warmup_step  1309               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --tdevice_id 1                     \
 --mu 100                           \
 --use_hidden_loss                  \
---softmax_temp 20                  \
---soft_weight 0.5                  \
---use_classify_loss                \
---cls_steps 0                   \
---ce_weight 0.5                      \
---scl_temp 1
+--softmax_temp 1                  \
+--soft_weight 0                  \
+--use_classify_loss
 ```
 
 ### Train SCL independently
@@ -185,7 +182,7 @@ python3.8 train_kd_from_ckpt.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment SCL_17_ce                 \
+--experiment Contrast_by_sample                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -196,7 +193,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment SCL_17_ce                 \
+--experiment Contrast_by_sample                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \

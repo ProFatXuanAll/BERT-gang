@@ -31,7 +31,6 @@ import fine_tune.config
 import fine_tune.task
 import fine_tune.model
 import fine_tune.path
-import fine_tune.contrast_util
 
 
 def distill_mgpu(
@@ -48,10 +47,7 @@ def distill_mgpu(
         mu: int = 100,
         softmax_temp: float = 1.0,
         use_classify_loss: bool = True,
-        use_hidden_loss: bool = True,
-        cls_steps: int = 0,
-        ce_weights: float = 1.0,
-        scl_temp: float = 0.1
+        use_hidden_loss: bool = True
 ):
     """Perform knowledge distillation from given fine-tuned teacher model
     without automatic mixed precision.
@@ -95,16 +91,6 @@ def distill_mgpu(
         by default True
     use_hidden_loss : bool, optional
         Total loss function include hidden states loss, by default True
-    cls_steps : int, optional
-        At which steps start to fine-tune classification layer of student, by default 0
-    ce_weights : float, optional
-        Weight of cross entropy loss, classification loss is defined by:
-            L_{classify} =
-                ce_weights * ( alpha * CE_{soft} + ( 1-alpha ) * CE_{hard} ) +
-                (1-ce_weights) * L_{SCL}
-        by default 1.0
-    scl_temp : float, optional
-        Temperature of Supervised Contrastive Learning loss, by default 0.1
     """
 
     # Set teacher model as evaluation mode.
@@ -131,18 +117,13 @@ def distill_mgpu(
         experiment_name
     )
 
-    # Contruct custom batch sampler.
-    glue_sampler = fine_tune.task.GlueBatchSampler(
-        dataset,
-        batch_size=student_config.batch_size // student_config.accum_step
-    )
-
     # Construct data loader.
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_sampler=glue_sampler,
+        batch_size=teacher_config.batch_size // teacher_config.accum_step,
         collate_fn=dataset.create_collate_fn(),
         num_workers=os.cpu_count(),
+        shuffle=True
     )
 
     # Create tensorboard's `SummaryWriter`.
@@ -156,7 +137,10 @@ def distill_mgpu(
     # Create objective functions.
     logits_objective = fine_tune.objective.distill_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
-    scl_objective = fine_tune.contrast_util.SupConLoss(scl_temp)
+
+    # # TODO: Refactor
+    # normalize = True
+    # print("Normalize CLS embedding!")
 
     # TODO: Restore this block to use adaptive layer
     # Create adaptive layer.
@@ -176,11 +160,6 @@ def distill_mgpu(
     step = 0
     accum_step = 0
     total_accum_step = student_config.total_step * student_config.accum_step
-    total_cls_step = cls_steps * student_config.accum_step
-
-    # Set two stage training if needed.
-    if cls_steps > 0:
-        use_classify_loss = False
 
     # Mini-batch loss and accmulate loss.
     # Update when accumulate to `config.batch_size`.
@@ -188,18 +167,16 @@ def distill_mgpu(
     loss = 0
     logits_loss = 0
     hidden_loss = 0
-    scl_loss = 0
 
     # torch.Tensor placeholder.
     batch_logits_loss = 0
     batch_hidden_loss = 0
-    batch_scl_loss = 0
+
 
     # `tqdm` CLI Logger. We will manually update progress bar.
     cli_logger = tqdm(
         desc=f'loss: {loss:.6f} ' +
             f'logits_loss: {logits_loss:.6f} ' +
-            f'scl_loss: {scl_loss:.6f} '
             f'hidden_loss: {hidden_loss:.6f} ',
         total=student_config.total_step
     )
@@ -259,7 +236,7 @@ def distill_mgpu(
 
             if use_classify_loss:
                 # Calculate batch loss of logits.
-                batch_logits_loss = ce_weights * logits_objective(
+                batch_logits_loss = logits_objective(
                     hard_target=label.to(student_device),
                     teacher_logits=teacher_logits.to(student_device),
                     student_logits=student_logits,
@@ -275,23 +252,6 @@ def distill_mgpu(
 
                 # Accumulate gradients.
                 batch_logits_loss.backward(retain_graph=True)
-
-                # Calculate batch SCL loss.
-                # We only use [CLS] of last layer.
-                batch_scl_loss = (1-ce_weights) * scl_objective(
-                    features=student_hiddens[-1][:,0,:],
-                    labels=label.to(student_device)
-                )
-
-                # Normalize loss.
-                batch_scl_loss = batch_scl_loss / student_config.accum_step
-
-                # Log loss.
-                scl_loss += batch_scl_loss.item()
-                loss += batch_scl_loss.item()
-
-                # Accumulate gradients.
-                batch_scl_loss.backward(retain_graph=True)
 
             if use_hidden_loss:
                 # Calculate batch hidden states loss.
@@ -335,7 +295,6 @@ def distill_mgpu(
                 cli_logger.set_description(
                     f'loss: {loss:.6f} ' +
                     f'logits_loss: {logits_loss:.6f} ' +
-                    f'scl_loss: {scl_loss:.6f} '
                     f'hidden_loss: {hidden_loss:.6f} ',
                 )
 
@@ -363,12 +322,6 @@ def distill_mgpu(
                         step
                     )
                     writer.add_scalar(
-                        f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
-                        '/scl_loss',
-                        scl_loss,
-                        step
-                    )
-                    writer.add_scalar(
                         f'{student_config.task}/{student_config.dataset}/{student_config.model}/lr',
                         optimizer.state_dict()['param_groups'][0]['lr'],
                         step
@@ -378,7 +331,6 @@ def distill_mgpu(
                 loss = 0
                 logits_loss = 0
                 hidden_loss = 0
-                scl_loss = 0
 
                 # Clean up gradient.
                 optimizer.zero_grad()
@@ -391,12 +343,6 @@ def distill_mgpu(
                     )
 
                     # TODO: if use adaptive layer we have to save it.
-
-            # Start to train classification layer.
-            if not use_classify_loss and accum_step == total_cls_step:
-                use_classify_loss = True
-                #TODO: Turn off hidden loss?
-                use_hidden_loss = False
 
             # Stop training condition.
             if accum_step >= total_accum_step:

@@ -141,24 +141,6 @@ if __name__ == "__main__":
         default=100,
         type=int
     )
-    parser.add_argument(
-        '--cls_steps',
-        help='At which steps start to train classification loss',
-        default=0,
-        type=int
-    )
-    parser.add_argument(
-        '--ce_weight',
-        help='Weight of cross entropy loss',
-        default=1.0,
-        type=float
-    )
-    parser.add_argument(
-        '--scl_temp',
-        help='Temperature of SCL loss',
-        default=0.1,
-        type=float
-    )
 
     # Arguments of teacher model.
     parser.add_argument(
@@ -427,8 +409,5 @@ if __name__ == "__main__":
             use_hidden_loss=args.use_hidden_loss,
             alpha=args.soft_weight,
             mu=args.mu,
-            softmax_temp=args.softmax_temp,
-            cls_steps=args.cls_steps,
-            ce_weights=args.ce_weight,
-            scl_temp=args.scl_temp
+            softmax_temp=args.softmax_temp
         )

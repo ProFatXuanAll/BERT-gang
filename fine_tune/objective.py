@@ -138,7 +138,8 @@ def attention_KL_loss(
 def hidden_MSE_loss(
         teacher_hidden: torch.Tensor,
         student_hidden: torch.Tensor,
-        mu: int = 100
+        mu: int = 100,
+        # normalized: bool = False
 ) -> torch.Tensor:
     r""" MSE loss between teacher's and student's hidden states.
     We use the following notation for the reset of the context.
@@ -157,4 +158,7 @@ def hidden_MSE_loss(
     Returns:
         MSE loss between teacher and student hidden states.
     """
+    # if normalized:
+    #     student_hidden = F.normalize(student_hidden, dim=2)
+    #     teacher_hidden = F.normalize(teacher_hidden, dim=2)
     return mu * F.mse_loss(student_hidden, teacher_hidden)

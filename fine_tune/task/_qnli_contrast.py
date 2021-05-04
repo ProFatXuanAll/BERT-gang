@@ -5,11 +5,10 @@ Usage:
     import fine_tune
 
     dataset = fine_tune.task.QNLIContrast('train', k=10, defined_by_label=False)
-    dataset = fine_tune.task.QNLIContrast('dev_matched', k=10, defined_by_label=False)
-    dataset = fine_tune.task.QNLIContrast('dev_mismatched', k=10, defined_by_label=False)
+    dataset = fine_tune.task.QNLIContrast('dev', k=10, defined_by_label=False)
     dataset = fine_tune.task.QNLIContrast(...)
 
-    assert fine_tune.task.get_num_label(fine_tune.task.QNLIContrast) == 3
+    assert fine_tune.task.get_num_label(fine_tune.task.QNLIContrast) == 2
 
     assert fine_tune.task.label_encoder(
         fine_tune.task.QNLIContrast,
@@ -34,7 +33,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import json
 import logging
 import os
 
