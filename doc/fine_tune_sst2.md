@@ -36,7 +36,7 @@ python3.8 run_fine_tune.py     \
 --accum_step 1                 \
 --batch_size 32                \
 --beta1 0.9                    \
---beta2 0.999                  \｀
+--beta2 0.999                  \
 --ckpt_step 2105               \
 --dropout 0.1                  \
 --eps 1e-8                     \
@@ -58,7 +58,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp bert_base_teacher                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment PKD_3            \
+--experiment PKD_6            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -75,17 +75,80 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 8420                \
+--total_step 10525                \
 --type_vocab_size 2                \
---warmup_step  842               \
+--warmup_step  1052               \
 --weight_decay 0.01                \
 --device_id 0                      \
 --tdevice_id 0                     \
 --mu 100                           \
 --use_hidden_loss                  \
---softmax_temp 10                  \
---soft_weight 0.5                  \
+--softmax_temp 5                  \
+--soft_weight 0.7                  \
 --use_classify_loss
+```
+
+### Fine-Tune Distillation with layer wise Contrastive learning
+
+```sh
+python3.8 run_layerwise_contrast_distill.py \
+--teacher_exp bert_base_teacher                \
+--tmodel bert                      \
+--tckpt 6315 \
+--experiment Contrast_by_sample_4            \
+--model bert                       \
+--task sst2                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 2000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 3e-5                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 21050                \
+--type_vocab_size 2                \
+--warmup_step  2105               \
+--weight_decay 0.01                \
+--device_id 1                      \
+--neg_num 20                    \
+--contrast_steps 0           \
+--contrast_temp 0.1             \
+--softmax_temp 5                \
+--soft_label_weight 0.5        \
+--contrast_weight 1
+```
+
+### Build memory bank
+
+```sh
+python3.8 build_membank.py \
+--experiment bert_base_teacher \
+--model bert \
+--task sst2 \
+--dataset train \
+--ckpt 6315 \
+--batch_size 256 \
+--device_id 1
+```
+
+### Build logits bank
+
+```sh
+python3.8 build_logitsbank.py \
+--experiment bert_base_teacher \
+--model bert \
+--task sst2 \
+--dataset train \
+--ckpt 6315 \
+--batch_size 256 \
+--device_id 0
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
@@ -93,21 +156,21 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_3                 \
+--experiment Contrast_by_sample_3                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_3                 \
+--experiment Contrast_by_sample_3                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
---batch_size 128 \
---device_id 0
+--batch_size 512 \
+--device_id 1
 ```

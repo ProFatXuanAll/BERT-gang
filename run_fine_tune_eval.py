@@ -188,6 +188,7 @@ if __name__ == '__main__':
 
     # Evaluate every checkpoints.
     for ckpt in all_ckpts:
+        logger.info("Load from ckpt: %s", ckpt)
 
         # Clean all gradient.
         model.zero_grad()

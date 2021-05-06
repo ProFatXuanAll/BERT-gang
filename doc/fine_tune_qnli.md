@@ -260,3 +260,27 @@ python3.8 fine_tune_distillbert.py   \
 --warmup_step 982                    \
 --weight_decay 0.01
 ```
+
+### Distill-BERT evaluation script
+
+```sh
+# Fine-tune evaluation on QNLI dataset `train`.
+python3.8 distill_bert_eval.py \
+--experiment distill_bert_base                 \
+--model bert                    \
+--task qnli                     \
+--dataset train                 \
+--batch_size 512                \
+--device_id 1
+```
+
+```sh
+# Fine-tune evaluation on QNLI dataset `dev`.
+python3.8 distill_bert_eval.py \
+--experiment distill_bert_base                 \
+--model bert                    \
+--task qnli                     \
+--dataset dev           \
+--batch_size 512 \
+--device_id 1
+```
