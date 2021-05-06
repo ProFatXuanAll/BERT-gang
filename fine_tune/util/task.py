@@ -112,6 +112,8 @@ def load_contrast_dataset(
 
     if task == 'qnli':
         return fine_tune.task.QNLIContrast(dataset, neg_num, defined_by_label)
+    if task == 'sst2':
+        return fine_tune.task.SST2Contrast(dataset, neg_num, defined_by_label)
 
     raise ValueError(
         f'`task` {task} is not supported.\nSupported options:' +

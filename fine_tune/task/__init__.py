@@ -35,3 +35,4 @@ from fine_tune.task._qnli import QNLI
 from fine_tune.task._qnli_contrast import QNLIContrast
 from fine_tune.task._sampler import GlueBatchSampler
 from fine_tune.task._sst2 import SST2
+from fine_tune.task._sst2_contrast import SST2Contrast
