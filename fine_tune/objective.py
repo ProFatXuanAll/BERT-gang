@@ -18,6 +18,73 @@ import torch
 import torch.nn
 import torch.nn.functional as F
 
+class WSL(torch.nn.Module):
+    r"""Weighted Soft Labels loss [1] implementation.
+    Our implementation is taken from:
+    `bellymonster/Weighted-Soft-Label-Distillation <https://github.com/bellymonster/Weighted-Soft-Label-Distillation>`
+
+    Notes
+    ----------
+    [1] Zhou, H., Song, L., Chen, J., Zhou, Y., Wang, G., Yuan, J., & Zhang, Q. (2021).
+    Rethinking Soft Labels for Knowledge Distillation: A Bias-Variance Tradeoff Perspective.
+    arXiv preprint arXiv:2102.00650.
+
+    Parameters
+    ----------
+    temperature : float
+        Softmax temperature
+    alpha : float
+        Balancing hyperparameter of WSL loss.
+    num_class : int
+        Number of class of downstream task.
+    """
+    def __init__(self, temperature: float, alpha: float, num_class: int):
+        super().__init__()
+
+        self.T = temperature
+        self.alpha = alpha
+        self.num_class = num_class
+
+        self.softmax = torch.nn.Softmax(dim=1)
+        self.logsoftmax = torch.nn.LogSoftmax()
+
+        self.hard_loss = torch.nn.CrossEntropyLoss()
+
+    def forward(self, t_logits: torch.Tensor, s_logits: torch.Tensor, label: torch.LongTensor):
+        # `B`: batch size
+        # `D`: dimension
+        s_input_for_softmax = s_logits / self.T
+        t_input_for_softmax = t_logits / self.T
+
+        t_soft_label = self.softmax(t_input_for_softmax)
+
+        softmax_loss = - torch.sum(
+            t_soft_label * self.logsoftmax(s_input_for_softmax),
+            1,
+            keepdim=True
+        )
+
+        t_logits_auto = t_logits.detach()
+        s_logits_auto = s_logits.detach()
+        log_softmax_s = self.logsoftmax(s_logits_auto)
+        log_softmax_t = self.logsoftmax(t_logits_auto)
+        one_hot_label = F.one_hot(label, num_classes=self.num_class).float()
+        softmax_loss_s = - torch.sum(one_hot_label * log_softmax_s, 1, keepdim=True)
+        softmax_loss_t = - torch.sum(one_hot_label * log_softmax_t, 1, keepdim=True)
+
+        focal_weight = softmax_loss_s / softmax_loss_t
+        ratio_lower = torch.zeros(1).to(t_logits.device)
+        focal_weight = torch.max(focal_weight, ratio_lower)
+        focal_weight = 1 - torch.exp(- focal_weight)
+        softmax_loss = focal_weight * softmax_loss
+
+        soft_loss = (self.T ** 2) * torch.mean(softmax_loss)
+
+        hard_loss = self.hard_loss(s_logits, label)
+
+        loss = hard_loss + self.alpha * soft_loss
+
+        return loss
 
 def soft_target_loss(
         student_logits: torch.Tensor,
