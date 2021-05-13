@@ -45,8 +45,10 @@ def distill_mgpu(
         student_tokenizer: transformers.PreTrainedTokenizer,
         alpha: float = 0.2,
         mu: int = 100,
+        wsl_weight: float = 1,
         softmax_temp: float = 1.0,
         use_classify_loss: bool = True,
+        use_wsl: bool = False,
         use_hidden_loss: bool = True
 ):
     """Perform knowledge distillation from given fine-tuned teacher model
@@ -81,6 +83,8 @@ def distill_mgpu(
         Weight of soft target loss, by default 0.2
     mu : int, optional
         Weight of hidden MSE loss, by default 100
+    wsl_weight : float, optional
+        Weight of Weighted Soft Label loss, by default 1
     softmax_temp : float, optional
         Softmax temperature, by default 1.0
     use_classify_loss : bool, optional
@@ -89,6 +93,9 @@ def distill_mgpu(
                 ce_weights * ( alpha * CE_{soft} + ( 1-alpha ) * CE_{hard} ) +
                 (1-ce_weights) * L_{SCL}
         by default True
+    use_wsl: bool, optional
+        Use `weighted soft label loss` to replace traditional soft target loss
+        by default False
     use_hidden_loss : bool, optional
         Total loss function include hidden states loss, by default True
     """
@@ -135,8 +142,16 @@ def distill_mgpu(
     )
 
     # Create objective functions.
-    logits_objective = fine_tune.objective.distill_loss
+    if use_wsl:
+        logits_objective = fine_tune.objective.WSL(
+            temperature=softmax_temp,
+            alpha=wsl_weight,
+            num_class=student_config.num_class
+        )
+    else:
+        logits_objective = fine_tune.objective.distill_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
+
 
     # # TODO: Refactor
     # normalize = True
@@ -232,17 +247,25 @@ def distill_mgpu(
                 return_hidden_and_attn=True
             )
 
-            # Calculate classify loss.
+            # Calculate classify loss. TODO: Refactor
 
             if use_classify_loss:
-                # Calculate batch loss of logits.
-                batch_logits_loss = logits_objective(
-                    hard_target=label.to(student_device),
-                    teacher_logits=teacher_logits.to(student_device),
-                    student_logits=student_logits,
-                    alpha = alpha,
-                    softmax_temp = softmax_temp
-                )
+                if use_wsl:
+                    batch_logits_loss = logits_objective(
+                        t_logits=teacher_logits.to(student_device),
+                        s_logits=student_logits,
+                        label=label.to(student_device)
+                    )
+                else:
+                    # Calculate batch loss of logits.
+                    batch_logits_loss = logits_objective(
+                        hard_target=label.to(student_device),
+                        teacher_logits=teacher_logits.to(student_device),
+                        student_logits=student_logits,
+                        alpha=alpha,
+                        softmax_temp=softmax_temp
+                    )
+
                 # Normalize loss.
                 batch_logits_loss = batch_logits_loss / student_config.accum_step
 

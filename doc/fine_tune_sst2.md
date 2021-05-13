@@ -58,7 +58,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp bert_base_teacher                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment PKD_6            \
+--experiment PKD_12            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -75,9 +75,9 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 10525                \
+--total_step 21050                \
 --type_vocab_size 2                \
---warmup_step  1052               \
+--warmup_step  2105               \
 --weight_decay 0.01                \
 --device_id 0                      \
 --tdevice_id 0                     \
@@ -95,7 +95,7 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp bert_base_teacher                \
 --tmodel bert                      \
 --tckpt 6315 \
---experiment Contrast_by_sample_4            \
+--experiment Contrast_by_sample_13            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -112,15 +112,15 @@ python3.8 run_layerwise_contrast_distill.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 21050                \
+--total_step 25260                \
 --type_vocab_size 2                \
---warmup_step  2105               \
+--warmup_step  8420               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --neg_num 20                    \
 --contrast_steps 0           \
 --contrast_temp 0.1             \
---softmax_temp 5                \
+--softmax_temp 20                \
 --soft_label_weight 0.5        \
 --contrast_weight 1
 ```
@@ -156,7 +156,7 @@ python3.8 build_logitsbank.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_sample_3                 \
+--experiment Contrast_by_sample_13                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
@@ -167,7 +167,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_sample_3                 \
+--experiment Contrast_by_sample_13                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \

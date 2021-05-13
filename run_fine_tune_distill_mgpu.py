@@ -141,6 +141,17 @@ if __name__ == "__main__":
         default=100,
         type=int
     )
+    parser.add_argument(
+        '--wsl_weight',
+        help='Weight of WSL loss',
+        default=0.0,
+        type=float
+    )
+    parser.add_argument(
+        '--use_wsl',
+        help='Use WSL loss',
+        action='store_true'
+    )
 
     # Arguments of teacher model.
     parser.add_argument(
@@ -409,5 +420,7 @@ if __name__ == "__main__":
             use_hidden_loss=args.use_hidden_loss,
             alpha=args.soft_weight,
             mu=args.mu,
-            softmax_temp=args.softmax_temp
+            softmax_temp=args.softmax_temp,
+            wsl_weight=args.wsl_weight,
+            use_wsl=args.use_wsl
         )

@@ -46,13 +46,15 @@ class WSL(torch.nn.Module):
         self.num_class = num_class
 
         self.softmax = torch.nn.Softmax(dim=1)
-        self.logsoftmax = torch.nn.LogSoftmax()
+        self.logsoftmax = torch.nn.LogSoftmax(dim=1)
 
         self.hard_loss = torch.nn.CrossEntropyLoss()
 
     def forward(self, t_logits: torch.Tensor, s_logits: torch.Tensor, label: torch.LongTensor):
         # `B`: batch size
-        # `D`: dimension
+        # `C`: num of class
+        # `t_logits`: BxC
+        # `s_logits`: BxC
         s_input_for_softmax = s_logits / self.T
         t_input_for_softmax = t_logits / self.T
 

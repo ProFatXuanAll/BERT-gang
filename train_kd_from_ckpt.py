@@ -37,6 +37,8 @@ def train_kd(
     teacher_tokenizer: transformers.PreTrainedTokenizer,
     student_tokenizer: transformers.PreTrainedTokenizer,
     alpha: float = 0.5,
+    wsl_weight: float = 1,
+    use_wsl: bool = False,
     softmax_temp: float = 1.0
 ):
     """Train knowledge distillation loss from given fine-tuned teacher and
@@ -73,6 +75,11 @@ def train_kd(
         Tokenizer paired with `student_model`.
     alpha : float, optional
         Weight of soft target loss, by default 0.5
+    wsl_weight : float, optional
+        Weight of Weighted Soft Label loss, by default 1
+    use_wsl: bool, optional
+        Use `weighted soft label loss` to replace traditional soft target loss
+        by default False
     softmax_temp : float, optional
         Softmax temperature, by default 1.0
     """
@@ -115,7 +122,14 @@ def train_kd(
     )
 
     # Create objective functions.
-    criterion = fine_tune.objective.distill_loss
+    if use_wsl:
+        criterion = fine_tune.objective.WSL(
+            temperature=softmax_temp,
+            alpha=wsl_weight,
+            num_class=student_config.num_class
+        )
+    else:
+        criterion = fine_tune.objective.distill_loss
 
     # Accumulation step counter.
     step = 0
@@ -184,13 +198,20 @@ def train_kd(
                 attention_mask=student_attention_mask.to(student_config.device)
             )
 
-            accum_logits_loss = criterion(
-                hard_target=label.to(student_config.device),
-                teacher_logits=teacher_logits.to(student_config.device),
-                student_logits=student_logits,
-                alpha=alpha,
-                softmax_temp=softmax_temp
-            )
+            if use_wsl:
+                accum_logits_loss = criterion(
+                    t_logits=teacher_logits.to(student_config.device),
+                    s_logits=student_logits,
+                    label=label.to(student_config.device)
+                )
+            else:
+                accum_logits_loss = criterion(
+                    hard_target=label.to(student_config.device),
+                    teacher_logits=teacher_logits.to(student_config.device),
+                    student_logits=student_logits,
+                    alpha=alpha,
+                    softmax_temp=softmax_temp
+                )
             # Normalize loss.
             accum_logits_loss = accum_logits_loss / student_config.accum_step
 
@@ -345,6 +366,17 @@ if __name__ == "__main__":
     )
 
     # Optional arguments.
+    parser.add_argument(
+        '--wsl_weight',
+        help='Weight of WSL loss',
+        default=1.0,
+        type=float
+    )
+    parser.add_argument(
+        '--use_wsl',
+        help='Use WSL loss',
+        action='store_true'
+    )
     parser.add_argument(
         '--tdevice_id',
         help='Device ID of teacher model. If not specified then load from config',
@@ -591,5 +623,7 @@ if __name__ == "__main__":
         teacher_tokenizer=teacher_tknr,
         student_tokenizer=tokenizer,
         alpha=args.soft_weight,
-        softmax_temp=args.softmax_temp
+        softmax_temp=args.softmax_temp,
+        use_wsl=args.use_wsl,
+        wsl_weight=args.wsl_weight
     )
