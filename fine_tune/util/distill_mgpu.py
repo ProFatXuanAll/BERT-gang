@@ -278,8 +278,12 @@ def distill_mgpu(
 
             if use_hidden_loss:
                 # Calculate batch hidden states loss.
+                # `teacher_hiddens`: tuple(Emb, Ht_1, Ht_2,...,Ht_12)
+                # `student_hiddens`: tuple(Emb, Hs_1, Hs_2,...,Hs_6)
+                # Mapping strategy:
+                # Ht_2 -> Hs_1, Ht_4 -> Hs_2,...,Ht_12 -> Hs_6
                 skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
-                for t_hidden, s_hidden in zip(teacher_hiddens[1::skip],student_hiddens[1:]):
+                for t_hidden, s_hidden in zip(teacher_hiddens[2::skip],student_hiddens[1:]):
                     batch_hidden_loss = hidden_objective(
                         teacher_hidden=t_hidden.to(student_device),
                         student_hidden= s_hidden,
