@@ -112,7 +112,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment KD_2_wsl_4            \
+--experiment KD_2_wsl_5            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -133,12 +133,12 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --type_vocab_size 2                \
 --warmup_step  4908               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
+--device_id 0                      \
+--tdevice_id 0                     \
 --softmax_temp 10                  \
 --soft_weight 0.5                  \
 --use_classify_loss                \
---wsl_weight 4                     \
+--wsl_weight 2                     \
 --use_wsl                          \
 --mu 100                           \
 --use_hidden_loss
@@ -270,11 +270,11 @@ python3.8 train_kd_from_ckpt.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment KD_2_wsl_3          \
+--experiment KD_2_wsl_5          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
---batch_size 256                \
+--batch_size 512                \
 --device_id 0                   \
 --ckpt 98176
 ```
@@ -282,7 +282,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment KD_2_wsl_3          \
+--experiment KD_2_wsl_5          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -294,7 +294,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment KD_2_wsl_3          \
+--experiment KD_2_wsl_5          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \

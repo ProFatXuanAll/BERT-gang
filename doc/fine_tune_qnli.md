@@ -64,7 +64,7 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment Contrast_by_sample            \
+--experiment Contrast_by_sample_hw1            \
 --model bert                       \
 --task qnli                        \
 --accum_step 2                     \
@@ -90,8 +90,8 @@ python3.8 run_layerwise_contrast_distill.py \
 --contrast_steps 0           \
 --contrast_temp 0.1             \
 --softmax_temp 1                \
---soft_label_weight 0.2        \
---contrast_weight 0.7         \
+--soft_label_weight 0        \
+--contrast_weight 1         \
 --defined_by_label
 ```
 
@@ -102,7 +102,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment PKD_probing_1            \
+--experiment PKD_WSL_hw_01            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -127,9 +127,11 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --tdevice_id 1                     \
 --mu 100                           \
 --use_hidden_loss                  \
---softmax_temp 1                  \
---soft_weight 0                  \
---use_classify_loss
+--softmax_temp 20                  \
+--soft_weight 0.9                  \
+--use_classify_loss               \
+--wsl_weight 1                     \
+--use_wsl
 ```
 
 ### Train SCL independently
@@ -182,18 +184,18 @@ python3.8 train_kd_from_ckpt.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_probing_1                 \
+--experiment PKD_WSL_hw_01                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 1
+--device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_probing_1                 \
+--experiment PKD_WSL_hw_01                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
