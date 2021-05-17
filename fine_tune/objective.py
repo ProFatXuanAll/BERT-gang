@@ -18,6 +18,53 @@ import torch
 import torch.nn
 import torch.nn.functional as F
 
+class Angular_Distance(torch.nn.Module):
+    def __init__(self, dim: int = 1, eps: float = 1e-8):
+        """Torch Module to calculate angular distance.
+        For more detail you can refer to formula (2) from original paper [1].
+
+        Notes
+        ----------
+        [1] Fu, H., Zhou, S., Yang, Q., Tang, J., Liu, G., Liu, K., &
+        Li, X. (2020). LRC-BERT: Latent-representation Contrastive Knowledge
+        Distillation for Natural Language Understanding.
+        arXiv preprint arXiv:2012.07335.
+
+        Parameters
+        ----------
+        dim : int, optional
+            Dimension where cosine similarity is computed, by default 1
+        eps : float, optional
+            Small value to avoid division by zero, by default 1e-8
+        """
+        super().__init__()
+        self.dim = dim
+        self.eps = eps
+        self.cosine_sim = torch.nn.CosineSimilarity(
+            dim=self.dim,
+            eps=self.eps
+        )
+
+    def forward(self, input1: torch.Tensor, input2: torch.Tensor) -> torch.Tensor:
+        """Calculate angular distance.
+
+        Parameters
+        ----------
+        input1 : torch.Tensor
+            Input tensor 1
+        input2 : torch.Tensor
+            Input tensor 2
+
+        Returns
+        -------
+        torch.Tensor
+            Angular distance tensor
+        """
+        if input1.shape != input2.shape:
+            raise ValueError("Dimension of two input tensor does not match")
+
+        return 1 - self.cosine_sim(input1, input2)
+
 class WSL(torch.nn.Module):
     r"""Weighted Soft Labels loss [1] implementation.
     Our implementation is taken from:
@@ -37,13 +84,16 @@ class WSL(torch.nn.Module):
         Balancing hyperparameter of WSL loss.
     num_class : int
         Number of class of downstream task.
+    beta: float, optional
+        Hard loss weight by defaul 1.
     """
-    def __init__(self, temperature: float, alpha: float, num_class: int):
+    def __init__(self, temperature: float, alpha: float, num_class: int, beta: float = 1.0):
         super().__init__()
 
         self.T = temperature
         self.alpha = alpha
         self.num_class = num_class
+        self.beta = beta
 
         self.softmax = torch.nn.Softmax(dim=1)
         self.logsoftmax = torch.nn.LogSoftmax(dim=1)
@@ -84,7 +134,7 @@ class WSL(torch.nn.Module):
 
         hard_loss = self.hard_loss(s_logits, label)
 
-        loss = hard_loss + self.alpha * soft_loss
+        loss = self.beta * hard_loss + self.alpha * soft_loss
 
         return loss
 
@@ -118,6 +168,7 @@ def distill_loss(
         hard_target: torch.Tensor,
         student_logits: torch.Tensor,
         teacher_logits: torch.Tensor,
+        gamma: float = 0.8,
         alpha: float = 0.2,
         softmax_temp: float = 1.0
 ) -> torch.Tensor:
@@ -176,7 +227,7 @@ def distill_loss(
     """
 
     return (
-        ( 1 - alpha ) * F.cross_entropy(student_logits, hard_target) +
+        gamma * F.cross_entropy(student_logits, hard_target) +
         alpha * soft_target_loss(student_logits / softmax_temp, teacher_logits / softmax_temp) * pow(softmax_temp, 2)
     )
 
