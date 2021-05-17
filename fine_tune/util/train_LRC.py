@@ -221,7 +221,7 @@ def train_lrc_layerwise(
             student_hiddens = student_hiddens[1:]
 
             # get negative number.
-            K = len(n_indices)
+            K = len(n_indices[0])
 
             # Iterate each layer.
             for s_hidden, membank, adaptive_layer in zip(
@@ -266,18 +266,16 @@ def train_lrc_layerwise(
 
                 # `neg_ang_distance`: tensor of shape Bx1
                 # `neg_ang_distance` = \sum_{i=1}^{K}(g(n_i^t, z^s))
-                neg_ang_distance = 1 - torch.sum(
-                    torch.bmm(s_hidden.view(B,1,D),N).view(B,-1),
-                    dim=-1,
-                    keepdim=True
-                )
+                neg_ang_distance = 1 - torch.bmm(s_hidden.view(B,1,D),N).view(B,-1)
+                neg_ang_distance = torch.sum(neg_ang_distance,dim=-1,keepdim=True)
 
                 #TODO: remove assertion
                 assert pos_ang_distance.shape == neg_ang_distance.shape, "pos and neg ang distance shape dosen't match"
 
                 # =========== NCE_COS loss: formula (1) ====================================
                 # `batch_nce_cos_loss`: Bx1
-                batch_nce_cos_loss = ((2*K - (neg_ang_distance - K * pos_ang_distance)) / 2*K) + pos_ang_distance
+                batch_nce_cos_loss = (2*K - (neg_ang_distance - K * pos_ang_distance)) / (2*K)
+                batch_nce_cos_loss = batch_nce_cos_loss + pos_ang_distance
                 # `batch_nce_cos_loss`: scalar tensor
                 batch_nce_cos_loss = nce_cos_weight * torch.sum(batch_nce_cos_loss)
                 # Normalize loss
