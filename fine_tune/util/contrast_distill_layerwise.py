@@ -204,6 +204,7 @@ def contrast_distill_layerwise(
                     hard_target=label.to(student_device),
                     teacher_logits=teacher_logits.to(student_device),
                     student_logits=student_logits,
+                    gamma=1-soft_label_weight,
                     alpha=soft_label_weight,
                     softmax_temp=softmax_temp
                 )

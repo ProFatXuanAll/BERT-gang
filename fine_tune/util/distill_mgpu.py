@@ -146,7 +146,8 @@ def distill_mgpu(
         logits_objective = fine_tune.objective.WSL(
             temperature=softmax_temp,
             alpha=wsl_weight,
-            num_class=student_config.num_class
+            num_class=student_config.num_class,
+            beta = 1-alpha
         )
     else:
         logits_objective = fine_tune.objective.distill_loss
@@ -262,6 +263,7 @@ def distill_mgpu(
                         hard_target=label.to(student_device),
                         teacher_logits=teacher_logits.to(student_device),
                         student_logits=student_logits,
+                        gamma=1-alpha,
                         alpha=alpha,
                         softmax_temp=softmax_temp
                     )

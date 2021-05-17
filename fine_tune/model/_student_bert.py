@@ -58,6 +58,8 @@ class StudentBert(nn.Module):
             BERT's token type embedding range.
         vocab_size:
             Vocabulary size for BERT's embedding range.
+        init_from_pretrained:
+            Use pre-trained teacher weight to init student model.
     """
 
     def __init__(
@@ -71,6 +73,7 @@ class StudentBert(nn.Module):
             num_hidden_layers: int,
             type_vocab_size: int,
             vocab_size: int,
+            init_from_pre_trained: bool = False
     ):
         super().__init__()
 
@@ -92,7 +95,8 @@ class StudentBert(nn.Module):
         ))
 
         #TODO: Refactor
-        self.init_from_pre_trained('bert-base-uncased', num_hidden_layers)
+        if init_from_pre_trained:
+            self.init_from_pre_trained('bert-base-uncased', num_hidden_layers)
 
         # Dropout layer between encoder and linear layer.
         self.dropout = nn.Dropout(dropout)

@@ -356,7 +356,8 @@ if __name__ == "__main__":
     # Load student model.
     student_model = fine_tune.util.load_student_model_by_config(
         config=student_config,
-        tokenizer=student_tokenizer
+        tokenizer=student_tokenizer,
+        init_from_pre_trained=True
     )
 
     # Load optimizer.
