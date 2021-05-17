@@ -276,8 +276,10 @@ def train_lrc_layerwise(
                 assert pos_ang_distance.shape == neg_ang_distance.shape, "pos and neg ang distance shape dosen't match"
 
                 # =========== NCE_COS loss: formula (1) ====================================
+                # `batch_nce_cos_loss`: Bx1
                 batch_nce_cos_loss = ((2*K - (neg_ang_distance - K * pos_ang_distance)) / 2*K) + pos_ang_distance
-                batch_nce_cos_loss = nce_cos_weight * batch_nce_cos_loss
+                # `batch_nce_cos_loss`: scalar tensor
+                batch_nce_cos_loss = nce_cos_weight * torch.sum(batch_nce_cos_loss)
                 # Normalize loss
                 batch_nce_cos_loss = batch_nce_cos_loss / student_config.accum_step
 
