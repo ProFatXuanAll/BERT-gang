@@ -147,7 +147,8 @@ if __name__ == '__main__':
         )
         model = fine_tune.util.load_student_model_by_config(
             config=config,
-            tokenizer=tokenizer
+            tokenizer=tokenizer,
+            init_from_pre_trained=False
         )
 
     # Get experiment name and path.
