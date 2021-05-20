@@ -116,13 +116,12 @@ if __name__ == "__main__":
         help='Use automatic mixed precision during distillation.',
         action='store_true'
     )
-    # parser.add_argument(
-    #     '--hard_weight',
-    #     help='Weight of hard target.',
-    #     default=0.8,
-    #     type=float
-    # )
-    #TODO: Add `hard_weight` to training function
+    parser.add_argument(
+        '--hard_weight',
+        help='Weight of hard label.',
+        default=0.8,
+        type=float
+    )
     parser.add_argument(
         '--soft_weight',
         help='Weight of soft label.',
@@ -420,6 +419,7 @@ if __name__ == "__main__":
             use_classify_loss=args.use_classify_loss,
             use_hidden_loss=args.use_hidden_loss,
             alpha=args.soft_weight,
+            gamma=args.hard_weight,
             mu=args.mu,
             softmax_temp=args.softmax_temp,
             wsl_weight=args.wsl_weight,

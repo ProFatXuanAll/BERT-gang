@@ -44,6 +44,7 @@ def distill_mgpu(
         teacher_tokenizer: transformers.PreTrainedTokenizer,
         student_tokenizer: transformers.PreTrainedTokenizer,
         alpha: float = 0.2,
+        gamma: float = 0.8,
         mu: int = 100,
         wsl_weight: float = 1,
         softmax_temp: float = 1.0,
@@ -81,6 +82,8 @@ def distill_mgpu(
         Tokenizer paired with `student_model`.
     alpha : float, optional
         Weight of soft target loss, by default 0.2
+    gamma: float, optional
+        Weight of hard target loss, by default 0.8
     mu : int, optional
         Weight of hidden MSE loss, by default 100
     wsl_weight : float, optional
@@ -263,7 +266,7 @@ def distill_mgpu(
                         hard_target=label.to(student_device),
                         teacher_logits=teacher_logits.to(student_device),
                         student_logits=student_logits,
-                        gamma=1-alpha,
+                        gamma=gamma,
                         alpha=alpha,
                         softmax_temp=softmax_temp
                     )
