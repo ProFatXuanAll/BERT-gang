@@ -28,7 +28,7 @@ rm ./data/fine_tune/qnli.zip
 - Dropout: 0.1
 - 1 epochs
   - 3274 iters (under batch size 32)
-  - 6545 iters (under batch size 16)
+  - 6546 iters (under batch size 16)
 
 ## Train LRC BERT Script
 
@@ -37,7 +37,7 @@ python3.8 train_lrc_bert.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment LRC_debug            \
+--experiment LRC_2            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -54,15 +54,39 @@ python3.8 train_lrc_bert.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 4              \
---total_step 117810                \
+--total_step 130920                \
 --type_vocab_size 2                \
---warmup_step  11781               \
+--warmup_step  13092               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --neg_num 15                    \
---contrast_steps 94248           \
---softmax_temp 1.1                \
+--contrast_steps 104736           \
+--softmax_temp 1                \
 --soft_label_weight 1        \
---hard_label_weight 3        \
+--hard_label_weight 0        \
 --nce_cos_weight 1
+```
+
+## BERT Fine-Tune Evaluation Scripts
+
+```sh
+# Fine-tune evaluation on QNLI dataset `train`.
+python3.8 run_fine_tune_eval.py \
+--experiment LRC_2                 \
+--model bert                    \
+--task qnli                     \
+--dataset train                 \
+--batch_size 512                \
+--device_id 0
+```
+
+```sh
+# Fine-tune evaluation on QNLI dataset `dev`.
+python3.8 run_fine_tune_eval.py \
+--experiment LRC_2                 \
+--model bert                    \
+--task qnli                     \
+--dataset dev           \
+--batch_size 512 \
+--device_id 1
 ```

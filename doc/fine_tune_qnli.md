@@ -102,7 +102,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment PKD_WSL_hw_01            \
+--experiment PKD_CLS            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -127,8 +127,9 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --tdevice_id 1                     \
 --mu 100                           \
 --use_hidden_loss                  \
---softmax_temp 20                  \
---soft_weight 0.9                  \
+--softmax_temp 10                  \
+--soft_weight 0.5                  \
+--hard_weight 0.5                \
 --use_classify_loss               \
 --wsl_weight 1                     \
 --use_wsl
@@ -184,7 +185,7 @@ python3.8 train_kd_from_ckpt.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_WSL_hw_01                 \
+--experiment PKD_CLS                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -195,7 +196,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_WSL_hw_01                 \
+--experiment PKD_CLS                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
