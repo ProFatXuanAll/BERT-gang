@@ -64,7 +64,7 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment Contrast_by_sample_hw1            \
+--experiment Contrast_by_sample            \
 --model bert                       \
 --task qnli                        \
 --accum_step 2                     \
@@ -81,17 +81,19 @@ python3.8 run_layerwise_contrast_distill.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 26192                \
+--total_step 32740                \
 --type_vocab_size 2                \
---warmup_step  2619               \
+--warmup_step  3274               \
 --weight_decay 0.01                \
 --device_id 1                      \
+--teacher_device 1                 \
 --neg_num 20                    \
 --contrast_steps 0           \
 --contrast_temp 0.1             \
 --softmax_temp 1                \
---soft_label_weight 0        \
+--soft_label_weight 0.2        \
 --contrast_weight 1         \
+--embedding_type mean \
 --defined_by_label
 ```
 
@@ -102,7 +104,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment PKD_CLS            \
+--experiment hidden_cos_sim            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -123,10 +125,10 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --type_vocab_size 2                \
 --warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
---mu 100                           \
---use_hidden_loss                  \
+--device_id 0                      \
+--tdevice_id 0                     \
+--mu 1                           \
+--hidden_loss cos_sim                  \
 --softmax_temp 10                  \
 --soft_weight 0.5                  \
 --hard_weight 0.5                \
@@ -185,18 +187,18 @@ python3.8 train_kd_from_ckpt.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_CLS                 \
+--experiment Contrast_by_sample                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_CLS                 \
+--experiment Contrast_by_sample                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
@@ -214,7 +216,8 @@ python3.8 build_membank.py \
 --dataset train \
 --ckpt 9822 \
 --batch_size 256 \
---device_id 1
+--device_id 0 \
+--embedding_type cls
 ```
 
 ### Build logits bank

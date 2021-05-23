@@ -52,9 +52,10 @@ if __name__ == "__main__":
         action='store_true'
     )
     parser.add_argument(
-        '--use_hidden_loss',
-        help='Use hidden states only during distillation',
-        action='store_true'
+        '--hidden_loss',
+        help='Choose hidden state objective function',
+        default='mse',
+        type=str
     )
 
     # Arguments of teacher model.
@@ -417,7 +418,7 @@ if __name__ == "__main__":
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
             use_classify_loss=args.use_classify_loss,
-            use_hidden_loss=args.use_hidden_loss,
+            hidden_loss=args.hidden_loss,
             alpha=args.soft_weight,
             gamma=args.hard_weight,
             mu=args.mu,

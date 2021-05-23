@@ -73,9 +73,16 @@ if __name__ == "__main__":
     # Optional parameters.
     parser.add_argument(
         '--batch_size',
-        default=0,
+        default=32,
         help='Evaluation batch size.',
         type=int,
+    )
+    parser.add_argument(
+        '--embedding_type',
+        default='cls',
+        help='`cls`: store teacher cls embedding to memory bank \n'+
+        '`mean`: store average BERT output embedding to memory bank',
+        type=str
     )
     parser.add_argument(
         '--device_id',
@@ -170,8 +177,9 @@ if __name__ == "__main__":
         dim = 1024
 
     membanks = [fine_tune.contrast_util.Memorybank(
-        N = len(dataset),
+        N=len(dataset),
         dim=dim,
+        embd_type=args.embedding_type
     ) for _ in range(num_layers)]
 
     for text, text_pair, label, p_indices, n_indices in tqdm(temp_loader):
@@ -199,10 +207,18 @@ if __name__ == "__main__":
         for membank, hidden in zip(membanks, hiddens[1:]):
             # hidden: BxSxH
             # We only need first token [CLS] hidden states
-            membank.update_memory(
-                new=hidden[:,0,:].to('cpu'),
-                index=torch.LongTensor(p_indices)
-            )
+            if args.embedding_type.lower() == 'cls':
+                membank.update_memory(
+                    new=hidden[:,0,:].to('cpu'),
+                    index=torch.LongTensor(p_indices)
+                )
+            elif args.embedding_type.lower() == 'mean':
+                membank.update_memory(
+                    new=torch.mean(hidden, dim=1).to('cpu'),
+                    index=torch.LongTensor(p_indices)
+                )
+            else:
+                raise ValueError(f"Invalid embedding type: {args.embedding_type}")
 
     t_membank_path = os.path.join(
         fine_tune.path.FINE_TUNE_EXPERIMENT,
@@ -210,6 +226,6 @@ if __name__ == "__main__":
     )
 
     for i, membank in enumerate(membanks):
-        membank_fname = os.path.join(t_membank_path, f'membank{i}.pt')
+        membank_fname = os.path.join(t_membank_path, f'membank{i}_{args.embedding_type}.pt')
         logger.info("Save memory bank to: %s", membank_fname)
         torch.save(membank.state_dict(),membank_fname)

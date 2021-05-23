@@ -50,7 +50,7 @@ def distill_mgpu(
         softmax_temp: float = 1.0,
         use_classify_loss: bool = True,
         use_wsl: bool = False,
-        use_hidden_loss: bool = True
+        hidden_loss: str = ''
 ):
     """Perform knowledge distillation from given fine-tuned teacher model
     without automatic mixed precision.
@@ -99,8 +99,11 @@ def distill_mgpu(
     use_wsl: bool, optional
         Use `weighted soft label loss` to replace traditional soft target loss
         by default False
-    use_hidden_loss : bool, optional
-        Total loss function include hidden states loss, by default True
+    hidden_loss: str, optional
+        Choose which hidden state objective is used:
+            'mse': Mean Square Error
+            'cos_sim': torch cosine_embedding_loss
+            '': None, ignore hidden objective
     """
 
     # Set teacher model as evaluation mode.
@@ -154,7 +157,17 @@ def distill_mgpu(
         )
     else:
         logits_objective = fine_tune.objective.distill_loss
-    hidden_objective = fine_tune.objective.hidden_MSE_loss
+
+    if hidden_loss.lower() == 'mse':
+        use_hidden_loss = True
+        hidden_objective = fine_tune.objective.hidden_MSE_loss
+    elif hidden_loss.lower() == 'cos_sim':
+        use_hidden_loss = True
+        hidden_objective = fine_tune.objective.token_embedding_cossim_loss
+    elif hidden_loss.lower() == '':
+        use_hidden_loss = False
+    else:
+        raise ValueError(f"Invalid hidden loss: {hidden_loss}")
 
 
     # # TODO: Refactor

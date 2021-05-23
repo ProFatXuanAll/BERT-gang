@@ -101,6 +101,13 @@ if __name__ == "__main__":
 
     # Optional shared arguments.
     parser.add_argument(
+        '--embedding_type',
+        default='cls',
+        help='`cls`: store teacher cls embedding to memory bank \n'+
+        '`mean`: store average BERT output embedding to memory bank',
+        type=str
+    )
+    parser.add_argument(
         '--softmax_temp',
         help='Softmax temeprature',
         default=1.0,
@@ -375,10 +382,16 @@ if __name__ == "__main__":
     logger.info("Init memory banks")
 
     # Build memory bank.
+    if 'bert-base' in teacher_config.ptrain_ver:
+        dim = 768
+    elif 'bert-large' in teacher_config.ptrain_ver:
+        dim = 1024
+
     membanks = [
         fine_tune.contrast_util.Memorybank(
             N=len(dataset),
-            dim=args.d_model
+            dim=dim,
+            embd_type=args.embedding_type
         ) for _ in range(args.num_hidden_layers)
     ]
 
@@ -391,7 +404,10 @@ if __name__ == "__main__":
     logger.info("Extract membank files")
 
     # Filter out membank file number and sort it.
-    file_pattern = r'membank(\d+)\.pt'
+    if args.embedding_type.lower() == 'cls':
+        file_pattern = r'membank(\d+)\_cls.pt'
+    else:
+        file_pattern = r'membank(\d+)\_mean.pt'
     all_mem_files = sorted(map(
         lambda file_name: int(re.match(file_pattern, file_name).group(1)),
         filter(
@@ -409,7 +425,7 @@ if __name__ == "__main__":
         for l, (i, membank) in enumerate(tqdm(zip(all_mem_files, membanks), total=len(all_mem_files))):
             membank.load_state_dict(torch.load(os.path.join(
                 t_membank_path,
-                f'membank{i}.pt'
+                f'membank{i}_{args.embedding_type.lower()}.pt'
             )))
             #TODO: refactor
             # if l < 6:

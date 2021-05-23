@@ -26,13 +26,20 @@ class Memorybank(nn.Module):
         dataset size
     dim : int
         hidden state dimension
+    embd_type : str, optional
+        embedding type of memory bank.
+        `cls` means that memory bank store [CLS] embedding.
+        `mean` means that memory bank store average BERT output embedding.
     """
-    def __init__(self,  N: int, dim: int):
+    def __init__(self,  N: int, dim: int, embd_type: str = 'cls'):
         super(Memorybank, self).__init__()
 
         self.N = N
         self.dim = dim
-        # self.K = K
+
+        if embd_type.lower() != 'cls' and embd_type.lower() != 'mean':
+            raise ValueError(f"Invalid embeddding type:{embd_type}")
+        self.embd_type = embd_type.lower()
 
         # create memory bank with random initialization and normalization.
         # memory bank is a tensor with shape DxN.
@@ -78,4 +85,4 @@ class Memorybank(nn.Module):
             D: dimension
             K: number of samples
         """
-        return torch.index_select(self.membank, 1, index).detach()
+        return torch.index_select(self.membank, -1, index).detach()

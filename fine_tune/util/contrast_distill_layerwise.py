@@ -242,7 +242,10 @@ def contrast_distill_layerwise(
                 D = t_hidden.shape[-1]
 
                 # Extract [CLS]
-                s_hidden = s_hidden[:,0,:]
+                if membank.embd_type == 'cls':
+                    s_hidden = s_hidden[:,0,:]
+                else:
+                    s_hidden = torch.mean(s_hidden, dim=1)
 
                 # Normalize `Query`.
                 q = nn.functional.normalize(s_hidden)
