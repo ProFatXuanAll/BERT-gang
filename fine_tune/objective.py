@@ -282,36 +282,3 @@ def hidden_MSE_loss(
     #     student_hidden = F.normalize(student_hidden, dim=2)
     #     teacher_hidden = F.normalize(teacher_hidden, dim=2)
     return mu * F.mse_loss(student_hidden, teacher_hidden)
-
-def token_embedding_cossim_loss(teacher_hidden: torch.Tensor, student_hidden: torch.Tensor, mu: float = 1.0) -> torch.Tensor:
-    """Given teacher and student hidden states (BxSxD), calculate token embedding similarity loss.
-    We will use `torch.nn.functional.consine_embedding_loss`
-
-    Notes:
-    ----------
-    B: batch size
-    S: sequence length
-    D: hidden state dimension
-
-    Parameters
-    ----------
-    teacher_hidden : torch.Tensor
-        teacher hidden states of shape BxSxD
-    student_hidden : torch.Tensor
-        student hidden states of shape BxSxD
-    mu : float, optional
-        Weight of cosine_embeddin_loss, by default 1.0
-
-    Returns
-    -------
-    torch.Tensor
-        Scalar tensor of loss.
-    """
-    if teacher_hidden.shape != student_hidden.shape:
-        raise ValueError("Hidden state dimension dosen't match")
-    if teacher_hidden.dim() != 3 or student_hidden.dim() != 3:
-        raise ValueError("Input hidden state should be a 3-D tensor")
-
-    B, S, _ = teacher_hidden.shape
-    y = torch.ones(B*S).to(student_hidden.device)
-    return mu * F.cosine_embedding_loss(teacher_hidden.view(B*S, -1), student_hidden.view(B*S, -1), target=y)

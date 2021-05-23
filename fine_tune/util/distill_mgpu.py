@@ -161,9 +161,6 @@ def distill_mgpu(
     if hidden_loss.lower() == 'mse':
         use_hidden_loss = True
         hidden_objective = fine_tune.objective.hidden_MSE_loss
-    elif hidden_loss.lower() == 'cos_sim':
-        use_hidden_loss = True
-        hidden_objective = fine_tune.objective.token_embedding_cossim_loss
     elif hidden_loss.lower() == '':
         use_hidden_loss = False
     else:
