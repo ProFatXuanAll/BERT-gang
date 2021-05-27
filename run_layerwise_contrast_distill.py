@@ -427,13 +427,6 @@ if __name__ == "__main__":
                 t_membank_path,
                 f'membank{i}_{args.embedding_type.lower()}.pt'
             )))
-            #TODO: refactor
-            # if l < 6:
-            #     membank.to(fine_tune.util.genDevice(1))
-            # else:
-            #     membank.to(fine_tune.util.genDevice(0))
-
-            # Move memory bank to `cuda:1`
             membank.to(student_config.device)
 
         logger.info("Finish membory bank loading")

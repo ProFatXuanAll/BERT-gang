@@ -49,8 +49,8 @@ def distill_mgpu(
         wsl_weight: float = 1,
         softmax_temp: float = 1.0,
         use_classify_loss: bool = True,
+        use_hidden_loss: bool = True,
         use_wsl: bool = False,
-        hidden_loss: str = ''
 ):
     """Perform knowledge distillation from given fine-tuned teacher model
     without automatic mixed precision.
@@ -99,11 +99,9 @@ def distill_mgpu(
     use_wsl: bool, optional
         Use `weighted soft label loss` to replace traditional soft target loss
         by default False
-    hidden_loss: str, optional
-        Choose which hidden state objective is used:
-            'mse': Mean Square Error
-            'cos_sim': torch cosine_embedding_loss
-            '': None, ignore hidden objective
+    use_hidden_loss: bool, optional
+        Distill teacher knowledge from hidden states
+        by default True
     """
 
     # Set teacher model as evaluation mode.
@@ -153,37 +151,21 @@ def distill_mgpu(
             temperature=softmax_temp,
             alpha=wsl_weight,
             num_class=student_config.num_class,
-            beta = 1-alpha
+            beta=gamma
         )
     else:
         logits_objective = fine_tune.objective.distill_loss
 
-    if hidden_loss.lower() == 'mse':
-        use_hidden_loss = True
-        hidden_objective = fine_tune.objective.hidden_MSE_loss
-    elif hidden_loss.lower() == '':
-        use_hidden_loss = False
-    else:
-        raise ValueError(f"Invalid hidden loss: {hidden_loss}")
 
+    hidden_objective = fine_tune.objective.hidden_MSE_loss
 
-    # # TODO: Refactor
-    # normalize = True
-    # print("Normalize CLS embedding!")
-
-    # TODO: Restore this block to use adaptive layer
-    # Create adaptive layer.
-    # Transform dimension of student hidden states as teacher's.
-    # adaptvive_layers = []
-    # for _ in range(student_config.num_hidden_layers):
-    #     adaptvive_layers.append(
-    #         torch.nn.Linear(
-    #             in_features=student_config.d_model,
-    #             out_features=teacher_model.allow_ptrain_ver[
-    #                 teacher_config.ptrain_ver
-    #             ]
-    #         ).to(student_config.device_id)
-    #     )
+    #TODO: init gate
+    gate_networks = [ fine_tune.model.Gate(dimension=768).to(student_device)
+        for _ in range(student_config.num_hidden_layers)
+    ]
+    # gate_network = fine_tune.model.Gate(dimension=768).to(student_device)
+    #TODO: remover assertion
+    assert len(gate_networks) == student_config.num_hidden_layers, "gate number dosen't match"
 
     # Accumulation step counter.
     step = 0
@@ -297,11 +279,30 @@ def distill_mgpu(
                 # `student_hiddens`: tuple(Emb, Hs_1, Hs_2,...,Hs_6)
                 # Mapping strategy:
                 # Ht_2 -> Hs_1, Ht_4 -> Hs_2,...,Ht_12 -> Hs_6
-                skip = (len(teacher_hiddens) - 1) // (len(student_hiddens) - 1)
-                for t_hidden, s_hidden in zip(teacher_hiddens[2::skip],student_hiddens[1:]):
+
+                # Drop embedding layer
+                teacher_hiddens = teacher_hiddens[1:]
+                student_hiddens = student_hiddens[1:]
+                # skip = len(teacher_hiddens) // len(student_hiddens)
+                teacher_indices = [i for i in range(1, len(teacher_hiddens), 2)]
+
+                #TODO: remove assertion
+                assert len(teacher_indices) == len(student_hiddens), "Teacher and student layer indicies dosen't match"
+
+                for t_index, s_hidden, gate in zip(
+                        teacher_indices,
+                        student_hiddens,
+                        gate_networks
+                    ):
+
+                    aggregate_hidden = gate(
+                        input1=teacher_hiddens[t_index - 1].to(student_device),
+                        input2=teacher_hiddens[t_index].to(student_device)
+                    )
+
                     batch_hidden_loss = hidden_objective(
-                        teacher_hidden=t_hidden.to(student_device),
-                        student_hidden= s_hidden,
+                        teacher_hidden=aggregate_hidden,
+                        student_hidden=s_hidden,
                         mu=mu
                     )
 
@@ -383,6 +384,16 @@ def distill_mgpu(
                         student_model.state_dict(),
                         os.path.join(experiment_dir, f'model-{step}.pt')
                     )
+
+                    for i, gate in enumerate(gate_networks):
+                        torch.save(
+                            gate.state_dict(),
+                            os.path.join(experiment_dir, f'gate-{i}-{step}.pt')
+                        )
+                    # torch.save(
+                    #     gate_network.state_dict(),
+                    #     os.path.join(experiment_dir, f'gate-{step}.pt')
+                    # )
 
                     # TODO: if use adaptive layer we have to save it.
 

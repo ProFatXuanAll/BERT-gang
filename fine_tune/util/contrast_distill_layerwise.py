@@ -257,13 +257,6 @@ def contrast_distill_layerwise(
                 # `pos_logits`: tensor of shape Bx1
                 pos_logits = pos_logits.view(B,-1)
 
-                # Compute relative negative logit.
-                # TODO: Refactor
-                # if i < 6:
-                #     indices = torch.LongTensor(n_indices).to(fine_tune.util.genDevice(1))
-                # else:
-                #     indices = torch.LongTensor(n_indices).to(fine_tune.util.genDevice(0))
-
                 # Cause we force memory bank to reside on `cuda:1`
                 indices = torch.LongTensor(n_indices).to(student_device)
 

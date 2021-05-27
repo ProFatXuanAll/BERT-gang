@@ -58,7 +58,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp bert_base_teacher                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment PKD_12            \
+--experiment gate_network_1_xavier            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -75,16 +75,17 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 21050                \
+--total_step 8420                \
 --type_vocab_size 2                \
---warmup_step  2105               \
+--warmup_step  842               \
 --weight_decay 0.01                \
 --device_id 0                      \
 --tdevice_id 0                     \
 --mu 100                           \
 --use_hidden_loss                  \
 --softmax_temp 5                  \
---soft_weight 0.7                  \
+--soft_weight 0.5                  \
+--hard_weight 0.5                  \
 --use_classify_loss
 ```
 
@@ -95,14 +96,14 @@ python3.8 run_layerwise_contrast_distill.py \
 --teacher_exp bert_base_teacher                \
 --tmodel bert                      \
 --tckpt 6315 \
---experiment Contrast_by_sample_13            \
+--experiment Contrast_by_sample_mean            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 2000                   \
+--ckpt_step 1000                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
@@ -112,17 +113,19 @@ python3.8 run_layerwise_contrast_distill.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 25260                \
+--total_step 21050                \
 --type_vocab_size 2                \
---warmup_step  8420               \
+--warmup_step  2105               \
 --weight_decay 0.01                \
---device_id 1                      \
+--device_id 0                      \
 --neg_num 20                    \
 --contrast_steps 0           \
 --contrast_temp 0.1             \
 --softmax_temp 20                \
 --soft_label_weight 0.5        \
---contrast_weight 1
+--contrast_weight 1 \
+--embedding_type mean \
+--defined_by_label
 ```
 
 ### Build memory bank
@@ -134,8 +137,9 @@ python3.8 build_membank.py \
 --task sst2 \
 --dataset train \
 --ckpt 6315 \
---batch_size 256 \
---device_id 1
+--batch_size 128 \
+--device_id 0 \
+--embedding_type cls
 ```
 
 ### Build logits bank
@@ -156,21 +160,21 @@ python3.8 build_logitsbank.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_sample_13                 \
+--experiment gate_network_1_xavier                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 1
+--device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment Contrast_by_sample_13                 \
+--experiment gate_network_1_xavier                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 1
+--device_id 0
 ```

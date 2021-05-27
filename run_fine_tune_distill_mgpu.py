@@ -52,10 +52,9 @@ if __name__ == "__main__":
         action='store_true'
     )
     parser.add_argument(
-        '--hidden_loss',
-        help='Choose hidden state objective function',
-        default='mse',
-        type=str
+        '--use_hidden_loss',
+        help='Distill teacher knowledge from hidden states',
+        action='store_true'
     )
 
     # Arguments of teacher model.
@@ -138,7 +137,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--mu',
         help='Hidden MSE loss weight',
-        default=100,
+        default=1,
         type=int
     )
     parser.add_argument(
@@ -406,7 +405,6 @@ if __name__ == "__main__":
     else:
         # perform distillation.
         logger.info("Perform distillation WITHOUT mixed precesion")
-        #TODO: seperate hard and soft weight.
         fine_tune.util.distill_mgpu(
             teacher_config=teacher_config,
             student_config=student_config,
@@ -418,7 +416,7 @@ if __name__ == "__main__":
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
             use_classify_loss=args.use_classify_loss,
-            hidden_loss=args.hidden_loss,
+            use_hidden_loss=args.use_hidden_loss,
             alpha=args.soft_weight,
             gamma=args.hard_weight,
             mu=args.mu,
