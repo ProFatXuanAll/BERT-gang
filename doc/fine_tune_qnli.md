@@ -57,50 +57,47 @@ python3.8 run_fine_tune.py     \
 --weight_decay 0.01
 ```
 
-### Fine-Tune Distillation with layer wise Contrastive learning
+### BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
-python3.8 run_layerwise_contrast_distill.py \
+python3.8 run_fine_tune_distill_mgpu.py \
+--kd_algo pkd-odd                          \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment Contrast_by_sample_mean            \
+--experiment pkd_even_93            \
 --model bert                       \
 --task qnli                        \
---accum_step 2                     \
+--accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 2000                   \
+--ckpt_step 1000                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 100                     \
---lr 3e-5                          \
+--lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 32740                \
+--total_step 13096                \
 --type_vocab_size 2                \
---warmup_step  3274               \
+--warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 1                      \
---teacher_device 1                 \
---neg_num 20                    \
---contrast_steps 0           \
---contrast_temp 0.1             \
---softmax_temp 1                \
---soft_label_weight 0.2        \
---contrast_weight 1         \
---embedding_type mean \
---defined_by_label
+--device_id 0                      \
+--tdevice_id 0                     \
+--softmax_temp 10                  \
+--mu 100                           \
+--soft_weight 0.5
 ```
 
-### BERT Fine-Tune Distillation Scripts with Multi-GPU
+### AKD-BERT Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
+--kd_algo akd                          \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
@@ -133,54 +130,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --mu 100                           \
 --use_hidden_loss                  \
 --use_classify_loss               \
---wsl_weight 1                     \
---use_wsl                           \
-
-```
-
-### Train SCL independently
-
-```sh
-python3.8 train_scl_from_ckpt.py \
---experiment SCL_17               \
---src_experiment MSE_base        \
---src_ckpt 6548                  \
---model bert                     \
---task qnli                      \
---device_id 0                    \
---scl_temp 0.1                   \
---accum_step 4                   \
---batch_size 128                  \
---ckpt_step 3274                 \
---log_step 100                   \
---lr 5e-5                        \
---total_step 9822                \
---warmup_step 982
-```
-
-### Train KD (output logits CE) independently
-
-```sh
-python3.8 train_kd_from_ckpt.py \
---teacher_exp teacher_base      \
---tmodel bert                   \
---tckpt 9822                    \
---experiment SCL_17_ce           \
---src_experiment SCL_17          \
---src_ckpt 3274                 \
---model bert                    \
---task qnli                     \
---device_id 1                   \
---tdevice_id 1                  \
---softmax_temp 20               \
---soft_weight 0.5               \
---accum_step 1                   \
---batch_size 32                  \
---ckpt_step 3274                 \
---log_step 100                   \
---lr 1e-5                        \
---total_step 6548                \
---warmup_step 654
+--wsl_weight 1
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
@@ -188,7 +138,7 @@ python3.8 train_kd_from_ckpt.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment gate_network_new_obj1                 \
+--experiment pkd_odd                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -199,38 +149,11 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment gate_network_new_obj1                 \
+--experiment pkd_odd                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 1
-```
-
-### Build memory bank
-
-```sh
-python3.8 build_membank.py \
---experiment teacher_base \
---model bert \
---task qnli \
---dataset train \
---ckpt 9822 \
---batch_size 256 \
---device_id 0 \
---embedding_type cls
-```
-
-### Build logits bank
-
-```sh
-python3.8 build_logitsbank.py \
---experiment teacher_base \
---model bert \
---task qnli \
---dataset train \
---ckpt 9822 \
---batch_size 256 \
 --device_id 0
 ```
 
@@ -244,50 +167,5 @@ python3.8 plot_CLS_embedding.py  \
 --task qnli                      \
 --dataset dev            \
 --batch_size 256                 \
---device_id 1
-```
-
-### Distill-BERT Fine-tune script
-
-```sh
-python3.8 fine_tune_distillbert.py   \
---experiment distill_bert_base       \
---task qnli                          \
---dataset train                      \
---num_class 2                        \
---accum_step 1                       \
---batch_size 32                      \
---ckpt_step 1000                     \
---device_id 0                        \
---log_step 100                       \
---lr 3e-5                            \
---max_norm 1.0                       \
---seed 42                            \
---total_step 9822                    \
---warmup_step 982                    \
---weight_decay 0.01
-```
-
-### Distill-BERT evaluation script
-
-```sh
-# Fine-tune evaluation on QNLI dataset `train`.
-python3.8 distill_bert_eval.py \
---experiment distill_bert_base                 \
---model bert                    \
---task qnli                     \
---dataset train                 \
---batch_size 512                \
---device_id 1
-```
-
-```sh
-# Fine-tune evaluation on QNLI dataset `dev`.
-python3.8 distill_bert_eval.py \
---experiment distill_bert_base                 \
---model bert                    \
---task qnli                     \
---dataset dev           \
---batch_size 512 \
 --device_id 1
 ```

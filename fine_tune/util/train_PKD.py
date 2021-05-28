@@ -1,9 +1,9 @@
-r"""Helper functions for knowledge distillation.
+r"""Helper functions for PKD knowledge distillation.
 Note: This functions use 2 GPU device to perform distillation.
 Usage:
     import fine_tune
 
-    fine_tune.util.distill_mgpu(...)
+    fine_tune.util.train_PKD(...)
 """
 
 # built-in modules
@@ -32,27 +32,22 @@ import fine_tune.task
 import fine_tune.model
 import fine_tune.path
 
-
-def distill_mgpu(
-        teacher_config: fine_tune.config.TeacherConfig,
-        student_config: fine_tune.config.StudentConfig,
-        dataset: fine_tune.task.Dataset,
-        teacher_model: fine_tune.model.TeacherModel,
-        student_model: fine_tune.model.StudentModel,
-        optimizer: torch.optim.AdamW,
-        scheduler: torch.optim.lr_scheduler.LambdaLR,
-        teacher_tokenizer: transformers.PreTrainedTokenizer,
-        student_tokenizer: transformers.PreTrainedTokenizer,
-        alpha: float = 0.2,
-        gamma: float = 0.8,
-        mu: int = 100,
-        softmax_temp: float = 1.0,
-        use_classify_loss: bool = True,
-        use_hidden_loss: bool = True
+def train_PKD(
+    teacher_config: fine_tune.config.TeacherConfig,
+    student_config: fine_tune.config.StudentConfig,
+    dataset: fine_tune.task.Dataset,
+    teacher_model: fine_tune.model.TeacherModel,
+    student_model: fine_tune.model.StudentModel,
+    optimizer: torch.optim.AdamW,
+    scheduler: torch.optim.lr_scheduler.LambdaLR,
+    teacher_tokenizer: transformers.PreTrainedTokenizer,
+    student_tokenizer: transformers.PreTrainedTokenizer,
+    soft_weight: float = 0.2,
+    mse_weight: int = 100,
+    softmax_temp: float = 1.0,
+    layer_mapping: str = 'even'
 ):
-    """Perform knowledge distillation from given fine-tuned teacher model
-    without automatic mixed precision.
-    Note: This function may use two gpu-device.
+    """Train PKD model.
 
     Parameters
     ----------
@@ -66,7 +61,7 @@ def distill_mgpu(
         Task specific dataset.
     teacher_model : fine_tune.model.TeacherModel
         A fine-tuned teacher model which is used to
-        generate soft targets, hidden states and attentions.
+        generate soft targets, hidden states and attentions
     student_model : fine_tune.model.StudentModel
         Model which will perform disitllation according to
         outputs from given teacher model.
@@ -78,23 +73,16 @@ def distill_mgpu(
         Tokenizer paired with `teacher_model`.
     student_tokenizer : transformers.PreTrainedTokenizer
         Tokenizer paired with `student_model`.
-    alpha : float, optional
+    soft_weight : float, optional
         Weight of soft target loss, by default 0.2
-    gamma: float, optional
-        Weight of hard target loss, by default 0.8
-    mu : int, optional
+    mse_weight : int, optional
         Weight of hidden MSE loss, by default 100
     softmax_temp : float, optional
         Softmax temperature, by default 1.0
-    use_classify_loss : bool, optional
-        Total loss function include classification loss which is defined by:
-            L_{classify} =
-                ce_weights * ( alpha * CE_{soft} + ( 1-alpha ) * CE_{hard} ) +
-                (1-ce_weights) * L_{SCL}
-        by default True
-    use_hidden_loss: bool, optional
-        Distill teacher knowledge from hidden states
-        by default True
+    layer_mapping : str, optional
+        How to map teacher layer:
+            1.`even`: distill from even teacher layer.
+            2.`odd`: distill from odd teacher layer.
     """
 
     # Set teacher model as evaluation mode.
@@ -143,14 +131,6 @@ def distill_mgpu(
 
 
     hidden_objective = fine_tune.objective.hidden_MSE_loss
-
-    #TODO: init gate
-    gate_networks = [ fine_tune.model.Gate(dimension=768).to(student_device)
-        for _ in range(student_config.num_hidden_layers)
-    ]
-    # gate_network = fine_tune.model.Gate(dimension=768).to(student_device)
-    #TODO: remover assertion
-    assert len(gate_networks) == student_config.num_hidden_layers, "gate number dosen't match"
 
     # Accumulation step counter.
     step = 0
@@ -228,71 +208,55 @@ def distill_mgpu(
                 return_hidden_and_attn=True
             )
 
-            # Calculate classify loss. TODO: Refactor
+            # Calculate logits loss.
+            batch_logits_loss = logits_objective(
+                hard_target=label.to(student_device),
+                teacher_logits=teacher_logits.to(student_device),
+                student_logits=student_logits,
+                gamma=1-soft_weight,
+                alpha=soft_weight,
+                softmax_temp=softmax_temp
+            )
 
-            if use_classify_loss:
-                # Calculate batch loss of logits.
-                batch_logits_loss = logits_objective(
-                    hard_target=label.to(student_device),
-                    teacher_logits=teacher_logits.to(student_device),
-                    student_logits=student_logits,
-                    gamma=gamma,
-                    alpha=alpha,
-                    softmax_temp=softmax_temp
+            # Normalize loss.
+            batch_logits_loss = batch_logits_loss / student_config.accum_step
+
+            # Log loss.
+            logits_loss += batch_logits_loss.item()
+            loss += batch_logits_loss.item()
+
+            # Accumulate gradients.
+            batch_logits_loss.backward(retain_graph=True)
+
+            # Calculate hidden MSE loss.
+            # Drop embedding layer
+            teacher_hiddens = teacher_hiddens[1:]
+            student_hiddens = student_hiddens[1:]
+
+            # Create layer mapping indices.
+            if layer_mapping == 'even':
+                teacher_indices = list(range(1, len(teacher_hiddens), 2))
+            elif layer_mapping == 'odd':
+                teacher_indices = list(range(0, len(teacher_hiddens), 2))
+            else:
+                raise ValueError(f"Invalid mapping strategy: {layer_mapping}")
+
+            for t_index, s_hidden in zip(teacher_indices,student_hiddens):
+                batch_hidden_loss = hidden_objective(
+                    teacher_hidden=teacher_hiddens[t_index].to(student_device),
+                    student_hidden=s_hidden,
+                    mu=mse_weight
                 )
 
                 # Normalize loss.
-                batch_logits_loss = batch_logits_loss / student_config.accum_step
+                batch_hidden_loss = batch_hidden_loss / student_config.accum_step
 
                 # Log loss.
-                logits_loss += batch_logits_loss.item()
-                loss += batch_logits_loss.item()
+                hidden_loss += batch_hidden_loss.item()
+                loss += batch_hidden_loss.item()
 
-                # Accumulate gradients.
-                batch_logits_loss.backward(retain_graph=True)
-
-            if use_hidden_loss:
-                # Calculate batch hidden states loss.
-                # `teacher_hiddens`: tuple(Emb, Ht_1, Ht_2,...,Ht_12)
-                # `student_hiddens`: tuple(Emb, Hs_1, Hs_2,...,Hs_6)
-                # Mapping strategy:
-                # Ht_2 -> Hs_1, Ht_4 -> Hs_2,...,Ht_12 -> Hs_6
-
-                # Drop embedding layer
-                teacher_hiddens = teacher_hiddens[1:]
-                student_hiddens = student_hiddens[1:]
-                # skip = len(teacher_hiddens) // len(student_hiddens)
-                teacher_indices = list(range(1, len(teacher_hiddens), 2))
-
-                #TODO: remove assertion
-                assert len(teacher_indices) == len(student_hiddens), "Teacher and student layer indicies dosen't match"
-
-                for t_index, s_hidden, gate in zip(
-                        teacher_indices,
-                        student_hiddens,
-                        gate_networks
-                    ):
-
-                    aggregate_hidden = gate(
-                        input1=teacher_hiddens[t_index - 1].to(student_device),
-                        input2=teacher_hiddens[t_index].to(student_device)
-                    )
-
-                    batch_hidden_loss = hidden_objective(
-                        teacher_hidden=aggregate_hidden,
-                        student_hidden=s_hidden,
-                        mu=mu
-                    )
-
-                    # Normalize loss.
-                    batch_hidden_loss = batch_hidden_loss / student_config.accum_step
-
-                    # Log loss.
-                    hidden_loss += batch_hidden_loss.item()
-                    loss += batch_hidden_loss.item()
-
-                    # Accumulate gradient.
-                    batch_hidden_loss.backward(retain_graph=True)
+                # Accumulate gradient.
+                batch_hidden_loss.backward(retain_graph=True)
 
             # Increment accumulation step.
             accum_step += 1
@@ -362,18 +326,6 @@ def distill_mgpu(
                         student_model.state_dict(),
                         os.path.join(experiment_dir, f'model-{step}.pt')
                     )
-
-                    for i, gate in enumerate(gate_networks):
-                        torch.save(
-                            gate.state_dict(),
-                            os.path.join(experiment_dir, f'gate-{i}-{step}.pt')
-                        )
-                    # torch.save(
-                    #     gate_network.state_dict(),
-                    #     os.path.join(experiment_dir, f'gate-{step}.pt')
-                    # )
-
-                    # TODO: if use adaptive layer we have to save it.
 
             # Stop training condition.
             if accum_step >= total_accum_step:

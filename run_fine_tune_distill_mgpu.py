@@ -41,6 +41,15 @@ if __name__ == "__main__":
 
     # Shared arguments.
     parser.add_argument(
+        '--kd_algo',
+        help='Which type of KD.\n' +
+        '1. `pkd-even` for BERT-PKD with even layer mapping\n' +
+        '2. `pkd-odd` for BERT-PKD with odd layer mapping\n'+
+        '2. `akd` for AKD-BERT',
+        required=True,
+        type=str
+    )
+    parser.add_argument(
         '--task',
         help='Name of the distillation task.',
         required=True,
@@ -112,11 +121,6 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument(
-        '--amp',
-        help='Use automatic mixed precision during distillation.',
-        action='store_true'
-    )
-    parser.add_argument(
         '--hard_weight',
         help='Weight of hard label.',
         default=0.8,
@@ -139,17 +143,6 @@ if __name__ == "__main__":
         help='Hidden MSE loss weight',
         default=1,
         type=int
-    )
-    parser.add_argument(
-        '--wsl_weight',
-        help='Weight of WSL loss',
-        default=0.0,
-        type=float
-    )
-    parser.add_argument(
-        '--use_wsl',
-        help='Use WSL loss',
-        action='store_true'
     )
 
     # Arguments of teacher model.
@@ -267,12 +260,6 @@ if __name__ == "__main__":
     # Parse arguments.
     args = parser.parse_args()
 
-    # Check user forgot to indicate loss.
-    if not (args.use_classify_loss or args.use_hidden_loss):
-        raise ValueError("You forgot to specify loss function!\n" +
-            "Please check relative document for more info!"
-        )
-
     # Load fine-tune teacher model configuration.
     teacher_config = fine_tune.config.TeacherConfig.load(
         experiment=args.teacher_exp,
@@ -291,7 +278,6 @@ if __name__ == "__main__":
     # Construct student model configuration.
     student_config = fine_tune.config.StudentConfig(
         accum_step=args.accum_step,
-        amp=args.amp,
         batch_size=args.batch_size,
         beta1=args.beta1,
         beta2=args.beta2,
@@ -382,11 +368,9 @@ if __name__ == "__main__":
     )
 
     # Perform disitllation.
-    if args.amp:
-        # perform amp distillation.
-        logger.info("Perform distillation with mixed precesion")
-
-        fine_tune.util.amp_distill_mgpu(
+    if args.kd_algo.lower() == 'pkd-even':
+        logger.info("Train BERT-PKD with even layer mapping")
+        fine_tune.util.train_PKD(
             teacher_config=teacher_config,
             student_config=student_config,
             dataset=dataset,
@@ -396,15 +380,31 @@ if __name__ == "__main__":
             scheduler=scheduler,
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
-            use_classify_loss=args.use_classify_loss,
-            use_hidden_loss=args.use_hidden_loss,
-            alpha=args.soft_weight,
-            mu=args.mu,
-            softmax_temp=args.softmax_temp
+            soft_weight=args.soft_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+            layer_mapping='even'
         )
-    else:
+    elif args.kd_algo.lower() == 'pkd-odd':
+        logger.info("Train BERT-PKD with odd layer mapping")
+        fine_tune.util.train_PKD(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            soft_weight=args.soft_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+            layer_mapping='odd'
+        )
+    elif args.kd_algo.lower() == 'akd':
         # perform distillation.
-        logger.info("Perform distillation WITHOUT mixed precesion")
+        logger.info("Train AKD-BERT")
         fine_tune.util.distill_mgpu(
             teacher_config=teacher_config,
             student_config=student_config,
@@ -420,7 +420,7 @@ if __name__ == "__main__":
             alpha=args.soft_weight,
             gamma=args.hard_weight,
             mu=args.mu,
-            softmax_temp=args.softmax_temp,
-            wsl_weight=args.wsl_weight,
-            use_wsl=args.use_wsl
+            softmax_temp=args.softmax_temp
         )
+    else:
+        raise ValueError(f"Un supported kd algo: {args.kd_algo}")
