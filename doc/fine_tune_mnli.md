@@ -105,14 +105,52 @@ python3.8 run_fine_tune_eval.py \
 |1|0.983002|36816|0.867753|36000|0.862083|36000|8|32|1000|0.1|bert-large-uncased|500|3e-5|128|42|36816|10000|
 |2|0.964217|36816|0.846052|24000|0.850488|36816|8|32|1000|0.1|bert-base-uncased|500|3e-5|128|42|36816|10000|
 
-### BERT Fine-Tune Distillation Scripts with Multi-GPU
+### BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
+--kd_algo pkd-even                          \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment gate_network_1_xavier            \
+--experiment PKD_even_42            \
+--model bert                       \
+--task mnli                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 2000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 200                     \
+--lr 5e-5                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 49088                \
+--type_vocab_size 2                \
+--seed 42                          \
+--warmup_step  4908               \
+--weight_decay 0.01                \
+--device_id 1                      \
+--tdevice_id 1                     \
+--softmax_temp 10                  \
+--mu 100                           \
+--soft_weight 0.5
+```
+
+### AKD-BERT Fine-Tune Distillation Scripts with Multi-GPU
+
+```sh
+python3.8 run_fine_tune_distill_mgpu.py \
+--kd_algo akd                          \
+--teacher_exp test                \
+--tmodel bert                      \
+--tckpt  36816 \
+--experiment gate_network_1            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -133,137 +171,14 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --type_vocab_size 2                \
 --warmup_step  4908               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
+--device_id 0                      \
+--tdevice_id 0                     \
 --softmax_temp 10                  \
 --soft_weight 0.5                  \
---use_classify_loss                \
+--hard_weight 0.5                \
 --mu 100                           \
 --use_hidden_loss                  \
---wsl_weight 2                     \
---use_wsl                          \
-
-
-```
-
-#### Fine-Tune Distillation with Contrastive learning
-
-```sh
-python3.8 run_fine_tune_contrast_distill.py \
---teacher_exp test                \
---tmodel bert                      \
---tckpt  36816 \
---experiment contrast_by_label_1             \
---model bert                       \
---task mnli                        \
---accum_step 4                     \
---batch_size 32                    \
---beta1 0.9                        \
---beta2 0.999                      \
---ckpt_step 1000                   \
---d_ff 3072                        \
---d_model 768                      \
---dropout 0.1                      \
---eps 1e-8                         \
---log_step 500                     \
---lr 5e-5                          \
---max_norm 1.0                     \
---num_attention_heads 12           \
---num_hidden_layers 6              \
---total_step 122720                \
---type_vocab_size 2                \
---warmup_step  8181               \
---weight_decay 0.01                \
---device_id 1                      \
---membank_device 1                 \
---neg_num 10                    \
---two_stage                        \
---teacher_device 1                 \
---contrast_steps 98176
-```
-
-#### Fine-Tune Distillation with Contrastive learning layer wise
-
-```sh
-python3.8 run_layerwise_contrast_distill.py \
---teacher_exp test                \
---tmodel bert                      \
---tckpt  36816 \
---experiment debug             \
---model bert                       \
---task mnli                        \
---accum_step 2                     \
---batch_size 32                    \
---beta1 0.9                        \
---beta2 0.999                      \
---ckpt_step 5000                   \
---d_ff 3072                        \
---d_model 768                      \
---dropout 0.1                      \
---eps 1e-8                         \
---log_step 500                     \
---lr 3e-5                          \
---max_norm 1.0                     \
---num_attention_heads 12           \
---num_hidden_layers 6              \
---total_step 122720                \
---type_vocab_size 2                \
---warmup_step  30000               \
---weight_decay 0.01                \
---device_id 1                      \
---neg_num 20                    \
---contrast_steps 0           \
---contrast_temp 0.07             \
---softmax_temp 1                \
---soft_label_weight 0.2         \
---defined_by_label
-```
-
-### Train SCL independently
-
-```sh
-python3.8 train_scl_from_ckpt.py \
---experiment SCL_1               \
---src_experiment MSE_base        \
---src_ckpt 24544                  \
---model bert                     \
---task mnli                      \
---device_id 1                    \
---scl_temp 0.1                   \
---accum_step 1                   \
---batch_size 32                  \
---ckpt_step 2000                 \
---log_step 100                   \
---lr 5e-5                        \
---total_step 24544                \
---warmup_step 2454
-```
-
-### Train KD from checkpoint
-
-```sh
-python3.8 train_kd_from_ckpt.py \
---teacher_exp test      \
---tmodel bert                   \
---tckpt 36816                    \
---experiment direct_ft_wsl_1           \
---src_experiment direct_ft_1          \
---src_ckpt 24544                 \
---model bert                    \
---task mnli                     \
---device_id 1                   \
---tdevice_id 1                  \
---softmax_temp 5               \
---soft_weight 0.7               \
---accum_step 1                   \
---batch_size 32                  \
---ckpt_step 1000                 \
---log_step 100                   \
---lr 5e-5                        \
---total_step 24544                \
---warmup_step 2454                \
---wsl_weight 1                     \
---use_wsl
+--use_classify_loss
 ```
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
@@ -304,33 +219,6 @@ python3.8 run_fine_tune_eval.py \
 --ckpt 98176
 ```
 
-### Build memory bank
-
-```sh
-python3.8 build_membank.py \
---experiment teacher_base \
---model bert \
---task mnli \
---dataset train \
---ckpt 36816 \
---batch_size 256 \
---device_id 0 \
---layer_wise
-```
-
-### Build logits bank
-
-```sh
-python3.8 build_logitsbank.py \
---experiment test \
---model bert \
---task mnli \
---dataset train \
---ckpt 36816 \
---batch_size 256 \
---device_id 1
-```
-
 ### Plot CLS embedding of last Transformer block
 
 ```sh
@@ -342,37 +230,4 @@ python3.8 plot_CLS_embedding.py  \
 --dataset dev_matched            \
 --batch_size 128                 \
 --device_id 0
-```
-
-### Direct Fine-Tuning
-
-```sh
-python3.8 student_train_from_scratch.py \
---task mnli                             \
---experiment direct_ft_1                \
---model bert                            \
---device_id 1                           \
---dataset train                         \
---num_class 3                           \
---accum_step 1                          \
---batch_size 32                         \
---beta1 0.9                             \
---beta2 0.999                           \
---ckpt_step 1000                        \
---d_emb 128                             \
---d_ff 3072                             \
---d_model 768                           \
---dropout 0.1                           \
---eps 1e-8                              \
---log_step 100                          \
---lr 5e-5                               \
---max_norm 1.0                          \
---max_seq_len 128                       \
---seed 42                               \
---num_attention_heads 16                \
---num_hidden_layers 3                   \
---total_step 24544                      \
---type_vocab_size 2                     \
---warmup_step 2454                      \
---weight_decay 0.01
 ```

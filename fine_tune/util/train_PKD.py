@@ -83,6 +83,7 @@ def train_PKD(
         How to map teacher layer:
             1.`even`: distill from even teacher layer.
             2.`odd`: distill from odd teacher layer.
+            3.`user_defined`: distill from user defined indices.
     """
 
     # Set teacher model as evaluation mode.
@@ -128,9 +129,20 @@ def train_PKD(
 
     # Create objective functions.
     logits_objective = fine_tune.objective.distill_loss
-
-
     hidden_objective = fine_tune.objective.hidden_MSE_loss
+
+    # Create layer mapping indices.
+    if layer_mapping == 'even':
+        teacher_indices = list(range(1, 12, 2))
+    elif layer_mapping == 'odd':
+        teacher_indices = list(range(0, 12, 2))
+    elif layer_mapping == 'user_defined':
+        teacher_indices = [int(item)-1 for item in input("Enter desired teacher layer:\n").split()]
+    else:
+        raise ValueError(f"Invalid mapping strategy: {layer_mapping}")
+
+    # Init student model from pre-trained teacher layer.
+    student_model.init_from_pre_trained(teacher_indices)
 
     # Accumulation step counter.
     step = 0
@@ -232,14 +244,6 @@ def train_PKD(
             # Drop embedding layer
             teacher_hiddens = teacher_hiddens[1:]
             student_hiddens = student_hiddens[1:]
-
-            # Create layer mapping indices.
-            if layer_mapping == 'even':
-                teacher_indices = list(range(1, len(teacher_hiddens), 2))
-            elif layer_mapping == 'odd':
-                teacher_indices = list(range(0, len(teacher_hiddens), 2))
-            else:
-                raise ValueError(f"Invalid mapping strategy: {layer_mapping}")
 
             for t_index, s_hidden in zip(teacher_indices,student_hiddens):
                 batch_hidden_loss = hidden_objective(

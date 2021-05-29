@@ -141,16 +141,20 @@ def distill_mgpu(
     # Create objective functions.
     logits_objective = fine_tune.objective.distill_loss
 
+    # Create layer mapping indices.
+    teacher_indices = list(range(1, 12, 2))
+
+    # Init student model from pre-trained teacher layer.
+    #TODO: remove warning.
+    print("Warning!: Use even layer of teacher model to init student.")
+    student_model.init_from_pre_trained(teacher_indices)
+
 
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
-    #TODO: init gate
     gate_networks = [ fine_tune.model.Gate(dimension=768).to(student_device)
         for _ in range(student_config.num_hidden_layers)
     ]
-    # gate_network = fine_tune.model.Gate(dimension=768).to(student_device)
-    #TODO: remover assertion
-    assert len(gate_networks) == student_config.num_hidden_layers, "gate number dosen't match"
 
     # Accumulation step counter.
     step = 0
@@ -261,11 +265,6 @@ def distill_mgpu(
                 # Drop embedding layer
                 teacher_hiddens = teacher_hiddens[1:]
                 student_hiddens = student_hiddens[1:]
-                # skip = len(teacher_hiddens) // len(student_hiddens)
-                teacher_indices = list(range(1, len(teacher_hiddens), 2))
-
-                #TODO: remove assertion
-                assert len(teacher_indices) == len(student_hiddens), "Teacher and student layer indicies dosen't match"
 
                 for t_index, s_hidden, gate in zip(
                         teacher_indices,
@@ -368,12 +367,6 @@ def distill_mgpu(
                             gate.state_dict(),
                             os.path.join(experiment_dir, f'gate-{i}-{step}.pt')
                         )
-                    # torch.save(
-                    #     gate_network.state_dict(),
-                    #     os.path.join(experiment_dir, f'gate-{step}.pt')
-                    # )
-
-                    # TODO: if use adaptive layer we have to save it.
 
             # Stop training condition.
             if accum_step >= total_accum_step:

@@ -245,6 +245,12 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument(
+        '--seed',
+        default=42,
+        help="Random seed of student model.",
+        type=int
+    )
+    parser.add_argument(
         '--warmup_step',
         default=10000,
         help='Linear scheduler warmup step.',
@@ -351,8 +357,7 @@ if __name__ == "__main__":
     # Load student model.
     student_model = fine_tune.util.load_student_model_by_config(
         config=student_config,
-        tokenizer=student_tokenizer,
-        init_from_pre_trained=True
+        tokenizer=student_tokenizer
     )
 
     # Load optimizer.
@@ -401,6 +406,23 @@ if __name__ == "__main__":
             mse_weight=args.mu,
             softmax_temp=args.softmax_temp,
             layer_mapping='odd'
+        )
+    elif args.kd_algo.lower() == 'pkd-user-defined':
+        logger.info("Train BERT-PKD with use defined mapping")
+        fine_tune.util.train_PKD(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            soft_weight=args.soft_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+            layer_mapping='user_defined'
         )
     elif args.kd_algo.lower() == 'akd':
         # perform distillation.

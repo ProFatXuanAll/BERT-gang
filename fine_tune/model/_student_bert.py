@@ -72,8 +72,7 @@ class StudentBert(nn.Module):
             num_class: int,
             num_hidden_layers: int,
             type_vocab_size: int,
-            vocab_size: int,
-            init_from_pre_trained: bool = False
+            vocab_size: int
     ):
         super().__init__()
 
@@ -94,10 +93,6 @@ class StudentBert(nn.Module):
             return_dict=True
         ))
 
-        #TODO: Refactor
-        if init_from_pre_trained:
-            self.init_from_pre_trained('bert-base-uncased', num_hidden_layers)
-
         # Dropout layer between encoder and linear layer.
         self.dropout = nn.Dropout(dropout)
 
@@ -116,61 +111,55 @@ class StudentBert(nn.Module):
             )
             nn.init.zeros_(self.linear_layer.bias)
 
-    def init_from_pre_trained(self, pretrain_ver: str, num_hidden: int):
+    def init_from_pre_trained(self, teacher_indices: List[int], pretrain_ver: str = 'bert-base-uncased'):
         """Given pre-trained model version and number of hidden layer of model,
         Initialize model parameters from pre-trained model.
         Parameters
         ----------
-        pretrain_ver : str
+        teacher_indices : List[int]
+            Specify teacher layer to load pre-trained weight for initialization.
+        pretrain_ver : str, optional
             pre-trained version string.
             Now we only support `bert-base-uncased`.
-        num_hidden : int
-            number of hidden layers.
         """
-        #TODO: Refactor
-        def IsValidLayer(key: str, step: int, keyqueue: List[str])->bool:
-            """Check this encoder layer is we want.
-            Parameters
-            ----------
-            key : str
-                Key of model.state_dict(), pattern: `encoder.layer.0.xxx`
-            step : int
-                Step of layer when we iterate.
-            keyqueue: List[str]
-                Store new key.
-            Returns
-            -------
-            bool
-                `True` if we want initialize from this layer.
-            """
-            for char in key.split('.'):
-                if char.isdigit() and (int(char)+1) % step == 0:
-                    keyqueue.append(key.replace(char, str((int(char)+1)//2-1)))
-                    return True
-
-            return False
-
-
-        if pretrain_ver != 'bert-base-uncased':
-            raise ValueError(f"Unsupported pre train model: {pretrain_ver}")
-
         pretrain_model = BertModel.from_pretrained(pretrain_ver)
 
-        if pretrain_ver == 'bert-base-uncased':
-            skip = 12 // num_hidden
-
         new_state_dict = {}
-        newkey = []
 
-        for key, value in pretrain_model.state_dict().items():
-            # Skip embedding layers.
-            if 'embedding' in key:
-                continue
-            if 'encoder' in key:
-                if IsValidLayer(key, skip, newkey):
-                    new_state_dict.update({newkey.pop():value})
-            if 'pooler' in key:
-                new_state_dict.update({key:value})
+        keys = [
+            'attention.self.query.weight',
+            'attention.self.query.bias',
+            'attention.self.key.weight',
+            'attention.self.key.bias',
+            'attention.self.value.weight',
+            'attention.self.value.bias',
+            'attention.output.dense.weight',
+            'attention.output.dense.bias',
+            'attention.output.LayerNorm.weight',
+            'attention.output.LayerNorm.bias',
+            'intermediate.dense.weight',
+            'intermediate.dense.bias',
+            'output.dense.weight',
+            'output.dense.bias',
+            'output.LayerNorm.weight',
+            'output.LayerNorm.bias'
+        ]
+
+        for i, t_index in enumerate(teacher_indices):
+            for key in keys:
+                new_state_dict.update(
+                    {
+                        f'encoder.layer.{i}.{key}':
+                        pretrain_model.state_dict()[f'encoder.layer.{t_index}.{key}']
+                    }
+                )
+
+        new_state_dict.update(
+            {
+                'pooler.dense.weight':pretrain_model.state_dict()['pooler.dense.weight'],
+                'pooler.dense.bias':pretrain_model.state_dict()['pooler.dense.bias']
+            }
+        )
 
         del pretrain_model
         logger.info("Load model state dict from pre-trained model")

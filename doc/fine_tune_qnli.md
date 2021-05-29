@@ -61,11 +61,11 @@ python3.8 run_fine_tune.py     \
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
---kd_algo pkd-odd                          \
+--kd_algo pkd-user-defined                          \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment pkd_even_93            \
+--experiment pkd-user-defined-1            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -84,6 +84,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --num_hidden_layers 6              \
 --total_step 13096                \
 --type_vocab_size 2                \
+--seed 42                          \
 --warmup_step  1309               \
 --weight_decay 0.01                \
 --device_id 0                      \
@@ -129,8 +130,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --hard_weight 0.5                \
 --mu 100                           \
 --use_hidden_loss                  \
---use_classify_loss               \
---wsl_weight 1
+--use_classify_loss
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
@@ -138,7 +138,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment pkd_odd                 \
+--experiment pkd_even_65                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -149,12 +149,12 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment pkd_odd                 \
+--experiment pkd_even_65                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 0
+--device_id 1
 ```
 
 ### Plot CLS embedding of last Transformer block

@@ -40,8 +40,7 @@ def load_student_model(
         num_class: int,
         num_hidden_layers: int,
         vocab_size: int,
-        type_vocab_size: int,
-        init_from_pre_trained: bool
+        type_vocab_size: int
 ) -> fine_tune.model.StudentModel:
     r"""Load student model.
 
@@ -70,8 +69,6 @@ def load_student_model(
             BERT-like models token type embedding range.
         vocab_size:
             Vocabulary dimension.
-        init_from_pre_trained:
-            Use pre-trained model wieght to init student model.
 
     Raises:
         ValueError:
@@ -107,8 +104,7 @@ def load_student_model(
             num_class=num_class,
             num_hidden_layers=num_hidden_layers,
             type_vocab_size=type_vocab_size,
-            vocab_size=vocab_size,
-            init_from_pre_trained=init_from_pre_trained
+            vocab_size=vocab_size
         ).to(device)
 
     raise ValueError(
@@ -125,8 +121,7 @@ def load_student_model(
 
 def load_student_model_by_config(
         config: fine_tune.config.StudentConfig,
-        tokenizer: transformers.PreTrainedTokenizer,
-        init_from_pre_trained: bool
+        tokenizer: transformers.PreTrainedTokenizer
 ) -> fine_tune.model.StudentModel:
     r"""Load student model.
 
@@ -156,8 +151,7 @@ def load_student_model_by_config(
         num_class=config.num_class,
         num_hidden_layers=config.num_hidden_layers,
         type_vocab_size=config.type_vocab_size,
-        vocab_size=tokenizer.vocab_size,
-        init_from_pre_trained=init_from_pre_trained
+        vocab_size=tokenizer.vocab_size
     )
 
 
