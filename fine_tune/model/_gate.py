@@ -18,7 +18,6 @@ from __future__ import unicode_literals
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class Gate(nn.Module):
     r"""Gate network implementation.
@@ -58,7 +57,8 @@ class Gate(nn.Module):
         if input1.shape != input2.shape:
             raise ValueError("Shape of two input dosen't match")
 
+        if torch.all(torch.eq(input1, 0)):
+            return input2
         transform_gate = self.activation(self.linear(input1))
 
         return input2 * transform_gate + input1 * (1-transform_gate)
-        # return input2 + input1 * transform_gate

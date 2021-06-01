@@ -150,7 +150,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment gate_network_1            \
+--experiment recurrent_gate_xavier_1            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -171,8 +171,8 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --type_vocab_size 2                \
 --warmup_step  4908               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --softmax_temp 10                  \
 --soft_weight 0.5                  \
 --hard_weight 0.5                \
@@ -186,37 +186,34 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment gate_network_1_xavier          \
+--experiment recurrent_gate_xavier_1          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0                   \
---ckpt 98176
+--device_id
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment gate_network_1_xavier          \
+--experiment recurrent_gate_xavier_1          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
 --batch_size 512                \
---device_id 1                   \
---ckpt 98176
+--device_id 1
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment gate_network_1_xavier          \
+--experiment recurrent_gate_xavier_1          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
 --batch_size 512 \
---device_id 1 \
---ckpt 98176
+--device_id 1
 ```
 
 ### Plot CLS embedding of last Transformer block

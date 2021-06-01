@@ -152,8 +152,14 @@ def distill_mgpu(
 
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
+    #TODO: refactor
+    # gate_networks = [ fine_tune.model.Gate(dimension=768).to(student_device)
+    #     for _ in range(student_config.num_hidden_layers)
+    # ]
+    #TODO: refactor
+    print("Now use 12 gate to aggregate all layer hidden states")
     gate_networks = [ fine_tune.model.Gate(dimension=768).to(student_device)
-        for _ in range(student_config.num_hidden_layers)
+        for _ in range(12)
     ]
 
     # Accumulation step counter.
@@ -266,19 +272,31 @@ def distill_mgpu(
                 teacher_hiddens = teacher_hiddens[1:]
                 student_hiddens = student_hiddens[1:]
 
-                for t_index, s_hidden, gate in zip(
+                #TODO: refactor
+                aggregate_hiddens = []
+                prev = torch.zeros_like(teacher_hiddens[0])
+                # Construct aggregate hidden states
+                assert len(teacher_hiddens) == len(gate_networks), 'Layer nums and gate networks not match'
+                for t_hidden, gate in zip(teacher_hiddens, gate_networks):
+                    agg_hidden = gate(
+                        input1=prev.to(student_device),
+                        input2=t_hidden.to(student_device)
+                    )
+                    aggregate_hiddens.append(agg_hidden)
+                    prev = t_hidden
+
+                for t_index, s_hidden in zip(
                         teacher_indices,
-                        student_hiddens,
-                        gate_networks
+                        student_hiddens
                     ):
 
-                    aggregate_hidden = gate(
-                        input1=teacher_hiddens[t_index - 1].to(student_device),
-                        input2=teacher_hiddens[t_index].to(student_device)
-                    )
+                    # aggregate_hidden = gate(
+                    #     input1=teacher_hiddens[t_index - 1].to(student_device),
+                    #     input2=teacher_hiddens[t_index].to(student_device)
+                    # )
 
                     batch_hidden_loss = hidden_objective(
-                        teacher_hidden=aggregate_hidden,
+                        teacher_hidden=aggregate_hiddens[t_index].to(student_device),
                         student_hidden=s_hidden,
                         mu=mu
                     )
