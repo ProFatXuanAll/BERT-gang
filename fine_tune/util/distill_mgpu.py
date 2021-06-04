@@ -275,6 +275,7 @@ def distill_mgpu(
                 #TODO: refactor
                 aggregate_hiddens = []
                 prev = torch.zeros_like(teacher_hiddens[0])
+                # prev = torch.randn_like(teacher_hiddens[0])
                 # Construct aggregate hidden states
                 assert len(teacher_hiddens) == len(gate_networks), 'Layer nums and gate networks not match'
                 for t_hidden, gate in zip(teacher_hiddens, gate_networks):

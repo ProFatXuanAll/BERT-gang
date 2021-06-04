@@ -444,5 +444,17 @@ if __name__ == "__main__":
             mu=args.mu,
             softmax_temp=args.softmax_temp
         )
+    elif args.kd_algo.lower() == 'probing':
+        #TODO: remove this branch
+        logger.info("Warning: Run probing training")
+        fine_tune.util.train_shallower_bert(
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            student_tokenizer=student_tokenizer
+        )
     else:
         raise ValueError(f"Un supported kd algo: {args.kd_algo}")
