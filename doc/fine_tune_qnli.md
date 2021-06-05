@@ -98,11 +98,11 @@ python3.8 run_fine_tune_distill_mgpu.py \
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
---kd_algo akd                          \
+--kd_algo akd-highway                          \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment recurrent_gate_xavier_hard_only_1_26            \
+--experiment recurrent_gate_lnorm_soft_1_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -123,12 +123,12 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --type_vocab_size 2                \
 --warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
---seed 26                          \
+--device_id 0                      \
+--tdevice_id 0                     \
+--seed 42                          \
 --softmax_temp 10                  \
---soft_weight 0                  \
---hard_weight 1                \
+--soft_weight 0.5                  \
+--hard_weight 0.5                \
 --mu 100                           \
 --use_hidden_loss                  \
 --use_classify_loss
@@ -173,7 +173,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment recurrent_gate_xavier_hard_only_1_26                 \
+--experiment  recurrent_gate_lnorm_soft_1_42                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -184,7 +184,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment recurrent_gate_xavier_hard_only_1_26                 \
+--experiment  recurrent_gate_lnorm_soft_1_42                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \

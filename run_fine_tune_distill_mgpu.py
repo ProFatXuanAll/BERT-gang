@@ -274,6 +274,7 @@ if __name__ == "__main__":
     )
 
     # Sync batch size and accumulation steps.
+    teacher_config.seed = args.seed
     teacher_config.batch_size = args.batch_size
     teacher_config.accum_step = args.accum_step
 
@@ -303,7 +304,7 @@ if __name__ == "__main__":
         num_attention_heads=args.num_attention_heads,
         num_class=teacher_config.num_class,
         num_hidden_layers=args.num_hidden_layers,
-        seed=teacher_config.seed,
+        seed=args.seed,
         task=args.task,
         total_step=args.total_step,
         type_vocab_size=args.type_vocab_size,
@@ -321,7 +322,7 @@ if __name__ == "__main__":
 
     # Control random seed for reproducibility.
     fine_tune.util.set_seed_by_config(
-        config=teacher_config
+        config=student_config
     )
 
     # Load distillation dataset.
@@ -424,9 +425,9 @@ if __name__ == "__main__":
             softmax_temp=args.softmax_temp,
             layer_mapping='user_defined'
         )
-    elif args.kd_algo.lower() == 'akd':
+    elif args.kd_algo.lower() == 'akd-highway':
         # perform distillation.
-        logger.info("Train AKD-BERT")
+        logger.info("Train AKD-BERT with Highway Gate")
         fine_tune.util.distill_mgpu(
             teacher_config=teacher_config,
             student_config=student_config,
@@ -442,7 +443,28 @@ if __name__ == "__main__":
             alpha=args.soft_weight,
             gamma=args.hard_weight,
             mu=args.mu,
-            softmax_temp=args.softmax_temp
+            softmax_temp=args.softmax_temp,
+            gate_type='highway'
+        )
+    elif args.kd_algo.lower() == 'akd-linear':
+        logger.info("Train AKD-BERT with Linear Gate")
+        fine_tune.util.distill_mgpu(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            use_classify_loss=args.use_classify_loss,
+            use_hidden_loss=args.use_hidden_loss,
+            alpha=args.soft_weight,
+            gamma=args.hard_weight,
+            mu=args.mu,
+            softmax_temp=args.softmax_temp,
+            gate_type='linear'
         )
     elif args.kd_algo.lower() == 'probing':
         #TODO: remove this branch

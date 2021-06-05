@@ -48,7 +48,8 @@ def distill_mgpu(
         mu: int = 100,
         softmax_temp: float = 1.0,
         use_classify_loss: bool = True,
-        use_hidden_loss: bool = True
+        use_hidden_loss: bool = True,
+        gate_type: str = 'highway'
 ):
     """Perform knowledge distillation from given fine-tuned teacher model
     without automatic mixed precision.
@@ -95,6 +96,10 @@ def distill_mgpu(
     use_hidden_loss: bool, optional
         Distill teacher knowledge from hidden states
         by default True
+    gate_type: str, optional
+        Type of gate network:
+        1. `highway`: highway network gate
+        2. `linear`: linear network gate
     """
 
     # Set teacher model as evaluation mode.
@@ -153,14 +158,17 @@ def distill_mgpu(
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
     #TODO: refactor
-    # gate_networks = [ fine_tune.model.Gate(dimension=768).to(student_device)
-    #     for _ in range(student_config.num_hidden_layers)
-    # ]
-    #TODO: refactor
     print("Now use 12 gate to aggregate all layer hidden states")
-    gate_networks = [ fine_tune.model.Gate(dimension=768).to(student_device)
-        for _ in range(12)
-    ]
+    if gate_type == 'highway':
+        gate_networks = [ fine_tune.model.HighwayGate(dimension=768).to(student_device)
+            for _ in range(12)
+        ]
+    elif gate_type == 'linear':
+        gate_networks = [ fine_tune.model.LinearGate(dimension=768).to(student_device)
+            for _ in range(12)
+        ]
+    else:
+        raise ValueError(f"Unsupported gate: {gate_type}")
 
     # Accumulation step counter.
     step = 0

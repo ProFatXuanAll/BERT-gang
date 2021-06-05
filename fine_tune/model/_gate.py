@@ -18,8 +18,9 @@ from __future__ import unicode_literals
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-class Gate(nn.Module):
+class HighwayGate(nn.Module):
     r"""Gate network implementation.
     Given two hidden state tensor (from two different teacher layer),
     Return aggregate hidden state tensor.
@@ -38,7 +39,6 @@ class Gate(nn.Module):
     def __init__(self, dimension: int):
         super().__init__()
         self.linear = nn.Linear(in_features=dimension, out_features=dimension)
-        # self.relu = torch.nn.ReLU()
         self.activation = nn.Sigmoid()
 
         # Xavier norm init.
@@ -61,4 +61,6 @@ class Gate(nn.Module):
             return input2
         transform_gate = self.activation(self.linear(input1))
 
-        return input2 * transform_gate + input1 * (1-transform_gate)
+        output = input2 * transform_gate + input1 * (1-transform_gate)
+
+        return F.layer_norm(output, normalized_shape=output.shape[1:])
