@@ -444,27 +444,6 @@ if __name__ == "__main__":
             gamma=args.hard_weight,
             mu=args.mu,
             softmax_temp=args.softmax_temp,
-            gate_type='highway'
-        )
-    elif args.kd_algo.lower() == 'akd-linear':
-        logger.info("Train AKD-BERT with Linear Gate")
-        fine_tune.util.distill_mgpu(
-            teacher_config=teacher_config,
-            student_config=student_config,
-            dataset=dataset,
-            teacher_model=teacher_model,
-            student_model=student_model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            teacher_tokenizer=teacher_tokenizer,
-            student_tokenizer=student_tokenizer,
-            use_classify_loss=args.use_classify_loss,
-            use_hidden_loss=args.use_hidden_loss,
-            alpha=args.soft_weight,
-            gamma=args.hard_weight,
-            mu=args.mu,
-            softmax_temp=args.softmax_temp,
-            gate_type='linear'
         )
     elif args.kd_algo.lower() == 'probing':
         #TODO: remove this branch
