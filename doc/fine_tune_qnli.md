@@ -65,7 +65,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment user_defined_2_hard_only_46            \
+--experiment PKD_3_soft_1_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -81,7 +81,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 3              \
 --total_step 13096                \
 --type_vocab_size 2                \
 --seed 46                          \
@@ -89,9 +89,9 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --weight_decay 0.01                \
 --device_id 0                      \
 --tdevice_id 0                     \
---softmax_temp 10                  \
+--softmax_temp 20                  \
 --mu 100                           \
---soft_weight 0
+--soft_weight 0.7
 ```
 
 ### AKD-BERT Fine-Tune Distillation Scripts with Multi-GPU
@@ -102,7 +102,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment recurrent_gate_lnorm_soft_1_42            \
+--experiment akd_3_lnorm_soft_1_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -118,17 +118,17 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 3              \
 --total_step 13096                \
 --type_vocab_size 2                \
 --warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --seed 42                          \
---softmax_temp 10                  \
---soft_weight 0.5                  \
---hard_weight 0.5                \
+--softmax_temp 20                  \
+--soft_weight 0.7                  \
+--hard_weight 0.3                \
 --mu 100                           \
 --use_hidden_loss                  \
 --use_classify_loss

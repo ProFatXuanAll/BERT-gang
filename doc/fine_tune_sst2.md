@@ -51,17 +51,54 @@ python3.8 run_fine_tune.py     \
 --weight_decay 0.01
 ```
 
+### BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
+
+```sh
+python3.8 run_fine_tune_distill_mgpu.py \
+--kd_algo pkd-even                          \
+--teacher_exp bert_base_teacher                \
+--tmodel bert                      \
+--tckpt 6315 \
+--experiment PKD_even_hard_2_42            \
+--model bert                       \
+--task sst2                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 1000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 5e-5                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 16840                \
+--type_vocab_size 2                \
+--seed 42                          \
+--warmup_step 1684               \
+--weight_decay 0.01                \
+--device_id 1                      \
+--tdevice_id 1                     \
+--softmax_temp 10                  \
+--mu 100                           \
+--soft_weight 0
+```
+
 ### AKD-BERT Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
 --kd_algo akd-highway                          \
---teacher_exp teacher_base                \
+--teacher_exp bert_base_teacher                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment recurrent_gate_lnorm_soft_1_42            \
+--experiment recurrent_gate_lnorm_hard_only_1_42            \
 --model bert                       \
---task qnli                        \
+--task sst2                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
@@ -80,12 +117,12 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --type_vocab_size 2                \
 --warmup_step  842               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --seed 42                          \
 --softmax_temp 10                  \
---soft_weight 0.5                  \
---hard_weight 0.5                \
+--soft_weight 0                  \
+--hard_weight 1                \
 --mu 100                           \
 --use_hidden_loss                  \
 --use_classify_loss
@@ -96,21 +133,21 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment gate_network_1_xavier                 \
+--experiment PKD_even_hard_2_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment gate_network_1_xavier                 \
+--experiment PKD_even_hard_2_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 0
+--device_id 1
 ```

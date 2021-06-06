@@ -146,11 +146,11 @@ python3.8 run_fine_tune_distill_mgpu.py \
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
---kd_algo akd                          \
+--kd_algo akd-highway                          \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment recurrent_gate_xavier_1            \
+--experiment recurrent_gate_lnorm_soft_1_42            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -186,18 +186,18 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment recurrent_gate_xavier_1          \
+--experiment recurrent_gate_lnorm_soft_1_42          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id
+--device_id 0
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment recurrent_gate_xavier_1          \
+--experiment recurrent_gate_lnorm_soft_1_42          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -208,7 +208,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment recurrent_gate_xavier_1          \
+--experiment recurrent_gate_lnorm_soft_1_42          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
