@@ -182,9 +182,17 @@ if __name__ == '__main__':
         )
     )
 
-    # Record maximum accuracy and its respective checkpoint.
+    # Record maximum accuracy or f1 score and its respective checkpoint.
     max_acc = 0.0
     max_acc_ckpt = 0
+    max_f1 = 0.0
+    max_f1_ckpt = 0
+
+    # Calculate F1 score or not.
+    if config.task == 'qqp' or config.task == 'mrpc':
+        get_f1 = True
+    else:
+        get_f1 = False
 
     # Evaluate every checkpoints.
     for ckpt in all_ckpts:
@@ -202,25 +210,40 @@ if __name__ == '__main__':
         )
 
         # Calculate accuracy.
-        if config.amp:
-            acc = fine_tune.util.amp_evaluation(
-                config=config,
-                dataset=dataset,
-                model=model,
-                tokenizer=tokenizer
-            )
+        if not get_f1:
+            if config.amp:
+                #TODO: remove amp evaluation?
+                print("amp evaluation could be deprecated in future version!")
+                acc = fine_tune.util.amp_evaluation(
+                    config=config,
+                    dataset=dataset,
+                    model=model,
+                    tokenizer=tokenizer
+                )
+            else:
+                acc = fine_tune.util.evaluate_acc(
+                    config=config,
+                    dataset=dataset,
+                    model=model,
+                    tokenizer=tokenizer
+                )
         else:
-            acc = fine_tune.util.evaluation(
+            acc, f1 = fine_tune.util.evaluate_acc_and_f1(
                 config=config,
                 dataset=dataset,
                 model=model,
                 tokenizer=tokenizer
             )
 
+
         # Update max accuracy.
         if max_acc <= acc:
             max_acc = acc
             max_acc_ckpt = ckpt
+
+        if get_f1:
+            max_f1 = f1
+            max_f1_ckpt = ckpt
 
         # Log accuracy.
         writer.add_scalar(
@@ -228,6 +251,13 @@ if __name__ == '__main__':
             acc,
             ckpt
         )
+
+        if get_f1:
+            writer.add_scalar(
+                f'{config.task}/{config.dataset}/f1_score',
+                f1,
+                ckpt
+            )
 
     # Release IO resources.
     writer.flush()

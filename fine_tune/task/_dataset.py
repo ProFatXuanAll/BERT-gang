@@ -151,6 +151,8 @@ class Dataset(torch.utils.data.Dataset):
                 self.__class__.__name__,
                 dataset
             )
+        else:
+            raise ValueError(f"This dataset: {dataset} is not allowed!")
 
     def __getitem__(self, index: int) -> Sample:
         r"""Sample dataset by index.

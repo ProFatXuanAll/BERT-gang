@@ -43,6 +43,8 @@ def load_dataset(
             If `task` is 'boolq'.
         `fine_tune.task.QNLI`:
             If `task` is `qnli`
+        `fine_tune.task.QQP`:
+            If `task` is `qqp`
     """
     if task == 'mnli':
         return fine_tune.task.MNLI(dataset)
@@ -52,6 +54,8 @@ def load_dataset(
         return fine_tune.task.QNLI(dataset)
     if task == 'sst2':
         return fine_tune.task.SST2(dataset)
+    if task == 'qqp':
+        return fine_tune.task.QQP(dataset)
 
     raise ValueError(
         f'`task` {task} is not supported.\nSupported options:' +
