@@ -24,7 +24,6 @@ from fine_tune.model._student_albert import StudentAlbert
 from fine_tune.model._student_bert import StudentBert
 from fine_tune.model._teacher_albert import TeacherAlbert
 from fine_tune.model._teacher_bert import TeacherBert
-from fine_tune.model.logits_bank import Logitsbank
 from fine_tune.model._gate import HighwayGate
 
 # Define types for type annotation.
