@@ -133,7 +133,8 @@ def train_PKD(
 
     # Create layer mapping indices.
     if layer_mapping == 'even':
-        teacher_indices = list(range(1, 12, 2))
+        skip = 12 // student_config.num_hidden_layers
+        teacher_indices = list(range(skip-1, 12, skip))
     elif layer_mapping == 'odd':
         teacher_indices = list(range(0, 12, 2))
     elif layer_mapping == 'user_defined':
