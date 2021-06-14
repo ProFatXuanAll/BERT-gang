@@ -1,15 +1,15 @@
-r"""QNLI dataset.
+r"""QQP dataset.
 
 Usage:
     import torch.utils.data.Dataloader
     import fine_tune
 
-    dataset = fine_tune.task.QNLI('train')
-    dataset = fine_tune.task.QNLI('dev')
+    dataset = fine_tune.task.QQP('train')
+    dataset = fine_tune.task.QQP('dev')
 
     dataloader = torch.utils.data.Dataloader(
         dataset,
-        collate_fn=QNLI.create_collate_fn(...)
+        collate_fn=QQP.create_collate_fn(...)
     )
 """
 
@@ -44,15 +44,15 @@ from fine_tune.task._dataset import (
 
 logger = logging.getLogger('fine_tune.task')
 
-# Define QNLI dataset.
+# Define QQP dataset.
 
-class QNLI(Dataset):
-    r"""QNLI dataset and its utilities
+class QQP(Dataset):
+    r"""QQP dataset and its utilities
 
     Parameters
     ----------
     Dataset : string
-        Name of QNLI dataset file to be loaded.
+        Name of QQP dataset file to be loaded.
     """
     #TODO: support testing dataset.
     allow_dataset: List[str] = [
@@ -61,49 +61,50 @@ class QNLI(Dataset):
     ]
 
     allow_labels: List[Label] = [
-        'not_entailment',
-        'entailment'
+        0,
+        1
     ]
 
     task_path: str = os.path.join(
         fine_tune.path.FINE_TUNE_DATA,
-        'QNLI'
+        'QQP'
     )
 
     @staticmethod
     def load(dataset: str) -> List[Sample]:
-        r"""Load QNLI dataset into memory.
-
+        """Load QQP dataset into memory.
         This is a heavy IO method and might required lots of memory since
-        dataset might be huge. QNLI dataset must be download previously. See
-        QNLI document in 'project_root/doc/fine_tune_qnli.md' for downloading
+        dataset might be huge. QQP dataset must be download previously. See
+        QQP document in 'project_root/doc/fine_tune_qqp.md' for downloading
         details.
+
         Parameters
         ----------
         dataset : str
-            Name of the QNLI dataset to be loaded.
+            Name of the QQP dataset to be loaded.
+
         Returns
         -------
         List[Sample]
-            A list of QNLI samples.
+            A list of QQP samples.
         """
         try:
             dataset_path = os.path.join(
-                QNLI.task_path,
+                QQP.task_path,
                 f'{dataset}.tsv'
             )
             with open(dataset_path, 'r') as tsv_file:
                 # Skip first line.
                 tsv_file.readline()
                 samples = []
-                for sample in tqdm(tsv_file, desc=f'Loading QNLI {dataset}'):
+                for sample in tqdm(tsv_file, desc=f'Loading QQP {dataset}'):
                     sample = sample.strip()
-                    _, question, sentence, label = sample.split('\t')
+                    _, _, _, question1, question2, is_duplicate = sample.split('\t')
                     samples.append(
                         Sample({
-                            'text': question,
-                            'text_pair': sentence,
-                            'label': label_encoder(QNLI, label)
+                            'text': question1,
+                            'text_pair': question2,
+                            'label': label_encoder(QQP, int(is_duplicate))
                         })
                     )
 
@@ -115,10 +116,10 @@ class QNLI(Dataset):
             return samples
         except FileNotFoundError as error:
             raise FileNotFoundError(
-                f'QNLI dataset file {dataset} does not exist.\n' +
+                f'QQP dataset file {dataset} does not exist.\n' +
                 'You must downloaded previously and put it in the path:\n' +
                 f'{dataset_path}\n' +
                 "See '" +
-                os.path.join(fine_tune.path.DOC, 'fine_tune_qnli.md') +
+                os.path.join(fine_tune.path.DOC, 'fine_tune_qqp.md') +
                 "' for downloading details."
             ) from error
