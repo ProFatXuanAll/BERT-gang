@@ -266,3 +266,8 @@ if __name__ == '__main__':
     # Log maximum accuracy.
     logger.info('max accuracy:            %f', max_acc)
     logger.info('max accuracy checkpoint: %d', max_acc_ckpt)
+
+    # Log f1 score if necessary.
+    if get_f1:
+        logger.info('max f1 score:        %f', max_f1)
+        logger.info('max f1 score checkpoint: %d', max_f1_ckpt)

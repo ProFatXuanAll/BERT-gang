@@ -27,7 +27,7 @@ rm ./data/fine_tune/SST-2.zip
 ```sh
 # Fine-tune on SST-2.
 python3.8 run_fine_tune.py     \
---experiment bert_base_teacher                 \
+--experiment teacher_huggingface                 \
 --model bert                   \
 --ptrain_ver bert-base-uncased \
 --task sst2                    \
@@ -41,13 +41,13 @@ python3.8 run_fine_tune.py     \
 --dropout 0.1                  \
 --eps 1e-8                     \
 --log_step 500                 \
---lr 3e-5                      \
+--lr 2e-5                      \
 --max_norm 1.0                 \
 --max_seq_len 128              \
 --device_id 1                     \
 --seed 42                      \
 --total_step 6315             \
---warmup_step  2105           \
+--warmup_step  1894           \
 --weight_decay 0.01
 ```
 
@@ -56,17 +56,17 @@ python3.8 run_fine_tune.py     \
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
 --kd_algo pkd-even                          \
---teacher_exp bert_base_teacher                \
+--teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 6315 \
---experiment PKD_even_soft_6_4_42            \
+--experiment PKD_hugface_soft_1_26            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 1000                   \
+--ckpt_step 2000                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
@@ -78,8 +78,8 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --num_hidden_layers 6              \
 --total_step 25260                \
 --type_vocab_size 2                \
---seed 42                          \
---warmup_step 7578               \
+--seed 26                          \
+--warmup_step 2526               \
 --weight_decay 0.01                \
 --device_id 0                      \
 --tdevice_id 0                     \
@@ -96,14 +96,14 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp bert_base_teacher                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment recurrent_gate_lnorm_hard_only_1_42            \
+--experiment AKD_hugface_soft_1_26            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 1000                   \
+--ckpt_step 2000                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
@@ -113,16 +113,16 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 8420                \
+--total_step 25260                \
 --type_vocab_size 2                \
---warmup_step  842               \
+--warmup_step  2526               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --tdevice_id 1                     \
---seed 42                          \
---softmax_temp 10                  \
---soft_weight 0                  \
---hard_weight 1                \
+--seed 26                          \
+--softmax_temp 20                  \
+--soft_weight 0.5                  \
+--hard_weight 0.5                \
 --mu 100                           \
 --use_hidden_loss                  \
 --use_classify_loss
@@ -133,7 +133,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_even_soft_6_4_42                 \
+--experiment AKD_hugface_soft_1_26                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
@@ -144,7 +144,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_even_soft_6_4_42                 \
+--experiment AKD_hugface_soft_1_26                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
