@@ -56,6 +56,8 @@ def load_dataset(
         return fine_tune.task.SST2(dataset)
     if task == 'qqp':
         return fine_tune.task.QQP(dataset)
+    if task == 'rte':
+        return fine_tune.task.RTE(dataset)
 
     raise ValueError(
         f'`task` {task} is not supported.\nSupported options:' +
