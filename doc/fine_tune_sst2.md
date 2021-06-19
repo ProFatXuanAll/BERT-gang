@@ -96,7 +96,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp bert_base_teacher                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment AKD_hugface_soft_1_26            \
+--experiment AKD_hugface_soft_2_42            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -119,10 +119,10 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --weight_decay 0.01                \
 --device_id 1                      \
 --tdevice_id 1                     \
---seed 26                          \
+--seed 42                          \
 --softmax_temp 20                  \
 --soft_weight 0.5                  \
---hard_weight 0.5                \
+--hard_weight 0.7                \
 --mu 100                           \
 --use_hidden_loss                  \
 --use_classify_loss
