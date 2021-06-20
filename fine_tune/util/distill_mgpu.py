@@ -46,9 +46,7 @@ def distill_mgpu(
         alpha: float = 0.2,
         gamma: float = 0.8,
         mu: int = 100,
-        softmax_temp: float = 1.0,
-        use_classify_loss: bool = True,
-        use_hidden_loss: bool = True
+        softmax_temp: float = 1.0
 ):
     """Perform knowledge distillation from given fine-tuned teacher model
     without automatic mixed precision.
@@ -86,15 +84,6 @@ def distill_mgpu(
         Weight of hidden MSE loss, by default 100
     softmax_temp : float, optional
         Softmax temperature, by default 1.0
-    use_classify_loss : bool, optional
-        Total loss function include classification loss which is defined by:
-            L_{classify} =
-                ce_weights * ( alpha * CE_{soft} + ( 1-alpha ) * CE_{hard} ) +
-                (1-ce_weights) * L_{SCL}
-        by default True
-    use_hidden_loss: bool, optional
-        Distill teacher knowledge from hidden states
-        by default True
     """
 
     # Set teacher model as evaluation mode.
@@ -235,79 +224,68 @@ def distill_mgpu(
                 return_hidden_and_attn=True
             )
 
-            # Calculate classify loss. TODO: Refactor
+            # Calculate classification loss.
+            # Calculate batch loss of logits.
+            batch_logits_loss = logits_objective(
+                hard_target=label.to(student_device),
+                teacher_logits=teacher_logits.to(student_device),
+                student_logits=student_logits,
+                gamma=gamma,
+                alpha=alpha,
+                softmax_temp=softmax_temp
+            )
 
-            if use_classify_loss:
-                # Calculate batch loss of logits.
-                batch_logits_loss = logits_objective(
-                    hard_target=label.to(student_device),
-                    teacher_logits=teacher_logits.to(student_device),
-                    student_logits=student_logits,
-                    gamma=gamma,
-                    alpha=alpha,
-                    softmax_temp=softmax_temp
+            # Normalize loss.
+            batch_logits_loss = batch_logits_loss / student_config.accum_step
+
+            # Log loss.
+            logits_loss += batch_logits_loss.item()
+            loss += batch_logits_loss.item()
+
+            # Accumulate gradients.
+            batch_logits_loss.backward(retain_graph=True)
+
+            # Calculate batch hidden states loss.
+            # `teacher_hiddens`: tuple(Emb, Ht_1, Ht_2,...,Ht_12)
+            # `student_hiddens`: tuple(Emb, Hs_1, Hs_2,...,Hs_6)
+            # Mapping strategy:
+            # Ht_2 -> Hs_1, Ht_4 -> Hs_2,...,Ht_12 -> Hs_6
+
+            # Drop embedding layer
+            teacher_hiddens = teacher_hiddens[1:]
+            student_hiddens = student_hiddens[1:]
+
+            aggregate_hiddens = []
+            prev = torch.zeros_like(teacher_hiddens[0])
+            # Construct aggregate hidden states
+            for t_hidden, gate in zip(teacher_hiddens, gate_networks):
+                agg_hidden = gate(
+                    input1=prev.to(student_device),
+                    input2=t_hidden.to(student_device)
+                )
+                aggregate_hiddens.append(agg_hidden)
+                prev = t_hidden
+
+            for t_index, s_hidden in zip(
+                    teacher_indices,
+                    student_hiddens
+                ):
+
+                batch_hidden_loss = hidden_objective(
+                    teacher_hidden=aggregate_hiddens[t_index].to(student_device),
+                    student_hidden=s_hidden,
+                    mu=mu
                 )
 
                 # Normalize loss.
-                batch_logits_loss = batch_logits_loss / student_config.accum_step
+                batch_hidden_loss = batch_hidden_loss / student_config.accum_step
 
                 # Log loss.
-                logits_loss += batch_logits_loss.item()
-                loss += batch_logits_loss.item()
+                hidden_loss += batch_hidden_loss.item()
+                loss += batch_hidden_loss.item()
 
-                # Accumulate gradients.
-                batch_logits_loss.backward(retain_graph=True)
-
-            if use_hidden_loss:
-                # Calculate batch hidden states loss.
-                # `teacher_hiddens`: tuple(Emb, Ht_1, Ht_2,...,Ht_12)
-                # `student_hiddens`: tuple(Emb, Hs_1, Hs_2,...,Hs_6)
-                # Mapping strategy:
-                # Ht_2 -> Hs_1, Ht_4 -> Hs_2,...,Ht_12 -> Hs_6
-
-                # Drop embedding layer
-                teacher_hiddens = teacher_hiddens[1:]
-                student_hiddens = student_hiddens[1:]
-
-                #TODO: refactor
-                aggregate_hiddens = []
-                prev = torch.zeros_like(teacher_hiddens[0])
-                # prev = torch.randn_like(teacher_hiddens[0])
-                # Construct aggregate hidden states
-                assert len(teacher_hiddens) == len(gate_networks), 'Layer nums and gate networks not match'
-                for t_hidden, gate in zip(teacher_hiddens, gate_networks):
-                    agg_hidden = gate(
-                        input1=prev.to(student_device),
-                        input2=t_hidden.to(student_device)
-                    )
-                    aggregate_hiddens.append(agg_hidden)
-                    prev = t_hidden
-
-                for t_index, s_hidden in zip(
-                        teacher_indices,
-                        student_hiddens
-                    ):
-
-                    # aggregate_hidden = gate(
-                    #     input1=teacher_hiddens[t_index - 1].to(student_device),
-                    #     input2=teacher_hiddens[t_index].to(student_device)
-                    # )
-
-                    batch_hidden_loss = hidden_objective(
-                        teacher_hidden=aggregate_hiddens[t_index].to(student_device),
-                        student_hidden=s_hidden,
-                        mu=mu
-                    )
-
-                    # Normalize loss.
-                    batch_hidden_loss = batch_hidden_loss / student_config.accum_step
-
-                    # Log loss.
-                    hidden_loss += batch_hidden_loss.item()
-                    loss += batch_hidden_loss.item()
-
-                    # Accumulate gradient.
-                    batch_hidden_loss.backward(retain_graph=True)
+                # Accumulate gradient.
+                batch_hidden_loss.backward(retain_graph=True)
 
             # Increment accumulation step.
             accum_step += 1

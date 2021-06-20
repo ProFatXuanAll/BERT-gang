@@ -55,16 +55,6 @@ if __name__ == "__main__":
         required=True,
         type=str,
     )
-    parser.add_argument(
-        '--use_classify_loss',
-        help='Use logits loss during distillation',
-        action='store_true'
-    )
-    parser.add_argument(
-        '--use_hidden_loss',
-        help='Distill teacher knowledge from hidden states',
-        action='store_true'
-    )
 
     # Arguments of teacher model.
     parser.add_argument(
@@ -387,6 +377,7 @@ if __name__ == "__main__":
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
             soft_weight=args.soft_weight,
+            hard_weight=args.hard_weight,
             mse_weight=args.mu,
             softmax_temp=args.softmax_temp,
             layer_mapping='even'
@@ -438,24 +429,10 @@ if __name__ == "__main__":
             scheduler=scheduler,
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
-            use_classify_loss=args.use_classify_loss,
-            use_hidden_loss=args.use_hidden_loss,
             alpha=args.soft_weight,
             gamma=args.hard_weight,
             mu=args.mu,
             softmax_temp=args.softmax_temp,
-        )
-    elif args.kd_algo.lower() == 'probing':
-        #TODO: remove this branch
-        logger.info("Warning: Run probing training")
-        fine_tune.util.train_shallower_bert(
-            student_config=student_config,
-            dataset=dataset,
-            teacher_model=teacher_model,
-            student_model=student_model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            student_tokenizer=student_tokenizer
         )
     else:
         raise ValueError(f"Un supported kd algo: {args.kd_algo}")

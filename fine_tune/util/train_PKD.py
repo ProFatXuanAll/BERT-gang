@@ -43,6 +43,7 @@ def train_PKD(
     teacher_tokenizer: transformers.PreTrainedTokenizer,
     student_tokenizer: transformers.PreTrainedTokenizer,
     soft_weight: float = 0.2,
+    hard_weight: float = 0.8,
     mse_weight: int = 100,
     softmax_temp: float = 1.0,
     layer_mapping: str = 'even'
@@ -75,6 +76,8 @@ def train_PKD(
         Tokenizer paired with `student_model`.
     soft_weight : float, optional
         Weight of soft target loss, by default 0.2
+    hard_weight : float, optional
+        Weight of hard target loss, by default 0.8
     mse_weight : int, optional
         Weight of hidden MSE loss, by default 100
     softmax_temp : float, optional
@@ -226,7 +229,7 @@ def train_PKD(
                 hard_target=label.to(student_device),
                 teacher_logits=teacher_logits.to(student_device),
                 student_logits=student_logits,
-                gamma=1-soft_weight,
+                gamma=hard_weight,
                 alpha=soft_weight,
                 softmax_temp=softmax_temp
             )
