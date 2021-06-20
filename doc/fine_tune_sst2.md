@@ -124,9 +124,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --softmax_temp 5                  \
 --soft_weight 0.5                  \
 --hard_weight 0.7                \
---mu 100                           \
---use_hidden_loss                  \
---use_classify_loss
+--mu 100
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
