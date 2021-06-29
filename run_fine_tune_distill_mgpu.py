@@ -132,7 +132,7 @@ if __name__ == "__main__":
         '--mu',
         help='Hidden MSE loss weight',
         default=1,
-        type=int
+        type=float
     )
 
     # Arguments of teacher model.

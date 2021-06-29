@@ -150,14 +150,14 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp test                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment recurrent_gate_lnorm_soft_1_26            \
+--experiment AKD_soft_3_26            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 2000                   \
+--ckpt_step 3000                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
@@ -175,11 +175,9 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --device_id 0                      \
 --tdevice_id 0                     \
 --softmax_temp 10                  \
---soft_weight 0.5                  \
+--soft_weight 0.7                  \
 --hard_weight 0.5                \
---mu 100                           \
---use_hidden_loss                  \
---use_classify_loss
+--mu 100
 ```
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
@@ -198,7 +196,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment recurrent_gate_lnorm_soft_1_26          \
+--experiment AKD_soft_3_26          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -209,7 +207,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment recurrent_gate_lnorm_soft_1_26          \
+--experiment AKD_soft_3_26          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \

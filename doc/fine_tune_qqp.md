@@ -95,7 +95,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  34110 \
---experiment AKD_soft_1_26            \
+--experiment AKD_soft_3_42            \
 --model bert                       \
 --task qqp                        \
 --accum_step 1                     \
@@ -116,15 +116,13 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --type_vocab_size 2                \
 --warmup_step  4548               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
---seed 26                          \
---softmax_temp 20                  \
+--device_id 1                      \
+--tdevice_id 1                     \
+--seed 42                          \
+--softmax_temp 10                  \
 --soft_weight 0.7                  \
 --hard_weight 0.3                \
---mu 100                           \
---use_hidden_loss                  \
---use_classify_loss
+--mu 100
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
@@ -143,10 +141,10 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QQP dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment PKD_even_soft_1_26                 \
+--experiment AKD_soft_3_42                 \
 --model bert                    \
 --task qqp                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 1
+--device_id 0
 ```
