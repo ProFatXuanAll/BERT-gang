@@ -25,7 +25,7 @@ rm ./data/fine_tune/RTE.zip
 - Dev dataset: 277
 
 ```sh
-# Fine-tune on SST-2.
+# Fine-tune on RTE.
 python3.8 run_fine_tune.py     \
 --experiment teacher_huggingface                 \
 --model bert                   \
@@ -59,7 +59,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 231 \
---experiment PKD_hugface_soft_42_3            \
+--experiment PKD_hugface_soft_6_3_42            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -72,20 +72,21 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 10                     \
---lr 1e-5                          \
+--lr 5e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 616                \
+--total_step 1540                \
 --type_vocab_size 2                \
 --seed 42                          \
---warmup_step 184               \
+--warmup_step 462               \
 --weight_decay 0.01                \
 --device_id 0                      \
 --tdevice_id 0                     \
 --softmax_temp 5                 \
---mu 1                          \
---soft_weight 0.9
+--mu 500                          \
+--soft_weight 0.7                 \
+--hard_weight 0.3
 ```
 
 ### AKD-BERT Fine-Tune Distillation Scripts with Multi-GPU
@@ -96,36 +97,34 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment debug_2            \
+--experiment AKD_hugface_soft_2_2_42            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 50                   \
+--ckpt_step 100                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 10                     \
---lr 3e-5                          \
+--lr 5e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 770                \
+--total_step 1540                \
 --type_vocab_size 2                \
---warmup_step  231               \
+--warmup_step  462               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --tdevice_id 1                     \
 --seed 42                          \
---softmax_temp 1                  \
---soft_weight 1                  \
---hard_weight 0                \
---use_classify_loss            \
---mu 100                           \
---use_hidden_loss
+--softmax_temp 5                  \
+--soft_weight 0.7                  \
+--hard_weight 0.3                \
+--mu 500
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
@@ -133,18 +132,18 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  PKD_hugface_soft_42_3                 \
+--experiment  PKD_hugface_soft_6_3_42                 \
 --model bert                    \
 --task rte                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on RTE dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  PKD_hugface_soft_42_3                 \
+--experiment  PKD_hugface_soft_6_3_42                 \
 --model bert                    \
 --task rte                     \
 --dataset dev           \

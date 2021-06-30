@@ -33,3 +33,4 @@ from fine_tune.task._qnli import QNLI
 from fine_tune.task._sst2 import SST2
 from fine_tune.task._qqp import QQP
 from fine_tune.task._rte import RTE
+from fine_tune.task._mrpc import MRPC

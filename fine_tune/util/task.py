@@ -45,6 +45,10 @@ def load_dataset(
             If `task` is `qnli`
         `fine_tune.task.QQP`:
             If `task` is `qqp`
+        `fine_tune.task.RTE`:
+            If `task` is `rte`
+        `fine_tune.task.MRPC`:
+            If `task` is `mrpc`
     """
     if task == 'mnli':
         return fine_tune.task.MNLI(dataset)
@@ -58,6 +62,8 @@ def load_dataset(
         return fine_tune.task.QQP(dataset)
     if task == 'rte':
         return fine_tune.task.RTE(dataset)
+    if task == 'mrpc':
+        return fine_tune.task.MRPC(dataset)
 
     raise ValueError(
         f'`task` {task} is not supported.\nSupported options:' +
