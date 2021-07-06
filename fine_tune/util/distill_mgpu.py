@@ -264,7 +264,7 @@ def distill_mgpu(
                     input2=t_hidden.to(student_device)
                 )
                 aggregate_hiddens.append(agg_hidden)
-                prev = t_hidden
+                prev = agg_hidden
 
             for t_index, s_hidden in zip(
                     teacher_indices,
@@ -275,7 +275,7 @@ def distill_mgpu(
                     teacher_hidden=aggregate_hiddens[t_index].to(student_device),
                     student_hidden=s_hidden,
                     mu=mu
-                )
+                ) / 6
 
                 # Normalize loss.
                 batch_hidden_loss = batch_hidden_loss / student_config.accum_step
