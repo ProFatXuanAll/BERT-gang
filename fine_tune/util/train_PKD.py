@@ -138,6 +138,8 @@ def train_PKD(
     if layer_mapping == 'even':
         skip = 12 // student_config.num_hidden_layers
         teacher_indices = list(range(skip-1, 12, skip))
+        # input("Ignore last layer")
+        # teacher_indices.pop(-1)
     elif layer_mapping == 'odd':
         teacher_indices = list(range(0, 12, 2))
     elif layer_mapping == 'user_defined':
@@ -254,7 +256,7 @@ def train_PKD(
                     teacher_hidden=teacher_hiddens[t_index].to(student_device),
                     student_hidden=s_hidden,
                     mu=mse_weight
-                )
+                ) / 6 # TODO: Loss function scale bug
 
                 # Normalize loss.
                 batch_hidden_loss = batch_hidden_loss / student_config.accum_step
