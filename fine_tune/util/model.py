@@ -17,6 +17,9 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+# typing
+from typing import List
+
 # 3rd party modules
 
 import torch
@@ -232,4 +235,78 @@ def load_teacher_model_by_config(
         model=config.model,
         num_class=config.num_class,
         ptrain_ver=config.ptrain_ver
+    )
+
+def load_gate_networks(
+    num_layers: int,
+    dimension: int,
+    seq_length: int,
+    device_id: int
+) -> List[fine_tune.model.HighwayGate]:
+    """Return a list of `HighwayGate`.
+    The length of list depends on `num_layers`.
+
+    Parameters
+    ----------
+    num_layers : int
+        The numbers of `HighwayGate` to load
+    dimension : int
+        Dimension of `HighwayGate`
+    seq_length : int
+        Max sequence length of `HighwayGate`
+    device_id : int
+        Specify which device these `HighwayGate` reside in
+
+    Returns
+    -------
+    List[fine_tune.model.HighwayGate]
+        A list of `HighwayGate`
+    """
+    if device_id == -1:
+        device = torch.device('cpu')
+    else:
+        device = torch.device(f'cuda:{device_id}')
+
+    gate_networks = [
+        fine_tune.model.HighwayGate(
+            dimension=dimension,
+            seq_length=seq_length
+        ).to(device)
+        for _ in range(num_layers)
+    ]
+
+    return gate_networks
+
+def load_gate_networks_by_config(
+    teacher_config: fine_tune.config.TeacherConfig,
+    student_config: fine_tune.config.StudentConfig,
+    device_id: int
+) -> List[fine_tune.model.HighwayGate]:
+    """Given teacher and student model config,
+    return a list of `HighwayGate`.
+
+    Parameters
+    ----------
+    teacher_config : fine_tune.config.TeacherConfig
+        Teacher model configuration
+    student_config : fine_tune.config.StudentConfig
+        Student model configuration
+    device_id : int
+        Sepecify which device these gate networks reside
+
+    Returns
+    -------
+    List[fine_tune.model.HighwayGate]
+        A list of `HighwayGate`
+    """
+    if 'bert-base' in teacher_config.ptrain_ver:
+        num_layers = 12
+    if 'bert-large' in teacher_config.ptrain_ver:
+        num_layers = 24
+
+    return load_gate_networks(
+        num_layers=num_layers,
+        dimension=student_config.d_model,
+        seq_length=student_config.max_seq_len,
+        device_id=device_id
     )

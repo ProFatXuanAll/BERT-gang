@@ -95,6 +95,12 @@ if __name__ == "__main__":
         required=True,
         type=int,
     )
+    parser.add_argument(
+        '--gate_device_id',
+        help='Device ID of gate networks.',
+        required=True,
+        type=int
+    )
 
     # Optional arguments.
     # Shared arguments.
@@ -320,6 +326,7 @@ if __name__ == "__main__":
         config=teacher_config
     )
 
+    logger.info("Load teacher and student tokenizer")
     # Load teacher and student tokenizer.
     teacher_tokenizer = fine_tune.util.load_teacher_tokenizer_by_config(
         config=teacher_config
@@ -343,14 +350,17 @@ if __name__ == "__main__":
         f'model-{args.tckpt}.pt'
     )
     # Load model from checkpoint.
+    logger.info("Load teacher model from given checkpoint: %s", model_name)
     teacher_model.load_state_dict(torch.load(model_name, map_location=teacher_config.device))
 
     # Load student model.
+    logger.info("Load student model")
     student_model = fine_tune.util.load_student_model_by_config(
         config=student_config,
         tokenizer=student_tokenizer
     )
 
+    logger.info("Load student model's optimizer and scheduler.")
     # Load optimizer.
     optimizer = fine_tune.util.optimizer.load_optimizer_by_config(
         config=student_config,
@@ -361,6 +371,31 @@ if __name__ == "__main__":
     scheduler = fine_tune.util.scheduler.load_scheduler_by_config(
         config=student_config,
         optimizer=optimizer
+    )
+
+    # Load gate networks.
+    logger.info("Load gate networks by teacher and student config.")
+    gate_networks = fine_tune.util.load_gate_networks_by_config(
+        teacher_config=teacher_config,
+        student_config=student_config,
+        device_id=args.gate_device_id
+    )
+
+    logger.info("Load gate networks' optimizer and scheduler")
+    # Load optimizer.
+    gates_optimizer = fine_tune.util.load_gate_networks_optimizer(
+        betas=student_config.betas,
+        eps=student_config.eps,
+        lr=student_config.lr,
+        weight_decay=student_config.weight_decay,
+        gate_networks=gate_networks
+    )
+
+    # Load scheduler
+    gates_scheduler = fine_tune.util.load_gate_networks_scheduler(
+        optimizer=gates_optimizer,
+        total_step=student_config.total_step,
+        warmup_step=student_config.warmup_step
     )
 
     # Perform disitllation.
@@ -425,8 +460,11 @@ if __name__ == "__main__":
             dataset=dataset,
             teacher_model=teacher_model,
             student_model=student_model,
+            gate_networks=gate_networks,
             optimizer=optimizer,
             scheduler=scheduler,
+            gates_optimizer=gates_optimizer,
+            gates_scheduler=gates_scheduler,
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
             alpha=args.soft_weight,

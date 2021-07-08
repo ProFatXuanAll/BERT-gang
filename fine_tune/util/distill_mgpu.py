@@ -15,6 +15,9 @@ from __future__ import unicode_literals
 
 import os
 
+# typing
+from typing import List
+
 # 3rd party modules
 
 import torch
@@ -32,15 +35,17 @@ import fine_tune.task
 import fine_tune.model
 import fine_tune.path
 
-
 def distill_mgpu(
         teacher_config: fine_tune.config.TeacherConfig,
         student_config: fine_tune.config.StudentConfig,
         dataset: fine_tune.task.Dataset,
         teacher_model: fine_tune.model.TeacherModel,
         student_model: fine_tune.model.StudentModel,
+        gate_networks: List[fine_tune.model.HighwayGate],
         optimizer: torch.optim.AdamW,
         scheduler: torch.optim.lr_scheduler.LambdaLR,
+        gates_optimizer: torch.optim.AdamW,
+        gates_scheduler: torch.optim.lr_scheduler.LambdaLR,
         teacher_tokenizer: transformers.PreTrainedTokenizer,
         student_tokenizer: transformers.PreTrainedTokenizer,
         alpha: float = 0.2,
@@ -89,8 +94,20 @@ def distill_mgpu(
     # Set teacher model as evaluation mode.
     teacher_model.eval()
 
+    # Create layer mapping indices.
+    skip = 12 // student_config.num_hidden_layers
+    teacher_indices = list(range(skip-1, 12, skip))
+
+    # Init student model from pre-trained teacher layer.
+    print("Warning!: Use even layer of teacher model to init student.")
+    student_model.init_from_pre_trained(teacher_indices)
+
     # Set student model as training mode.
     student_model.train()
+
+    # Set gate networks as training mode.
+    for gate in gate_networks:
+        gate.train()
 
     # Model running device of teacher and student model.
     teacher_device = teacher_config.device
@@ -98,6 +115,7 @@ def distill_mgpu(
 
     # Clean all gradient.
     optimizer.zero_grad()
+    gates_optimizer.zero_grad()
 
     # Get experiment name and path for student model.
     experiment_name = fine_tune.config.BaseConfig.experiment_name(
@@ -129,24 +147,7 @@ def distill_mgpu(
 
     # Create objective functions.
     logits_objective = fine_tune.objective.distill_loss
-
-    # Create layer mapping indices.
-    skip = 12 // student_config.num_hidden_layers
-    teacher_indices = list(range(skip-1, 12, skip))
-
-    # Init student model from pre-trained teacher layer.
-    #TODO: remove warning.
-    print("Warning!: Use even layer of teacher model to init student.")
-    student_model.init_from_pre_trained(teacher_indices)
-
-
     hidden_objective = fine_tune.objective.hidden_MSE_loss
-
-    #TODO: refactor
-    print("Now use 12 gate to aggregate all layer hidden states")
-    gate_networks = [ fine_tune.model.HighwayGate(dimension=768).to(student_device)
-        for _ in range(12)
-    ]
 
     # Accumulation step counter.
     step = 0
@@ -237,7 +238,6 @@ def distill_mgpu(
 
             # Normalize loss.
             batch_logits_loss = batch_logits_loss / student_config.accum_step
-
             # Log loss.
             logits_loss += batch_logits_loss.item()
             loss += batch_logits_loss.item()
@@ -272,7 +272,7 @@ def distill_mgpu(
                 ):
 
                 batch_hidden_loss = hidden_objective(
-                    teacher_hidden=aggregate_hiddens[t_index].to(student_device),
+                    teacher_hidden=aggregate_hiddens[t_index],
                     student_hidden=s_hidden,
                     mu=mu
                 ) / 6
@@ -298,11 +298,19 @@ def distill_mgpu(
                     student_config.max_norm
                 )
 
+                for gate in gate_networks:
+                    torch.nn.utils.clip_grad_norm_(
+                        gate.parameters(),
+                        student_config.max_norm
+                    )
+
                 # Gradient descend.
                 optimizer.step()
+                gates_optimizer.step()
 
                 # Update learning rate.
                 scheduler.step()
+                gates_scheduler.step()
 
                 # Log on CLI.
                 cli_logger.update()
@@ -348,6 +356,7 @@ def distill_mgpu(
 
                 # Clean up gradient.
                 optimizer.zero_grad()
+                gates_optimizer.zero_grad()
 
                 # Save model for each `student_config.ckpt_step` step.
                 if step % student_config.ckpt_step == 0:
@@ -376,3 +385,8 @@ def distill_mgpu(
         student_model.state_dict(),
         os.path.join(experiment_dir, f'model-{step}.pt')
     )
+    for i, gate in enumerate(gate_networks):
+        torch.save(
+            gate.state_dict(),
+            os.path.join(experiment_dir, f'gate-{i}-{step}.pt')
+        )

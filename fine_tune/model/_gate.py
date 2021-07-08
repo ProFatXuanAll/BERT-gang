@@ -18,7 +18,6 @@ from __future__ import unicode_literals
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class HighwayGate(nn.Module):
     r"""Gate network implementation.
@@ -35,11 +34,14 @@ class HighwayGate(nn.Module):
     ----------
     dimension : int
         hidden state dimension
+    seq_length : int
+        sequence length, we need this info to set LayerNorm module
     """
-    def __init__(self, dimension: int):
+    def __init__(self, dimension: int, seq_length: int):
         super().__init__()
         self.linear = nn.Linear(in_features=dimension, out_features=dimension)
         self.activation = nn.Sigmoid()
+        self.layernorm = nn.LayerNorm(normalized_shape = [seq_length, dimension])
 
         # Xavier norm init.
         nn.init.xavier_uniform_(self.linear.weight)
@@ -63,4 +65,4 @@ class HighwayGate(nn.Module):
 
         output = input2 * transform_gate + input1 * (1-transform_gate)
 
-        return F.layer_norm(output, normalized_shape=output.shape[1:])
+        return self.layernorm(output)
