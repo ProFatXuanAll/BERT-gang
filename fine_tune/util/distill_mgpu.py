@@ -38,6 +38,7 @@ import fine_tune.path
 def distill_mgpu(
         teacher_config: fine_tune.config.TeacherConfig,
         student_config: fine_tune.config.StudentConfig,
+        gate_config: fine_tune.config.GateConfig,
         dataset: fine_tune.task.Dataset,
         teacher_model: fine_tune.model.TeacherModel,
         student_model: fine_tune.model.StudentModel,
@@ -64,6 +65,9 @@ def distill_mgpu(
         for experiment setup.
     student_config : fine_tune.config.StudentConfig
         `fine_tune.config.StudentConfig` class which attributes are used
+        for experiment setup.
+    gate_config: fine_tune.confing.GateConfig
+        `fine_tune.config.GateConfig` class which attributes are used
         for experiment setup.
     dataset : fine_tune.task.Dataset
         Task specific dataset.
@@ -301,7 +305,7 @@ def distill_mgpu(
                 for gate in gate_networks:
                     torch.nn.utils.clip_grad_norm_(
                         gate.parameters(),
-                        student_config.max_norm
+                        gate_config.max_norm
                     )
 
                 # Gradient descend.
@@ -346,6 +350,11 @@ def distill_mgpu(
                     writer.add_scalar(
                         f'{student_config.task}/{student_config.dataset}/{student_config.model}/lr',
                         optimizer.state_dict()['param_groups'][0]['lr'],
+                        step
+                    )
+                    writer.add_scalar(
+                        f'{student_config.task}/{student_config.dataset}/{student_config.model}/gate_lr',
+                        gates_optimizer.state_dict()['param_groups'][0]['lr'],
                         step
                     )
 

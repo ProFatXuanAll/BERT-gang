@@ -24,3 +24,4 @@ from __future__ import unicode_literals
 from fine_tune.config._base_config import BaseConfig
 from fine_tune.config._student_config import StudentConfig
 from fine_tune.config._teacher_config import TeacherConfig
+from fine_tune.config._gate_config import GateConfig

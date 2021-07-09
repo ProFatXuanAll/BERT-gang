@@ -241,7 +241,7 @@ def load_gate_networks(
     num_layers: int,
     dimension: int,
     seq_length: int,
-    device_id: int
+    device: torch.device
 ) -> List[fine_tune.model.HighwayGate]:
     """Return a list of `HighwayGate`.
     The length of list depends on `num_layers`.
@@ -254,7 +254,7 @@ def load_gate_networks(
         Dimension of `HighwayGate`
     seq_length : int
         Max sequence length of `HighwayGate`
-    device_id : int
+    device : torch.device
         Specify which device these `HighwayGate` reside in
 
     Returns
@@ -262,11 +262,6 @@ def load_gate_networks(
     List[fine_tune.model.HighwayGate]
         A list of `HighwayGate`
     """
-    if device_id == -1:
-        device = torch.device('cpu')
-    else:
-        device = torch.device(f'cuda:{device_id}')
-
     gate_networks = [
         fine_tune.model.HighwayGate(
             dimension=dimension,
@@ -279,8 +274,7 @@ def load_gate_networks(
 
 def load_gate_networks_by_config(
     teacher_config: fine_tune.config.TeacherConfig,
-    student_config: fine_tune.config.StudentConfig,
-    device_id: int
+    gate_config: fine_tune.config.GateConfig
 ) -> List[fine_tune.model.HighwayGate]:
     """Given teacher and student model config,
     return a list of `HighwayGate`.
@@ -289,10 +283,8 @@ def load_gate_networks_by_config(
     ----------
     teacher_config : fine_tune.config.TeacherConfig
         Teacher model configuration
-    student_config : fine_tune.config.StudentConfig
-        Student model configuration
-    device_id : int
-        Sepecify which device these gate networks reside
+    gate_config : fine_tune.config.GateConfig
+        `HighwayGate` configuration
 
     Returns
     -------
@@ -306,7 +298,7 @@ def load_gate_networks_by_config(
 
     return load_gate_networks(
         num_layers=num_layers,
-        dimension=student_config.d_model,
-        seq_length=student_config.max_seq_len,
-        device_id=device_id
+        dimension=gate_config.dimension,
+        seq_length=gate_config.max_seq_length,
+        device=gate_config.device
     )
