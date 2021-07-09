@@ -59,7 +59,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 6315 \
---experiment PKD_hugface_soft_1_2_26            \
+--experiment PKD_debug_soft_1_2_42            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -78,11 +78,11 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --num_hidden_layers 6              \
 --total_step 25260                \
 --type_vocab_size 2                \
---seed 26                          \
+--seed 42                          \
 --warmup_step 2526               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --softmax_temp 20                  \
 --mu 100                           \
 --soft_weight 0.5                  \
@@ -132,7 +132,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment AKD_hugface_soft_1_2_42                 \
+--experiment PKD_debug_soft_1_2_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
@@ -143,7 +143,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment AKD_hugface_soft_1_2_42                 \
+--experiment PKD_debug_soft_1_2_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
