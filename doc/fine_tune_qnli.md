@@ -99,7 +99,6 @@ python3.8 run_fine_tune_distill_mgpu.py \
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
---kd_algo akd-highway                          \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \

@@ -1,10 +1,4 @@
-r"""Run fine-tune distillation with multi-GPU.
-
-Usage:
-    python run_fine_tune_distill_mgpu.py ...
-
-Run `python run_fine_tune_distill_mgpu.py -h` for help, or see 'doc/fine_tune_*.md'
-for more information.
+r"""Train PKD with multiple GPU.
 """
 
 # built-in modules
@@ -40,6 +34,15 @@ if __name__ == "__main__":
     # Required parameters.
 
     # Shared arguments.
+    parser.add_argument(
+        '--kd_algo',
+        help='Which type of KD.\n' +
+        '1. `pkd-even` for BERT-PKD with even layer mapping\n' +
+        '2. `pkd-odd` for BERT-PKD with odd layer mapping\n' +
+        '3. `pkd-user-defined for BERT-PKD with user defined layer',
+        required=True,
+        type=str
+    )
     parser.add_argument(
         '--task',
         help='Name of the distillation task.',
@@ -85,62 +88,6 @@ if __name__ == "__main__":
         help='Device ID of student model.',
         required=True,
         type=int,
-    )
-
-    # Arguments of gate networks.
-    parser.add_argument(
-        '--gate_device_id',
-        help='Device ID of gate networks.',
-        required=True,
-        type=int
-    )
-    parser.add_argument(
-        '--gate_beta1',
-        default=0.9,
-        help="Optimizer `torch.optim.AdamW`'s beta coefficients.",
-        type=float
-    )
-    parser.add_argument(
-        '--gate_beta2',
-        default=0.999,
-        help="Optimizer `torch.optim.AdamW`'s beta coefficients.",
-        type=float,
-    )
-    parser.add_argument(
-        '--gate_eps',
-        default=1e-8,
-        help="Optimizer `torch.optim.AdamW`'s epsilon.",
-        type=float,
-    )
-    parser.add_argument(
-        '--gate_lr',
-        default=1e-5,
-        help="Optimizer `torch.optim.AdamW`'s learning rate.",
-        type=float,
-    )
-    parser.add_argument(
-        '--gate_max_norm',
-        default=1.0,
-        help='Maximum norm of gradient.',
-        type=float,
-    )
-    parser.add_argument(
-        '--gate_total_step',
-        required=True,
-        help='Total number of step to train gate.',
-        type=int,
-    )
-    parser.add_argument(
-        '--gate_warmup_step',
-        required=True,
-        help='Linear scheduler warmup step of gate network scheduler.',
-        type=int,
-    )
-    parser.add_argument(
-        '--gate_weight_decay',
-        default=0.01,
-        help="Optimizer `torch.optim.AdamW` weight decay regularization.",
-        type=float,
     )
 
     # Optional arguments.
@@ -414,73 +361,58 @@ if __name__ == "__main__":
         optimizer=optimizer
     )
 
-    # Init gate network block config.
-    gate_config = fine_tune.config.GateConfig(
-        dimension=student_config.d_model,
-        max_seq_length=student_config.max_seq_len,
-        beta1=args.gate_beta1,
-        beta2=args.gate_beta2,
-        eps=args.gate_eps,
-        total_step=args.gate_total_step,
-        warmup_step=args.gate_warmup_step,
-        lr=args.gate_lr,
-        max_norm=args.gate_max_norm,
-        weight_decay=args.gate_weight_decay,
-        device_id=args.gate_device_id
-    )
-
-    # Log configuration
-    logger.info(gate_config)
-
-    # Save config.
-    gate_config.save(
-        os.path.join(
-            fine_tune.path.FINE_TUNE_EXPERIMENT,
-            f'{args.experiment}_{args.model}_{args.task}'
+    # Perform disitllation.
+    if args.kd_algo.lower() == 'pkd-even':
+        logger.info("Train BERT-PKD with even layer mapping")
+        fine_tune.util.train_PKD(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            soft_weight=args.soft_weight,
+            hard_weight=args.hard_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+            layer_mapping='even'
         )
-    )
-
-    # Load gate networks.
-    logger.info("Load gate networks by teacher and student config.")
-    gate_networks = fine_tune.util.load_gate_networks_by_config(
-        teacher_config=teacher_config,
-        gate_config=gate_config
-    )
-
-    logger.info("Load gate networks' optimizer and scheduler")
-    # Load optimizer.
-    gates_optimizer = fine_tune.util.load_gate_networks_optimizer(
-        betas=gate_config.betas,
-        eps=gate_config.eps,
-        lr=gate_config.lr,
-        weight_decay=gate_config.weight_decay,
-        gate_networks=gate_networks
-    )
-
-    # Load scheduler
-    gates_scheduler = fine_tune.util.load_gate_networks_scheduler(
-        optimizer=gates_optimizer,
-        total_step=gate_config.total_step,
-        warmup_step=gate_config.warmup_step
-    )
-
-    logger.info("Train AKD-BERT with Highway Gate")
-    fine_tune.util.distill_mgpu(
-        teacher_config=teacher_config,
-        student_config=student_config,
-        gate_config=gate_config,
-        dataset=dataset,
-        teacher_model=teacher_model,
-        student_model=student_model,
-        gate_networks=gate_networks,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        gates_optimizer=gates_optimizer,
-        gates_scheduler=gates_scheduler,
-        teacher_tokenizer=teacher_tokenizer,
-        student_tokenizer=student_tokenizer,
-        alpha=args.soft_weight,
-        gamma=args.hard_weight,
-        mu=args.mu,
-        softmax_temp=args.softmax_temp,
-    )
+    elif args.kd_algo.lower() == 'pkd-odd':
+        logger.info("Train BERT-PKD with odd layer mapping")
+        fine_tune.util.train_PKD(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            soft_weight=args.soft_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+            layer_mapping='odd'
+        )
+    elif args.kd_algo.lower() == 'pkd-user-defined':
+        logger.info("Train BERT-PKD with use defined mapping")
+        fine_tune.util.train_PKD(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            soft_weight=args.soft_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+            layer_mapping='user_defined'
+        )
+    else:
+        raise ValueError(f"Invalid KD-ALGO:{args.kd_algo}")

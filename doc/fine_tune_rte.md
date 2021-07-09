@@ -54,12 +54,12 @@ python3.8 run_fine_tune.py     \
 ### BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
-python3.8 run_fine_tune_distill_mgpu.py \
+python3.8 run_pkd_distill.py \
 --kd_algo pkd-even                          \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 231 \
---experiment PKD_hugface_soft_6_3_42            \
+--experiment PKD_hugface_test_2            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -93,7 +93,6 @@ python3.8 run_fine_tune_distill_mgpu.py \
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
---kd_algo akd-highway                          \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
