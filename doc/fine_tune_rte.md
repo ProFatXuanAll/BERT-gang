@@ -59,7 +59,7 @@ python3.8 run_pkd_distill.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 231 \
---experiment PKD_hugface_test_2            \
+--experiment PKD_hugface_soft_6_2_26            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -78,11 +78,11 @@ python3.8 run_pkd_distill.py \
 --num_hidden_layers 6              \
 --total_step 1540                \
 --type_vocab_size 2                \
---seed 42                          \
+--seed 26                          \
 --warmup_step 462               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --softmax_temp 5                 \
 --mu 500                          \
 --soft_weight 0.7                 \
@@ -131,21 +131,21 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  PKD_hugface_soft_6_3_42                 \
+--experiment  PKD_hugface_soft_6_2_46                 \
 --model bert                    \
 --task rte                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 1
+--device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on RTE dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  PKD_hugface_soft_6_3_42                 \
+--experiment  PKD_hugface_soft_6_2_46                 \
 --model bert                    \
 --task rte                     \
 --dataset dev           \
---batch_size 32 \
+--batch_size 256 \
 --device_id 0
 ```
