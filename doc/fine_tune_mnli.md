@@ -30,7 +30,7 @@ rm ./data/fine_tune/mnli.zip
 ```sh
 # Fine-tune on MNLI.
 python3.8 run_fine_tune.py     \
---experiment bert_base_teacher                 \
+--experiment teacher_base                 \
 --model bert                   \
 --ptrain_ver bert-base-uncased \
 --task mnli                    \
@@ -60,7 +60,7 @@ python3.8 run_fine_tune.py     \
 ```sh
 # Fine-tune evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment bert_base_teacher                  \
+--experiment teacher_base                  \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
@@ -71,7 +71,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment bert_base_teacher                  \
+--experiment teacher_base                  \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -82,7 +82,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment bert_base_teacher                  \
+--experiment teacher_base                  \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
@@ -108,9 +108,9 @@ python3.8 run_fine_tune_eval.py \
 ### BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
-python3.8 run_fine_tune_distill_mgpu.py \
+python3.8 run_pkd_distill.py \
 --kd_algo pkd-even                          \
---teacher_exp test                \
+--teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  36816 \
 --experiment PKD_even_26            \
@@ -139,45 +139,53 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --tdevice_id 1                     \
 --softmax_temp 10                  \
 --mu 100                           \
---soft_weight 0.5
+--soft_weight 0.5                  \
+--hard_weight 0.5
 ```
 
 ### AKD-BERT Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
---kd_algo akd-highway                          \
---teacher_exp test                \
+--teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment AKD_soft_3_26            \
+--experiment AKD_soft_2_26            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
---ckpt_step 3000                   \
+--gate_beta1 0.9                   \
+--gate_beta2 0.999                 \
+--ckpt_step 2000                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 200                     \
 --lr 5e-5                          \
+--gate_lr 1e-6                     \
 --max_norm 1.0                     \
+--gate_max_norm 1.0                \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 49088                \
 --type_vocab_size 2                \
+--total_step 49088                \
 --warmup_step  4908               \
+--gate_total_step 49088            \
+--gate_warmup_step 4908            \
 --weight_decay 0.01                \
+--gate_weight_decay 0.01           \
 --seed 26                           \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
+--gate_device_id 1                 \
 --softmax_temp 10                  \
---soft_weight 0.7                  \
+--soft_weight 0.5                  \
 --hard_weight 0.5                \
---mu 100
+--mu 500
 ```
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
@@ -185,18 +193,18 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment recurrent_gate_lnorm_soft_1_65          \
+--experiment  AKD_soft_2_65          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment AKD_soft_3_26          \
+--experiment  AKD_soft_2_26          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -207,7 +215,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment AKD_soft_3_26          \
+--experiment  AKD_soft_2_26          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
