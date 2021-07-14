@@ -93,17 +93,18 @@ python3.8 run_pkd_distill.py \
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
---kd_algo akd-highway                          \
 --teacher_exp bert_base_teacher                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment AKD_hugface_soft_1_2_65            \
+--experiment AKD_soft_4_46            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
 --beta2 0.999                      \
+--gate_beta1 0.9                   \
+--gate_beta2 0.999                 \
 --ckpt_step 2000                   \
 --d_ff 3072                        \
 --d_model 768                      \
@@ -111,20 +112,25 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --eps 1e-8                         \
 --log_step 100                     \
 --lr 1e-4                          \
+--gate_lr 1e-6                     \
 --max_norm 1.0                     \
+--gate_max_norm 1.0                 \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 25260                \
 --type_vocab_size 2                \
+--total_step 25260                \
 --warmup_step  2526               \
+--gate_total_step 25260            \
+--gate_warmup_step 2526            \
 --weight_decay 0.01                \
+--gate_weight_decay 0.01           \
 --device_id 1                      \
 --tdevice_id 1                    \
---seed 65                          \
+--seed 46                          \
 --softmax_temp 20                  \
 --soft_weight 0.5                  \
 --hard_weight 0.5                \
---mu 100
+--mu 1000
 ```
 
 ### BERT Fine-Tune Evaluation Scripts
