@@ -279,7 +279,7 @@ def distill_mgpu(
                     teacher_hidden=aggregate_hiddens[t_index],
                     student_hidden=s_hidden,
                     mu=mu
-                ) / 6
+                ) / student_config.num_hidden_layers
 
                 # Normalize loss.
                 batch_hidden_loss = batch_hidden_loss / student_config.accum_step

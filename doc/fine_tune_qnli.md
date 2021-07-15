@@ -61,11 +61,11 @@ python3.8 run_fine_tune.py     \
 
 ```sh
 python3.8 run_pkd_distill.py \
---kd_algo pkd-user-defined                          \
+--kd_algo pkd-even                          \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment PKD_user_defined_3_65            \
+--experiment PKD_4layer_soft_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -81,14 +81,14 @@ python3.8 run_pkd_distill.py \
 --lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 13096                \
 --type_vocab_size 2                \
---seed 65                          \
+--seed 42                          \
 --warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --softmax_temp 10                  \
 --mu 100                           \
 --soft_weight 0.5                  \
@@ -102,7 +102,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment AKD_soft_26            \
+--experiment AKD_4layer_soft_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -120,7 +120,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --type_vocab_size 2                \
 --total_step 13096                \
 --warmup_step  1309               \
@@ -134,7 +134,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --gate_beta2 0.999                 \
 --gate_eps 1e-8                    \
 --gate_weight_decay 0.01           \
---seed 26                          \
+--seed 42                          \
 --softmax_temp 10                  \
 --soft_weight 0.5                  \
 --hard_weight 0.5                \
@@ -146,23 +146,23 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  PKD_user_defined_3_65                 \
+--experiment   AKD_4layer_soft_42                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  PKD_user_defined_3_65                 \
+--experiment   AKD_4layer_soft_42                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
---batch_size 256 \
---device_id 0
+--batch_size 512 \
+--device_id 1
 ```
 
 ### Plot CLS embedding of last Transformer block

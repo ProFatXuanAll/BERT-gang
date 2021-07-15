@@ -257,7 +257,7 @@ def train_PKD(
                     teacher_hidden=teacher_hiddens[t_index].to(student_device),
                     student_hidden=s_hidden,
                     mu=mse_weight
-                ) / 6 # TODO: Loss function scale bug
+                ) / student_config.num_hidden_layers
 
                 # Normalize loss.
                 batch_hidden_loss = batch_hidden_loss / student_config.accum_step
