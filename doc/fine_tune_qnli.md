@@ -61,7 +61,6 @@ python3.8 run_fine_tune.py     \
 
 ```sh
 python3.8 run_pkd_distill.py \
---kd_algo pkd-even                          \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
@@ -141,12 +140,54 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --mu 1000
 ```
 
+### Probing Experiments
+
+#### PKD CLS with user defined mapping strategy
+
+```sh
+python3.8 run_probing.py \
+--probing_exp pkd_cls_user_defined \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt  9822 \
+--experiment PKD_cls_user_defined_1_42            \
+--model bert                       \
+--task qnli                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 1000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 1e-4                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 13096                \
+--type_vocab_size 2                \
+--seed 42                          \
+--warmup_step  1309               \
+--weight_decay 0.01                \
+--device_id 0                      \
+--tdevice_id 0                     \
+--teacher_indices 12,10            \
+--student_indices 6,5              \
+--softmax_temp 10                  \
+--mu 100                           \
+--soft_weight 0.5                  \
+--hard_weight 0.5
+```
+
 ### BERT Fine-Tune Evaluation Scripts
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment   AKD_4layer_soft_42                 \
+--experiment   PKD_cls_user_defined_1_42                 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -157,12 +198,12 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment   AKD_4layer_soft_42                 \
+--experiment   PKD_cls_user_defined_1_42                 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
---batch_size 512 \
---device_id 1
+--batch_size 256 \
+--device_id 0
 ```
 
 ### Plot CLS embedding of last Transformer block

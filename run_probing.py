@@ -1,4 +1,6 @@
-r"""Train PKD with multiple GPU.
+r"""Run some probing experiments.
+For example what will happend if we only make student model
+learn last teacher layer's [CLS] embedding.
 """
 
 # built-in modules
@@ -41,7 +43,23 @@ if __name__ == "__main__":
         type=str,
     )
 
+    parser.add_argument(
+        '--probing_exp',
+        help='What type of probing experiment to be conducted.',
+        required=True,
+        type=str,
+    )
+
     # Arguments of teacher model.
+    parser.add_argument(
+        '--teacher_indices',
+        help='Which teacher layers a student model should learn.' +
+        'For example type in `2 4 6 8 10` mean those teacher layers '+
+        'will be learned by student model.',
+        required=True,
+        type=str
+    )
+
     parser.add_argument(
         '--teacher_exp',
         help='Experiment name of the fine-tuned teacher model',
@@ -62,6 +80,14 @@ if __name__ == "__main__":
     )
 
     # Arguments of student model.
+    parser.add_argument(
+        '--student_indices',
+        help='Which student layers will be updated.'+
+        'For example type in `1 2 3 4 5` means params '+
+        'of those student layers will be updated.',
+        required=True,
+        type=str
+    )
     parser.add_argument(
         '--experiment',
         help='Name of the current distillation experiment.',
@@ -241,6 +267,13 @@ if __name__ == "__main__":
     # Parse arguments.
     args = parser.parse_args()
 
+    # Parse student and teacher indices.
+    teacher_indices = [int(index)-1 for index in args.teacher_indices.split(',')]
+    student_indices = [int(index)-1 for index in args.student_indices.split(',')]
+    logger.info("Teacher indices: %s", teacher_indices)
+    logger.info("Student indices: %s", student_indices)
+
+
     # Load fine-tune teacher model configuration.
     teacher_config = fine_tune.config.TeacherConfig.load(
         experiment=args.teacher_exp,
@@ -352,20 +385,43 @@ if __name__ == "__main__":
         optimizer=optimizer
     )
 
-    # Perform disitllation.
-    logger.info("Train BERT-PKD with even layer mapping")
-    fine_tune.util.train_PKD(
-        teacher_config=teacher_config,
-        student_config=student_config,
-        dataset=dataset,
-        teacher_model=teacher_model,
-        student_model=student_model,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        teacher_tokenizer=teacher_tokenizer,
-        student_tokenizer=student_tokenizer,
-        soft_weight=args.soft_weight,
-        hard_weight=args.hard_weight,
-        mse_weight=args.mu,
-        softmax_temp=args.softmax_temp,
-    )
+    if args.probing_exp.lower() == 'pkd_cls_user_defined':
+        logger.info("Run probing experiments: `pkd_cls_user_defined`")
+        fine_tune.util.train_pkd_cls_user_defined(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            teacher_indices=teacher_indices,
+            student_indices=student_indices,
+            soft_weight=args.soft_weight,
+            hard_weight=args.hard_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+        )
+    elif args.probing_exp.lower() == 'pkd_hidden_user_defined':
+        logger.info("Run probing experiments: `pkd_hidden_user_defined`")
+        fine_tune.util.train_pkd_hidden_user_defined(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            teacher_indices=teacher_indices,
+            student_indices=student_indices,
+            soft_weight=args.soft_weight,
+            hard_weight=args.hard_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+        )
+    else:
+        raise ValueError(f"Unsupported probing experiment {args.probing_exp}")

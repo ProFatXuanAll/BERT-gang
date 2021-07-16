@@ -111,7 +111,7 @@ class StudentBert(nn.Module):
             )
             nn.init.zeros_(self.linear_layer.bias)
 
-    def init_from_pre_trained(self, teacher_indices: List[int], pretrain_ver: str = 'bert-base-uncased'):
+    def init_from_pre_trained(self, teacher_indices: List[int], student_indices = None, pretrain_ver: str = 'bert-base-uncased'):
         """Given pre-trained model version and number of hidden layer of model,
         Initialize model parameters from pre-trained model.
         Parameters
@@ -145,14 +145,26 @@ class StudentBert(nn.Module):
             'output.LayerNorm.bias'
         ]
 
-        for i, t_index in enumerate(teacher_indices):
-            for key in keys:
-                new_state_dict.update(
-                    {
-                        f'encoder.layer.{i}.{key}':
-                        pretrain_model.state_dict()[f'encoder.layer.{t_index}.{key}']
-                    }
-                )
+        if student_indices is None:
+            for i, t_index in enumerate(teacher_indices):
+                for key in keys:
+                    new_state_dict.update(
+                        {
+                            f'encoder.layer.{i}.{key}':
+                            pretrain_model.state_dict()[f'encoder.layer.{t_index}.{key}']
+                        }
+                    )
+
+        else:
+            logger.info("Use student and teacher indicies to init relative student layers")
+            for s_index, t_index in zip(student_indices, teacher_indices):
+                for key in keys:
+                    new_state_dict.update(
+                        {
+                            f'encoder.layer.{s_index}.{key}':
+                            pretrain_model.state_dict()[f'encoder.layer.{t_index}.{key}']
+                        }
+                    )
 
         new_state_dict.update(
             {

@@ -25,7 +25,6 @@ from fine_tune.util.distill_mgpu import distill_mgpu
 from fine_tune.util.train_PKD import train_PKD
 from fine_tune.util.evaluation import evaluate_acc, evaluate_acc_and_f1
 from fine_tune.util.amp_evaluation import amp_evaluation
-from fine_tune.util.amp_gen_logits import amp_gen_logits
 from fine_tune.util.task import load_dataset
 from fine_tune.util.task import load_dataset_by_config
 from fine_tune.util.optimizer import load_optimizer
@@ -48,3 +47,4 @@ from fine_tune.util.amp_train import amp_train
 from fine_tune.util.scheduler import load_scheduler
 from fine_tune.util.scheduler import load_scheduler_by_config
 from fine_tune.util.scheduler import load_gate_networks_scheduler
+from fine_tune.util.probing import train_pkd_cls_user_defined, train_pkd_hidden_user_defined

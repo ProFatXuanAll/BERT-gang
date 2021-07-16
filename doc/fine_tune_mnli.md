@@ -147,7 +147,6 @@ python3.8 run_pkd_distill.py \
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
---teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  36816 \
 --experiment AKD_soft_2_26            \

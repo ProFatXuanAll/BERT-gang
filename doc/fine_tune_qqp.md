@@ -54,7 +54,6 @@ python run_fine_tune.py   \
 
 ```sh
 python3.8 run_pkd_distill.py \
---kd_algo pkd-even                          \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt 34110 \

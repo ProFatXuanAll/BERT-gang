@@ -45,8 +45,7 @@ def train_PKD(
     soft_weight: float = 0.2,
     hard_weight: float = 0.8,
     mse_weight: int = 100,
-    softmax_temp: float = 1.0,
-    layer_mapping: str = 'even'
+    softmax_temp: float = 1.0
 ):
     """Train PKD model.
 
@@ -82,11 +81,6 @@ def train_PKD(
         Weight of hidden MSE loss, by default 100
     softmax_temp : float, optional
         Softmax temperature, by default 1.0
-    layer_mapping : str, optional
-        How to map teacher layer:
-            1.`even`: distill from even teacher layer.
-            2.`odd`: distill from odd teacher layer.
-            3.`user_defined`: distill from user defined indices.
     """
 
     # Set teacher model as evaluation mode.
@@ -134,18 +128,8 @@ def train_PKD(
     logits_objective = fine_tune.objective.distill_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
-    # Create layer mapping indices.
-    if layer_mapping == 'even':
-        skip = 12 // student_config.num_hidden_layers
-        teacher_indices = list(range(skip-1, 12, skip))
-        # input("Ignore last layer")
-        # teacher_indices.pop(-1)
-    elif layer_mapping == 'odd':
-        teacher_indices = list(range(0, 12, 2))
-    elif layer_mapping == 'user_defined':
-        teacher_indices = [int(item)-1 for item in input("Enter desired teacher layer:\n").split()]
-    else:
-        raise ValueError(f"Invalid mapping strategy: {layer_mapping}")
+    skip = 12 // student_config.num_hidden_layers
+    teacher_indices = list(range(skip-1, 12, skip))
 
     # Init student model from pre-trained teacher layer.
     student_model.init_from_pre_trained(teacher_indices)
