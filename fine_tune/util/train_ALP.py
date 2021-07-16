@@ -1,9 +1,5 @@
-r"""Helper functions for PKD knowledge distillation.
-Note: This functions use 2 GPU device to perform distillation.
-Usage:
-    import fine_tune
-
-    fine_tune.util.train_PKD(...)
+r"""Implement ALP-KD and ALP-NO training scripts.
+Note: These functions may use 2 GPU device.
 """
 
 # built-in modules
@@ -32,7 +28,7 @@ import fine_tune.task
 import fine_tune.model
 import fine_tune.path
 
-def train_PKD(
+def train_alp_kd(
     teacher_config: fine_tune.config.TeacherConfig,
     student_config: fine_tune.config.StudentConfig,
     dataset: fine_tune.task.Dataset,
@@ -47,7 +43,7 @@ def train_PKD(
     mse_weight: int = 100,
     softmax_temp: float = 1.0
 ):
-    """Train PKD model.
+    """Train ALP-KD model.
 
     Parameters
     ----------
@@ -235,10 +231,42 @@ def train_PKD(
             teacher_hiddens = teacher_hiddens[1:]
             student_hiddens = student_hiddens[1:]
 
-            for t_index, s_hidden in zip(teacher_indices,student_hiddens):
+            # Extract each teacher layer's [CLS] emebedding.
+            teacher_cls = [hidden[:,0,:] for hidden in teacher_hiddens]
+
+            # `teacher_cls`: BxLxH
+            # `B`: batch size
+            # `L`: layer number
+            # `H`: cls embedding dimension
+            teacher_cls = torch.stack(teacher_cls).transpose(0,1)
+
+            for s_hidden in student_hiddens:
+                s_cls = torch.unsqueeze(s_hidden[:,0,:],-1)
+
+                # Compute dot product.
+                # `attn_score`: BxL.
+                attn_score = torch.exp(
+                    torch.squeeze(teacher_cls @ s_cls, dim=-1)
+                )
+                attn_score = attn_score / torch.sum(attn_score,
+                    dim=-1,
+                    keepdim=True
+                )
+
+                # Compute aggregated hidden states.
+                # `attn_score`: BxLx1
+                attn_score = torch.unsqueeze(attn_score, dim=-1)
+
+                # `agg_hidden`: BxH
+                agg_hidden = teacher_cls * attn_score # BxLxH
+                agg_hidden = torch.sum(agg_hidden, dim=1)
+
+                # reshape `s_cls` to BxH
+                s_cls = torch.squeeze(s_cls, dim=-1)
+
                 batch_hidden_loss = hidden_objective(
-                    teacher_hidden=teacher_hiddens[t_index].to(student_device),
-                    student_hidden=s_hidden,
+                    teacher_hidden=agg_hidden,
+                    student_hidden=s_cls,
                     mu=mse_weight
                 ) / student_config.num_hidden_layers
 

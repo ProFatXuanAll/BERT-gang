@@ -18,7 +18,7 @@ import torch
 import fine_tune
 
 # Get main logger.
-logger = logging.getLogger('fine_tune.distill')
+logger = logging.getLogger('fine_tune.probing')
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
     datefmt='%Y/%m/%d %H:%M:%S',

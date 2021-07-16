@@ -1,4 +1,4 @@
-r"""Train PKD with multiple GPU.
+r"""Train ALP-KD or ALP-NO with multiple GPU.
 """
 
 # built-in modules
@@ -37,6 +37,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--task',
         help='Name of the distillation task.',
+        required=True,
+        type=str,
+    )
+
+    parser.add_argument(
+        '--alp_exp',
+        help='What type of ALP experiment to be conducted.',
         required=True,
         type=str,
     )
@@ -352,20 +359,23 @@ if __name__ == "__main__":
         optimizer=optimizer
     )
 
-    # Perform disitllation.
-    logger.info("Train BERT-PKD with even layer mapping")
-    fine_tune.util.train_PKD(
-        teacher_config=teacher_config,
-        student_config=student_config,
-        dataset=dataset,
-        teacher_model=teacher_model,
-        student_model=student_model,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        teacher_tokenizer=teacher_tokenizer,
-        student_tokenizer=student_tokenizer,
-        soft_weight=args.soft_weight,
-        hard_weight=args.hard_weight,
-        mse_weight=args.mu,
-        softmax_temp=args.softmax_temp,
-    )
+    # Perform ALP-KD or ALP-NO training.
+    if args.alp_exp.lower() == "alp-kd":
+        logger.info("Train ALP-KD")
+        fine_tune.util.train_alp_kd(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            soft_weight=args.soft_weight,
+            hard_weight=args.hard_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+        )
+    else:
+        raise ValueError(f"Unsupported ALP framework: {args.alp_exp}")
