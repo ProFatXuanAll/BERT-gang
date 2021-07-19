@@ -240,22 +240,32 @@ def train_alp_kd(
             # `H`: cls embedding dimension
             teacher_cls = torch.stack(teacher_cls).transpose(0,1)
 
+            # This list is used for saving attention score ckpt.
+            attn_score_list = []
+
             for s_hidden in student_hiddens:
-                s_cls = torch.unsqueeze(s_hidden[:,0,:],-1)
+                s_cls = s_hidden[:,0,:]
+                dim = s_cls.shape[-1]
+                s_cls = torch.unsqueeze(s_cls,-1)
 
                 # Compute dot product.
                 # `attn_score`: BxL.
+                inner_prod = teacher_cls @ s_cls / torch.sqrt(torch.as_tensor(dim))
+                inner_prod = torch.squeeze(inner_prod, dim=-1)
+
                 attn_score = torch.exp(
-                    torch.squeeze(teacher_cls @ s_cls, dim=-1)
+                    inner_prod
                 )
-                attn_score = attn_score / torch.sum(attn_score,
-                    dim=-1,
-                    keepdim=True
+
+                attn_score = attn_score / (
+                    torch.sum(attn_score,dim=-1,keepdim=True)
                 )
 
                 # Compute aggregated hidden states.
                 # `attn_score`: BxLx1
                 attn_score = torch.unsqueeze(attn_score, dim=-1)
+
+                attn_score_list.append(attn_score)
 
                 # `agg_hidden`: BxH
                 agg_hidden = teacher_cls * attn_score # BxLxH
@@ -348,6 +358,12 @@ def train_alp_kd(
                         student_model.state_dict(),
                         os.path.join(experiment_dir, f'model-{step}.pt')
                     )
+
+                    for layer, score in enumerate(attn_score_list):
+                        torch.save(
+                            score,
+                            os.path.join(experiment_dir, f'attn-{layer}-{step}.pt')
+                        )
 
             # Stop training condition.
             if accum_step >= total_accum_step:
