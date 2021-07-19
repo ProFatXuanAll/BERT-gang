@@ -104,7 +104,9 @@ def distill_mgpu(
 
     # Init student model from pre-trained teacher layer.
     print("Warning!: Use even layer of teacher model to init student.")
-    student_model.init_from_pre_trained(teacher_indices)
+    student_model.init_from_pre_trained(
+        teacher_indices=teacher_indices
+    )
 
     # Set student model as training mode.
     student_model.train()

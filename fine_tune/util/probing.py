@@ -136,7 +136,7 @@ def train_pkd_cls_user_defined(
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
     # Init student model from pre-trained teacher layer.
-    student_model.init_from_pre_trained(student_indices,teacher_indices)
+    student_model.init_from_pre_trained(teacher_indices=teacher_indices, student_indices=student_indices)
     student_model.train()
 
     # Accumulation step counter.
