@@ -16,7 +16,7 @@ import torch
 import fine_tune
 
 # Get main logger.
-logger = logging.getLogger('fine_tune.pkd_distill')
+logger = logging.getLogger('fine_tune.alp-kd-distil')
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
     datefmt='%Y/%m/%d %H:%M:%S',
@@ -363,6 +363,23 @@ if __name__ == "__main__":
     if args.alp_exp.lower() == "alp-kd":
         logger.info("Train ALP-KD")
         fine_tune.util.train_alp_kd(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            soft_weight=args.soft_weight,
+            hard_weight=args.hard_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+        )
+    elif args.alp_exp.lower() == "alp-kd-hidden":
+        logger.info("Train ALP-KD Hidden")
+        fine_tune.util.train_alp_kd_hidden(
             teacher_config=teacher_config,
             student_config=student_config,
             dataset=dataset,
