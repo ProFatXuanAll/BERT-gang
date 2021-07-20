@@ -132,7 +132,7 @@ def train_PKD(
     teacher_indices = list(range(skip-1, 12, skip))
 
     # Init student model from pre-trained teacher layer.
-    student_model.init_from_pre_trained(teacher_indices)
+    student_model.init_from_pre_trained(teacher_indices = teacher_indices)
     student_model.train()
 
     # Accumulation step counter.
