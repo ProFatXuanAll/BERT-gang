@@ -58,7 +58,7 @@ python3.8 run_pkd_distill.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 231 \
---experiment PKD_hugface_soft_e15_26            \
+--experiment PKD_4layer_soft_42            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -74,10 +74,10 @@ python3.8 run_pkd_distill.py \
 --lr 3e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 1155                \
 --type_vocab_size 2                \
---seed 26                          \
+--seed 42                          \
 --warmup_step 346               \
 --weight_decay 0.01                \
 --device_id 1                      \
@@ -95,7 +95,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment AKD_soft_1_26            \
+--experiment AKD_4layer_soft_42            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -116,7 +116,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 1155                \
 --warmup_step  346               \
 --gate_total_step 1155            \
@@ -127,7 +127,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --device_id 1                      \
 --tdevice_id 1                     \
 --gate_device_id 1                 \
---seed 26                          \
+--seed 42                          \
 --softmax_temp 5                  \
 --soft_weight 0.7                  \
 --hard_weight 0.3                \
