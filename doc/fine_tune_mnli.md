@@ -61,11 +61,10 @@ python3.8 run_fine_tune.py     \
 
 ```sh
 python3.8 run_pkd_distill.py \
---kd_algo pkd-even                          \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment PKD_even_26            \
+--experiment PKD_4layer_soft_65            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -81,14 +80,14 @@ python3.8 run_pkd_distill.py \
 --lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 49088                \
 --type_vocab_size 2                \
---seed 26                          \
+--seed 65                          \
 --warmup_step  4908               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
+--device_id 3                      \
+--tdevice_id 3                     \
 --softmax_temp 10                  \
 --mu 100                           \
 --soft_weight 0.5                  \

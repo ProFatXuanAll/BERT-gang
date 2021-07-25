@@ -379,6 +379,11 @@ def train_alp_kd(
         student_model.state_dict(),
         os.path.join(experiment_dir, f'model-{step}.pt')
     )
+    for layer, score in enumerate(attn_score_list):
+        torch.save(
+            score,
+            os.path.join(experiment_dir, f'attn-{layer}-{step}.pt')
+        )
 
 def train_alp_kd_hidden(
     teacher_config: fine_tune.config.TeacherConfig,
@@ -733,3 +738,9 @@ def train_alp_kd_hidden(
         student_model.state_dict(),
         os.path.join(experiment_dir, f'model-{step}.pt')
     )
+
+    for layer, score in enumerate(attn_score_list):
+        torch.save(
+            score,
+            os.path.join(experiment_dir, f'attn-{layer}-{step}.pt')
+        )

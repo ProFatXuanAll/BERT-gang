@@ -217,7 +217,7 @@ python3.8 run_alp_distil.py \
 --device_id 2                      \
 --tdevice_id 2                     \
 --softmax_temp 10                  \
---mu 1000                          \
+--mu 10000                          \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
@@ -227,7 +227,11 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
+<<<<<<< HEAD
 --experiment      ALP_KD_hidden_soft_5_2_26 \
+=======
+--experiment    ALP_KD_hidden_soft_5_2_42 \
+>>>>>>> 5486496ec73612f86078e9782fbe1977669a000b
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -238,7 +242,11 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
+<<<<<<< HEAD
 --experiment      ALP_KD_hidden_soft_5_2_26 \
+=======
+--experiment    ALP_KD_hidden_soft_5_2_42 \
+>>>>>>> 5486496ec73612f86078e9782fbe1977669a000b
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
