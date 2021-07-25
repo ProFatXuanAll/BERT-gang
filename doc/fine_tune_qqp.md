@@ -57,7 +57,7 @@ python3.8 run_pkd_distill.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt 34110 \
---experiment PKD_soft_1_26            \
+--experiment PKD_4layer_soft_1_26            \
 --model bert                       \
 --task qqp                        \
 --accum_step 1                     \
@@ -73,14 +73,14 @@ python3.8 run_pkd_distill.py \
 --lr 5e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 45480                \
 --type_vocab_size 2                \
 --seed 26                          \
 --warmup_step 4548               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
+--device_id 0                      \
+--tdevice_id 0                     \
 --softmax_temp 20                  \
 --mu 100                           \
 --soft_weight 0.7                  \
@@ -94,7 +94,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  34110 \
---experiment AKD_soft_4_26            \
+--experiment AKD_4layer_soft_4_26            \
 --model bert                       \
 --task qqp                        \
 --accum_step 1                     \
@@ -115,7 +115,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 45480                \
 --warmup_step  4548               \
 --gate_total_step 45480            \
@@ -138,21 +138,21 @@ python3.8 run_fine_tune_distill_mgpu.py \
 ```sh
 # Fine-tune evaluation on QQP dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment AKD_soft_4_26                  \
+--experiment   AKD_4layer_soft_4_26                   \
 --model bert                    \
 --task qqp                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 1
+--device_id 2
 ```
 
 ```sh
 # Fine-tune evaluation on QQP dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment AKD_soft_4_26                  \
+--experiment   AKD_4layer_soft_4_26                   \
 --model bert                    \
 --task qqp                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 1
+--device_id 2
 ```
