@@ -55,55 +55,7 @@ python3.8 run_fine_tune.py     \
 --amp
 ```
 
-### BERT Fine-Tune Evaluation Scripts
-
-```sh
-# Fine-tune evaluation on MNLI dataset `train`.
-python3.8 run_fine_tune_eval.py \
---experiment teacher_base                  \
---model bert                    \
---task mnli                     \
---dataset train                 \
---batch_size 256                \
---device_id 0
-```
-
-```sh
-# Fine-tune evaluation on MNLI dataset `dev_matched`.
-python3.8 run_fine_tune_eval.py \
---experiment teacher_base                  \
---model bert                    \
---task mnli                     \
---dataset dev_matched           \
---batch_size 512                \
---device_id 1
-```
-
-```sh
-# Fine-tune evaluation on MNLI dataset `dev_mismatched`.
-python3.8 run_fine_tune_eval.py \
---experiment teacher_base                  \
---model bert                    \
---task mnli                     \
---dataset dev_mismatched        \
---batch_size 512                \
---device_id 1
-```
-
-### BERT Fine-Tune Experiment Results
-
-- Shared configuration
-
-|beta1|beta2|eps|max_norm|weight_decay|
-|-|-|-|-|-|
-|0.9|0.999|1e-8|1.0|0.01|
-
-- Individual configuration
-
-|ex|train acc|train acc ckpt|dev-m acc|dev-m acc ckpt|dev-mm acc|dev-mm acc ckpt|accum step|batch|ckpt step|dropout|encoder|log step|lr|max_seq_len|seed|total step|warmup step|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|1|0.983002|36816|0.867753|36000|0.862083|36000|8|32|1000|0.1|bert-large-uncased|500|3e-5|128|42|36816|10000|
-|2|0.964217|36816|0.846052|24000|0.850488|36816|8|32|1000|0.1|bert-base-uncased|500|3e-5|128|42|36816|10000|
+## BERT-PKD
 
 ### BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
 
@@ -143,11 +95,14 @@ python3.8 run_pkd_distill.py \
 --hard_weight 0.5
 ```
 
+## AKD-BERT
+
 ### AKD-BERT Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
 python3.8 run_fine_tune_distill_mgpu.py \
 --tmodel bert                      \
+--teacher_exp teacher_base                \
 --tckpt  36816 \
 --experiment AKD_soft_2_26            \
 --model bert                       \
@@ -186,6 +141,46 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --hard_weight 0.5                \
 --mu 500
 ```
+
+## ALP-KD
+
+```sh
+python3.8 run_alp_distil.py \
+--alp_exp alp-kd-hidden \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt  36816 \
+--experiment ALP_KD_hidden_soft_1_42            \
+--model bert                       \
+--task mnli                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 2000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 5e-5                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 49088                \
+--type_vocab_size 2                \
+--seed 42                          \
+--warmup_step  4908               \
+--weight_decay 0.01                \
+--device_id 2                      \
+--tdevice_id 2                     \
+--softmax_temp 10                  \
+--mu 500                          \
+--soft_weight 0.5                  \
+--hard_weight 0.5
+```
+
+## Evaluation
 
 ### BERT Fine-Tune Distillation Evaluation Scripts
 
