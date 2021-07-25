@@ -192,7 +192,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment ALP_KD_hidden_soft_6_42            \
+--experiment ALP_KD_hidden_soft_5_2_26            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -209,10 +209,10 @@ python3.8 run_alp_distil.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 32740                \
+--total_step 13096                \
 --type_vocab_size 2                \
---seed 42                          \
---warmup_step  3274               \
+--seed 26                          \
+--warmup_step  1309               \
 --weight_decay 0.01                \
 --device_id 2                      \
 --tdevice_id 2                     \
@@ -227,7 +227,11 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
+<<<<<<< HEAD
+--experiment      ALP_KD_hidden_soft_5_2_26 \
+=======
 --experiment    ALP_KD_hidden_soft_5_2_42 \
+>>>>>>> 5486496ec73612f86078e9782fbe1977669a000b
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -238,7 +242,11 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
+<<<<<<< HEAD
+--experiment      ALP_KD_hidden_soft_5_2_26 \
+=======
 --experiment    ALP_KD_hidden_soft_5_2_42 \
+>>>>>>> 5486496ec73612f86078e9782fbe1977669a000b
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
