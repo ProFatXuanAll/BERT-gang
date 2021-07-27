@@ -77,6 +77,8 @@ def distill_mgpu(
     student_model : fine_tune.model.StudentModel
         Model which will perform disitllation according to
         outputs from given teacher model.
+    gate_networks : List[fine_tune.model.HighwayGate]
+        A list of `HighwayGate` models.
     optimizer : torch.optim.AdamW
         `torch.optim.AdamW` optimizer.
     scheduler : torch.optim.lr_scheduler.LambdaLR
