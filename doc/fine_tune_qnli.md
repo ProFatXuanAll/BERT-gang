@@ -230,6 +230,7 @@ python3.8 run_probing_akd.py \
 --hard_weight 0.5                \
 --mu 1000
 ```
+
 ## ALP-KD implementation
 
 ### ALP-KD implementation scripts
@@ -240,7 +241,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment ALP_KD_hidden_soft_5_2_26            \
+--experiment ALP_4layer_soft_26            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -256,16 +257,16 @@ python3.8 run_alp_distil.py \
 --lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 13096                \
 --type_vocab_size 2                \
---seed 26                          \
+--seed 26                         \
 --warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 2                      \
---tdevice_id 2                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --softmax_temp 10                  \
---mu 10000                          \
+--mu 1000                          \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
@@ -275,23 +276,23 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment AKD_user_defined_3_42 \
+--experiment ALP_4layer_soft_65 \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 3
+--device_id 2
 ```
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment AKD_user_defined_3_42 \
+--experiment ALP_4layer_soft_65 \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 3
+--device_id 2
 ```
 
 ## Plot CLS embedding of last Transformer block

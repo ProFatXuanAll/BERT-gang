@@ -149,7 +149,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment ALP_KD_hidden_soft_4_42            \
+--experiment ALP_KD_4layer_soft_2_26            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -165,16 +165,16 @@ python3.8 run_alp_distil.py \
 --lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 49088                \
 --type_vocab_size 2                \
---seed 42                          \
+--seed 26                          \
 --warmup_step  4908               \
 --weight_decay 0.01                \
---device_id 3                      \
---tdevice_id 3                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --softmax_temp 10                  \
---mu 100                          \
+--mu 500                         \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
@@ -186,18 +186,18 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_soft_2_42          \
+--experiment  ALP_KD_4layer_soft_2_46          \
 --model bert                    \
 --task mnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 2
+--device_id 3
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_soft_2_42          \
+--experiment  ALP_KD_4layer_soft_2_42          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
@@ -208,7 +208,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_soft_2_42          \
+--experiment  ALP_KD_4layer_soft_2_42          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \

@@ -50,6 +50,8 @@ python run_fine_tune.py   \
 --weight_decay 0.01
 ```
 
+## BERT-PKD
+
 ### BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
@@ -86,6 +88,8 @@ python3.8 run_pkd_distill.py \
 --soft_weight 0.7                  \
 --hard_weight 0.3
 ```
+
+## AKD-BERT
 
 ### AKD-BERT Fine-Tune Distillation Scripts with Multi-GPU
 
@@ -133,12 +137,54 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --mu 500
 ```
 
+## ALP-KD
+
+### ALP-KD training scripts
+
+```sh
+python3.8 run_alp_distil.py \
+--alp_exp alp-kd-hidden \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt  34110 \
+--experiment ALP_KD_soft_5_42            \
+--model bert                       \
+--task qqp                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 2000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 3e-4                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 45480                \
+--type_vocab_size 2                \
+--seed 42                          \
+--warmup_step  4548               \
+--weight_decay 0.01                \
+--device_id 2                      \
+--tdevice_id 2                     \
+--softmax_temp 20                  \
+--mu 1000                         \
+--soft_weight 0.7                  \
+--hard_weight 0.3
+```
+
+## Evaluation
+
 ### BERT Fine-Tune Evaluation Scripts
 
 ```sh
 # Fine-tune evaluation on QQP dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment   AKD_4layer_soft_4_26                   \
+--experiment   ALP_KD_soft_4_42                    \
 --model bert                    \
 --task qqp                     \
 --dataset train                 \
@@ -149,7 +195,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QQP dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment   AKD_4layer_soft_4_26                   \
+--experiment   ALP_KD_soft_4_42                    \
 --model bert                    \
 --task qqp                     \
 --dataset dev           \
