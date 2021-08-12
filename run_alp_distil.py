@@ -394,5 +394,22 @@ if __name__ == "__main__":
             mse_weight=args.mu,
             softmax_temp=args.softmax_temp,
         )
+    elif args.alp_exp.lower() == "alp-kd-hidden-v2":
+        logger.info("Train ALP-KD Hidden Version 2")
+        fine_tune.util.train_alp_kd_hidden_v2(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            soft_weight=args.soft_weight,
+            hard_weight=args.hard_weight,
+            mse_weight=args.mu,
+            softmax_temp=args.softmax_temp,
+        )
     else:
         raise ValueError(f"Unsupported ALP framework: {args.alp_exp}")

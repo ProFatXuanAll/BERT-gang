@@ -124,8 +124,13 @@ def train_alp_kd(
     logits_objective = fine_tune.objective.distill_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
-    skip = 12 // student_config.num_hidden_layers
-    teacher_indices = list(range(skip-1, 12, skip))
+    if 'bert-base' in teacher_config.ptrain_ver:
+        t_layer_num = 12
+    if 'bert-large' in teacher_config.ptrain_ver:
+        t_layer_num = 24
+
+    skip = t_layer_num // student_config.num_hidden_layers
+    teacher_indices = list(range(skip-1, t_layer_num, skip))
 
     # Init student model from pre-trained teacher layer.
     student_model.init_from_pre_trained(teacher_indices = teacher_indices)
@@ -482,8 +487,13 @@ def train_alp_kd_hidden(
     logits_objective = fine_tune.objective.distill_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
-    skip = 12 // student_config.num_hidden_layers
-    teacher_indices = list(range(skip-1, 12, skip))
+    if 'bert-base' in teacher_config.ptrain_ver:
+        t_layer_num = 12
+    if 'bert-large' in teacher_config.ptrain_ver:
+        t_layer_num = 24
+
+    skip = t_layer_num // student_config.num_hidden_layers
+    teacher_indices = list(range(skip-1, t_layer_num, skip))
 
     # Init student model from pre-trained teacher layer.
     student_model.init_from_pre_trained(teacher_indices = teacher_indices)
@@ -842,8 +852,16 @@ def train_alp_kd_hidden_v2(
     logits_objective = fine_tune.objective.distill_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
-    skip = 12 // student_config.num_hidden_layers
-    teacher_indices = list(range(skip-1, 12, skip))
+    if 'bert-base' in teacher_config.ptrain_ver:
+        t_layer_num = 12
+    if 'bert-large' in teacher_config.ptrain_ver:
+        t_layer_num = 24
+
+    skip = t_layer_num // student_config.num_hidden_layers
+    teacher_indices = list(range(skip-1, t_layer_num, skip))
+
+    # Set some variables to assist us to create attetion mask.
+    search_space_idxs = list(range(skip, t_layer_num+1, skip))
 
     # Init student model from pre-trained teacher layer.
     student_model.init_from_pre_trained(teacher_indices = teacher_indices)
@@ -953,16 +971,16 @@ def train_alp_kd_hidden_v2(
             # `all_teacher_hiddens`: BxSxLxH
             # B: batch size, S: sequence length
             # L: layer numbers H: hidden states dimension
-            all_teacher_hiddens = torch.stack(teacher_hiddens).transpose(0,1)
             # BxLxSxH
-            all_teacher_hiddens = all_teacher_hiddens.transpose(1,2)
+            all_teacher_hiddens = torch.stack(teacher_hiddens).transpose(0,1)
             # BxSxLxH
+            all_teacher_hiddens = all_teacher_hiddens.transpose(1,2)
 
             # `attn_score_list` is used for storing attention scroe matrix.
             attn_score_list = []
 
             # Calculate attention score of each student layer.
-            for s_hidden in student_hiddens:
+            for s_hidden, attn_idx in zip(student_hiddens,search_space_idxs):
                 dim = s_hidden.shape[-1]
 
                 # `s_hidden`: BxSxHx1
@@ -973,9 +991,19 @@ def train_alp_kd_hidden_v2(
                 inner_prod = all_teacher_hiddens @ s_hidden / torch.sqrt(torch.as_tensor(dim))
                 inner_prod = torch.squeeze(inner_prod, dim=-1)
 
+                # Create attention mask.
+                B,S, _ = inner_prod.shape
+                if attn_idx == t_layer_num:
+                    attn_mask = torch.ones_like(inner_prod)
+                else:
+                    attn_able = torch.ones(B,S,attn_idx)
+                    attn_not_able = torch.zeros(B,S,t_layer_num-attn_idx)
+                    attn_mask = torch.cat((attn_able, attn_not_able), dim=-1)
+
                 # Compute attention score.
                 # `attn_score`: BxSxL
-                attn_score = torch.exp(inner_prod)
+                # inner_prod =  inner_prod * attn_mask.to(inner_prod.device)
+                attn_score = torch.exp(inner_prod) * attn_mask.to(inner_prod.device)
                 attn_score = attn_score / (
                     torch.sum(attn_score, dim=-1, keepdim=True)
                 )

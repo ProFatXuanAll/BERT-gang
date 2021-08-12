@@ -101,8 +101,13 @@ def distill_mgpu(
     teacher_model.eval()
 
     # Create layer mapping indices.
-    skip = 12 // student_config.num_hidden_layers
-    teacher_indices = list(range(skip-1, 12, skip))
+    if 'bert-base' in teacher_config.ptrain_ver:
+        t_layer_num = 12
+    if 'bert-large' in teacher_config.ptrain_ver:
+        t_layer_num = 24
+
+    skip = t_layer_num // student_config.num_hidden_layers
+    teacher_indices = list(range(skip-1, t_layer_num, skip))
 
     # Init student model from pre-trained teacher layer.
     print("Warning!: Use even layer of teacher model to init student.")

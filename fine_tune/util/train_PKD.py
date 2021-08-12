@@ -128,8 +128,13 @@ def train_PKD(
     logits_objective = fine_tune.objective.distill_loss
     hidden_objective = fine_tune.objective.hidden_MSE_loss
 
-    skip = 12 // student_config.num_hidden_layers
-    teacher_indices = list(range(skip-1, 12, skip))
+    if 'bert-base' in teacher_config.ptrain_ver:
+        t_layer_num = 12
+    if 'bert-large' in teacher_config.ptrain_ver:
+        t_layer_num = 24
+
+    skip = t_layer_num // student_config.num_hidden_layers
+    teacher_indices = list(range(skip-1, t_layer_num, skip))
 
     # Init student model from pre-trained teacher layer.
     student_model.init_from_pre_trained(teacher_indices = teacher_indices)
