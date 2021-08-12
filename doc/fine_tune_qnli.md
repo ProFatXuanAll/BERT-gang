@@ -146,11 +146,11 @@ python3.8 run_fine_tune_distill_mgpu.py \
 
 ```sh
 python3.8 run_probing.py \
---probing_exp pkd_cls_user_defined \
+--probing_exp pkd_hidden_user_defined \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment PKD_cls_user_defined_6_42            \
+--experiment PKD_hidden_user_defined_7_65            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -169,15 +169,15 @@ python3.8 run_probing.py \
 --num_hidden_layers 6              \
 --total_step 13096                \
 --type_vocab_size 2                \
---seed 42                          \
+--seed 65                          \
 --warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 3                      \
---tdevice_id 3                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --teacher_indices 12,10,8,6,4,2           \
 --student_indices 6,5,4,3,2,1              \
 --softmax_temp 10                  \
---mu 100                           \
+--mu 1000                           \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
