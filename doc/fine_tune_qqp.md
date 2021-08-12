@@ -147,7 +147,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  34110 \
---experiment ALP_KD_soft_5_42            \
+--experiment ALP_KD_4layer_soft_5_26            \
 --model bert                       \
 --task qqp                        \
 --accum_step 1                     \
@@ -163,10 +163,10 @@ python3.8 run_alp_distil.py \
 --lr 3e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 45480                \
 --type_vocab_size 2                \
---seed 42                          \
+--seed 26                          \
 --warmup_step  4548               \
 --weight_decay 0.01                \
 --device_id 2                      \
@@ -184,18 +184,18 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QQP dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment   ALP_KD_soft_4_42                    \
+--experiment    ALP_KD_4layer_soft_5_42                    \
 --model bert                    \
 --task qqp                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 2
+--device_id 3
 ```
 
 ```sh
 # Fine-tune evaluation on QQP dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment   ALP_KD_soft_4_42                    \
+--experiment    ALP_KD_4layer_soft_5_26                    \
 --model bert                    \
 --task qqp                     \
 --dataset dev           \

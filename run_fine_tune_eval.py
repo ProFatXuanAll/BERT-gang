@@ -70,7 +70,7 @@ if __name__ == '__main__':
     # Optional parameters.
     parser.add_argument(
         '--batch_size',
-        default=0,
+        default=32,
         help='Evaluation batch size.',
         type=int,
     )
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         config=config
     )
 
-    # Load fine-tune / distillation dataset.
+    # Load validation/development dataset.
     dataset = fine_tune.util.load_dataset_by_config(
         config=config
     )
@@ -189,10 +189,7 @@ if __name__ == '__main__':
     max_f1_ckpt = 0
 
     # Calculate F1 score or not.
-    if config.task == 'qqp' or config.task == 'mrpc':
-        get_f1 = True
-    else:
-        get_f1 = False
+    get_f1 = (config.task == 'qqp' or config.task == 'mrpc')
 
     # Evaluate every checkpoints.
     for ckpt in all_ckpts:
