@@ -276,9 +276,12 @@ class BaseConfig:
                 '`device_id` must be -1 (CPU) or any cuda device number(GPU)'
             )
 
-        if device_id > torch.cuda.device_count():
+        if device_id + 1 > torch.cuda.device_count():
             raise OSError(
-                'Invalid `device_id` please check you GPU device count.'
+                'Invalid `device_id` please check you GPU device count.\n'+
+                f'There are only {torch.cuda.device_count()} cuda device \n'+
+                f'Available device id range: 0~{torch.cuda.device_count()-1}\n'+
+                f'Received device_id: {device_id}'
             )
 
         self.accum_step = accum_step
