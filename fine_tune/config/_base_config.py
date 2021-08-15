@@ -276,7 +276,7 @@ class BaseConfig:
                 '`device_id` must be -1 (CPU) or any cuda device number(GPU)'
             )
 
-        if device_id + 1 > torch.cuda.device_count():
+        if device_id + 1  > torch.cuda.device_count():
             raise OSError(
                 'Invalid `device_id` please check you GPU device count.\n'+
                 f'There are only {torch.cuda.device_count()} cuda device \n'+
@@ -425,17 +425,23 @@ class BaseConfig:
             cls,
             experiment: str = '',
             model: str = '',
-            task: str = ''
+            task: str = '',
+            device_id: int = None
     ):
-        r"""Load configuration from json file.
+        """Load config from json file.
 
-        Args:
-            experiment:
-                Name of the experiment.
-            model:
-                Model name of the experiment.
-            task:
-                Name of the fine-tune task.
+        Parameters
+        ----------
+        experiment : str, optional
+            Name of the experiment, by default ''
+        model : str, optional
+            Model name of the experiment, by default ''
+        task : str, optional
+            Name of the fine-tune task, by default ''
+        device_id : int, optional
+            Model device id.
+            Pass in a available `device_id` to
+            modify the original `device_id` of json file, by default None
         """
         file_path = cls.file_path(
             experiment=experiment,
@@ -443,7 +449,10 @@ class BaseConfig:
             task=task
         )
         with open(file_path, 'r') as json_file:
-            return cls(**json.load(json_file))
+            config = json.load(json_file)
+            if device_id is not None:
+                config['device_id'] = device_id
+            return cls(**config)
 
     @staticmethod
     def experiment_name(

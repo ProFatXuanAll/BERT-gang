@@ -76,7 +76,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--device_id',
-        default=-1,
+        default=None,
         help='Run evaluation on dedicated device.',
         type=int,
     )
@@ -93,28 +93,27 @@ if __name__ == '__main__':
     # Load fine-tune teacher model configuration.
     # `fine_tune.config.TeacherConfig.load` will trigger `TypeError` if the
     # actual configuration file is saved by `fine_tune.config.StudentConfig`.
+    if args.device_id is not None:
+        logger.info("Use device: %s to run evaluation", args.device_id)
     try:
         config = fine_tune.config.TeacherConfig.load(
             experiment=args.experiment,
             model=args.model,
-            task=args.task
+            task=args.task,
+            device_id=args.device_id
         )
     # Load fine-tune distillation student model configuration.
     except TypeError:
         config = fine_tune.config.StudentConfig.load(
             experiment=args.experiment,
             model=args.model,
-            task=args.task
+            task=args.task,
+            device_id=args.device_id
         )
 
     # Change batch size for faster evaluation.
     if args.batch_size:
         config.batch_size = args.batch_size
-
-    # Check user specify device or not.
-    if args.device_id > -1:
-        config.device_id = args.device_id
-    logger.info("Use device: %s to run evaluation", config.device_id)
 
     # Set evaluation dataset.
     config.dataset = args.dataset
