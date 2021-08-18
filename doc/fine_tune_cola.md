@@ -73,7 +73,7 @@ python3.8 run_pkd_distill.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 10                     \
---lr 5e-5                          \
+--lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
@@ -82,10 +82,10 @@ python3.8 run_pkd_distill.py \
 --seed 42                          \
 --warmup_step 402               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
---softmax_temp 5                 \
---mu 100                          \
+--device_id 1                      \
+--tdevice_id 1                     \
+--softmax_temp 10                 \
+--mu 500                          \
 --soft_weight 0.7                 \
 --hard_weight 0.3
 ```
@@ -112,6 +112,6 @@ python3.8 run_fine_tune_eval.py \
 --model bert                    \
 --task cola                     \
 --dataset dev                 \
---batch_size 512                \
+--batch_size 256                \
 --device_id 0
 ```

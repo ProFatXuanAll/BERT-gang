@@ -278,8 +278,4 @@ def evaluate_matthews_corrcoef(
     # Release IO resources.
     mini_batch_iterator.close()
 
-    print(f'{all_label=}')
-    print(f'{all_pred_label=}')
-    input()
-
     return mcc
