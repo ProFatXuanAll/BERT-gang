@@ -143,11 +143,11 @@ python3.8 run_fine_tune_distill_mgpu.py \
 
 ```sh
 python3.8 run_alp_distil.py \
---alp_exp alp-kd-hidden \
+--alp_exp alp-kd-hidden-v2 \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment ALP_KD_4layer_soft_2_26            \
+--experiment ALP_KD_hidden_v2_soft_1_1_42            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -163,16 +163,16 @@ python3.8 run_alp_distil.py \
 --lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
+--num_hidden_layers 6              \
 --total_step 25260                \
 --type_vocab_size 2                \
---seed 26                          \
+--seed 42                          \
 --warmup_step  2526               \
 --weight_decay 0.01                \
---device_id 3                      \
---tdevice_id 3                     \
+--device_id 1                       \
+--tdevice_id 1                       \
 --softmax_temp 20                  \
---mu 1000                          \
+--mu 500                          \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
@@ -184,21 +184,21 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_4layer_soft_2_26                 \
+--experiment  ALP_KD_hidden_v2_soft_1_1_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 3
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_4layer_soft_2_26                 \
+--experiment  ALP_KD_hidden_v2_soft_1_1_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
---batch_size 256 \
---device_id 3
+--batch_size 512 \
+--device_id 1
 ```

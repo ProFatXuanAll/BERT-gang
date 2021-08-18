@@ -241,7 +241,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment ALP_KD_hidden_v2_soft_1_1_42            \
+--experiment ALP_KD_hidden_v2_soft_4_2_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -254,7 +254,7 @@ python3.8 run_alp_distil.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 100                     \
---lr 1e-4                          \
+--lr 5e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
@@ -263,10 +263,10 @@ python3.8 run_alp_distil.py \
 --seed 42                         \
 --warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
+--device_id 0                      \
+--tdevice_id 0                     \
 --softmax_temp 10                  \
---mu 1000                          \
+--mu 5000                          \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
@@ -276,7 +276,7 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_v2_soft_1_1_42   \
+--experiment   ALP_KD_hidden_v2_soft_4_2_42    \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -287,12 +287,12 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_v2_soft_1_1_42   \
+--experiment   ALP_KD_hidden_v2_soft_4_2_42    \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 1
+--device_id 0
 ```
 
 ## Plot CLS embedding of last Transformer block
