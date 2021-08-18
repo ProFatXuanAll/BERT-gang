@@ -42,7 +42,6 @@ from typing import Union
 
 # 3rd party modules
 
-import numpy as np
 import torch
 import torch.utils
 import torch.utils.data

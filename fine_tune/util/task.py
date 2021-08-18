@@ -64,6 +64,8 @@ def load_dataset(
         return fine_tune.task.RTE(dataset)
     if task == 'mrpc':
         return fine_tune.task.MRPC(dataset)
+    if task == 'cola':
+        return fine_tune.task.CoLA(dataset)
 
     raise ValueError(
         f'`task` {task} is not supported.\nSupported options:' +
