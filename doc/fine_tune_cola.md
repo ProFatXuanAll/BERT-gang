@@ -47,7 +47,7 @@ python3.8 run_fine_tune.py     \
 --device_id 1                     \
 --seed 42                      \
 --total_step 804             \
---warmup_step  80           \
+--warmup_step  241           \
 --weight_decay 0.01
 ```
 
@@ -59,8 +59,8 @@ python3.8 run_fine_tune.py     \
 python3.8 run_pkd_distill.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
---tckpt 231 \
---experiment PKD_soft_1_42            \
+--tckpt 804 \
+--experiment PKD_soft_2_42            \
 --model bert                       \
 --task cola                        \
 --accum_step 1                     \
@@ -80,12 +80,38 @@ python3.8 run_pkd_distill.py \
 --total_step 1340                \
 --type_vocab_size 2                \
 --seed 42                          \
---warmup_step 134               \
+--warmup_step 402               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
+--device_id 0                      \
+--tdevice_id 0                     \
 --softmax_temp 5                 \
---mu 500                          \
+--mu 100                          \
 --soft_weight 0.7                 \
 --hard_weight 0.3
+```
+
+## Evaluation
+
+### BERT Fine-Tune Evaluation Scripts
+
+```sh
+# Fine-tune evaluation on CoLA dataset `train`.
+python3.8 run_fine_tune_eval.py \
+--experiment  PKD_soft_1_42                 \
+--model bert                    \
+--task cola                     \
+--dataset train                 \
+--batch_size 512                \
+--device_id 1
+```
+
+```sh
+# Fine-tune evaluation on CoLA dataset `dev`.
+python3.8 run_fine_tune_eval.py \
+--experiment  PKD_soft_1_42                 \
+--model bert                    \
+--task cola                     \
+--dataset dev                 \
+--batch_size 512                \
+--device_id 0
 ```

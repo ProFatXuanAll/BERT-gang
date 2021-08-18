@@ -186,9 +186,8 @@ if __name__ == '__main__':
     max_acc_ckpt = 0
     max_f1 = 0.0
     max_f1_ckpt = 0
-
-    # Calculate F1 score or not.
-    get_f1 = (config.task == 'qqp' or config.task == 'mrpc')
+    max_mcc = 0
+    max_mcc_ckpt = 0
 
     # Evaluate every checkpoints.
     for ckpt in all_ckpts:
@@ -205,8 +204,49 @@ if __name__ == '__main__':
             )
         )
 
-        # Calculate accuracy.
-        if not get_f1:
+        if config.task == 'qqp' or config.task == 'mrpc':
+            acc, f1 = fine_tune.util.evaluate_acc_and_f1(
+                config=config,
+                dataset=dataset,
+                model=model,
+                tokenizer=tokenizer
+            )
+
+            if max_acc <= acc:
+                max_acc = acc
+                max_acc_ckpt = ckpt
+            if max_f1 <= f1:
+                max_f1 = f1
+                max_f1_ckpt = ckpt
+
+            writer.add_scalar(
+                f'{config.task}/{config.dataset}/accuracy',
+                acc,
+                ckpt
+            )
+            writer.add_scalar(
+                f'{config.task}/{config.dataset}/f1_score',
+                f1,
+                ckpt
+            )
+        elif config.task == 'cola':
+            mcc = fine_tune.util.evaluate_matthews_corrcoef(
+                config=config,
+                dataset=dataset,
+                model=model,
+                tokenizer=tokenizer
+            )
+
+            if max_mcc <= mcc:
+                max_mcc = mcc
+                max_mcc_ckpt = ckpt
+
+            writer.add_scalar(
+                f'{config.task}/{config.dataset}/MCC',
+                mcc,
+                ckpt
+            )
+        else:
             if config.amp:
                 #TODO: remove amp evaluation?
                 print("amp evaluation could be deprecated in future version!")
@@ -216,6 +256,9 @@ if __name__ == '__main__':
                     model=model,
                     tokenizer=tokenizer
                 )
+                if max_acc <= acc:
+                    max_acc = acc
+                    max_acc_ckpt = ckpt
             else:
                 acc = fine_tune.util.evaluate_acc(
                     config=config,
@@ -223,35 +266,13 @@ if __name__ == '__main__':
                     model=model,
                     tokenizer=tokenizer
                 )
-        else:
-            acc, f1 = fine_tune.util.evaluate_acc_and_f1(
-                config=config,
-                dataset=dataset,
-                model=model,
-                tokenizer=tokenizer
-            )
+                if max_acc <= acc:
+                    max_acc = acc
+                    max_acc_ckpt = ckpt
 
-
-        # Update max accuracy.
-        if max_acc <= acc:
-            max_acc = acc
-            max_acc_ckpt = ckpt
-
-        if get_f1:
-            max_f1 = f1
-            max_f1_ckpt = ckpt
-
-        # Log accuracy.
-        writer.add_scalar(
-            f'{config.task}/{config.dataset}/accuracy',
-            acc,
-            ckpt
-        )
-
-        if get_f1:
             writer.add_scalar(
-                f'{config.task}/{config.dataset}/f1_score',
-                f1,
+                f'{config.task}/{config.dataset}/accuracy',
+                acc,
                 ckpt
             )
 
@@ -259,11 +280,15 @@ if __name__ == '__main__':
     writer.flush()
     writer.close()
 
-    # Log maximum accuracy.
-    logger.info('max accuracy:            %f', max_acc)
-    logger.info('max accuracy checkpoint: %d', max_acc_ckpt)
-
-    # Log f1 score if necessary.
-    if get_f1:
+    if config.task == 'qqp' or config.task == 'mrpc':
+        logger.info('max accuracy:            %f', max_acc)
+        logger.info('max accuracy checkpoint: %d', max_acc_ckpt)
         logger.info('max f1 score:        %f', max_f1)
         logger.info('max f1 score checkpoint: %d', max_f1_ckpt)
+
+    elif config.task == 'cola':
+        logger.info('max Matthews correlation coefficient:        %f', max_mcc)
+        logger.info('max Matthews correlation coefficient checkpoint: %d', max_mcc_ckpt)
+    else:
+        logger.info('max accuracy:            %f', max_acc)
+        logger.info('max accuracy checkpoint: %d', max_acc_ckpt)

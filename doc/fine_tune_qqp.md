@@ -184,7 +184,7 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QQP dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment    ALP_KD_hidden_v2_soft_3_42                     \
+--experiment ALP_KD_hidden_v2_soft_2_1_42                     \
 --model bert                    \
 --task qqp                     \
 --dataset train                 \
@@ -195,7 +195,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QQP dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment    ALP_KD_hidden_v2_soft_3_42                     \
+--experiment ALP_KD_hidden_v2_soft_2_1_42                     \
 --model bert                    \
 --task qqp                     \
 --dataset dev           \
