@@ -137,3 +137,6 @@ dmypy.json
 
 # Probing result
 not_similar_*.csv
+
+# ignore loss figure
+*.png
