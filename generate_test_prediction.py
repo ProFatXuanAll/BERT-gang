@@ -151,10 +151,16 @@ if __name__ == '__main__':
     )
 
     if args.task.lower() != 'mnli':
-        filename = os.path.join(
-            experiment_dir,
-            f'{args.task.upper()}.tsv'
-        )
+        if args.task.lower() != 'sst2':
+            filename = os.path.join(
+                experiment_dir,
+                f'{args.task.upper()}.tsv'
+            )
+        else:
+            filename = os.path.join(
+                experiment_dir,
+                'SST-2.tsv'
+            )
     else:
         if "matched" in args.dataset.lower():
             filename = os.path.join(
