@@ -94,7 +94,7 @@ class MRPC(Dataset):
                 MRPC.task_path,
                 f'{dataset}.tsv'
             )
-            if 'train' in dataset or 'dev' in dataset:
+            if not 'test' in dataset:
                 with open(dataset_path, 'r') as tsv_file:
                     # Skip first line.
                     tsv_file.readline()
