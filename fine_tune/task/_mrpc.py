@@ -57,7 +57,8 @@ class MRPC(Dataset):
     #TODO: suppport testing dataset.
     allow_dataset: List[str] = [
         'train',
-        'dev'
+        'dev',
+        'test'
     ]
 
     allow_labels: List[Label] = [
@@ -93,27 +94,53 @@ class MRPC(Dataset):
                 MRPC.task_path,
                 f'{dataset}.tsv'
             )
-            with open(dataset_path, 'r') as tsv_file:
-                # Skip first line.
-                tsv_file.readline()
-                samples = []
-                for sample in tqdm(tsv_file, desc=f'Loading MRPC {dataset}'):
-                    sample = sample.strip()
-                    quality, _, _, string1, string2 = sample.split('\t')
-                    samples.append(
-                        Sample({
-                            'text': string1,
-                            'text_pair': string2,
-                            'label': label_encoder(MRPC, int(quality))
-                        })
+            if 'train' in dataset or 'dev' in dataset:
+                with open(dataset_path, 'r') as tsv_file:
+                    # Skip first line.
+                    tsv_file.readline()
+                    samples = []
+                    for idx, sample in enumerate(tqdm(tsv_file, desc=f'Loading MRPC {dataset}')):
+                        sample = sample.strip()
+                        quality, _, _, string1, string2 = sample.split('\t')
+                        samples.append(
+                            Sample({
+                                'index': idx,
+                                'text': string1,
+                                'text_pair': string2,
+                                'label': label_encoder(MRPC, int(quality))
+                            })
+                        )
+
+                    logger.info(
+                        'Number of samples: %d',
+                        len(samples)
                     )
 
-                logger.info(
-                    'Number of samples: %d',
-                    len(samples)
-                )
+                return samples
+            else:
+                # Loading testing set.
+                with open(dataset_path, 'r') as tsv_file:
+                    # Skip first line.
+                    tsv_file.readline()
+                    samples = []
+                    for sample in tqdm(tsv_file, desc=f'Loading MRPC {dataset}'):
+                        sample = sample.strip()
+                        index, _, _, string1, string2 = sample.split('\t')
+                        samples.append(
+                            Sample({
+                                'index': int(index),
+                                'text': string1,
+                                'text_pair': string2,
+                                'label': -1
+                            })
+                        )
 
-            return samples
+                    logger.info(
+                        'Number of samples: %d',
+                        len(samples)
+                    )
+
+                return samples
         except FileNotFoundError as error:
             raise FileNotFoundError(
                 f'MRPC dataset file {dataset} does not exist.\n' +

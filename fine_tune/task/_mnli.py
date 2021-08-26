@@ -138,7 +138,7 @@ class MNLI(Dataset):
                     for sample in tqdm(tsv_file, desc=f'Loading MNLI {dataset}'):
                         # Remove trailing whitespace.
                         sample = sample.strip()
-                        _, _, _, _, _, _, _, _, sentence1, sentence2, _, gold_label = sample.split('\t')
+                        index, _, _, _, _, _, _, _, sentence1, sentence2, _, gold_label = sample.split('\t')
 
                         # Skip sample which label is '-'.
                         # See MNLI paper for labeling details.
@@ -147,6 +147,7 @@ class MNLI(Dataset):
                             continue
                         samples.append(
                             Sample({
+                                'index': int(index),
                                 'text': sentence1,
                                 'text_pair': sentence2,
                                 'label': label_encoder(MNLI, gold_label)
@@ -169,7 +170,7 @@ class MNLI(Dataset):
                     for sample in tqdm(tsv_file, desc=f'Loading MNLI {dataset}'):
                         # Remove trailing whitespace.
                         sample = sample.strip()
-                        _, _, _, _, _, _, _, _, sentence1, sentence2, _, _, _, _, _, gold_label = sample.split('\t')
+                        index, _, _, _, _, _, _, _, sentence1, sentence2, _, _, _, _, _, gold_label = sample.split('\t')
 
                         # Skip sample which label is '-'.
                         # See MNLI paper for labeling details.
@@ -178,6 +179,7 @@ class MNLI(Dataset):
                             continue
                         samples.append(
                             Sample({
+                                'index': int(index),
                                 'text': sentence1,
                                 'text_pair': sentence2,
                                 'label': label_encoder(MNLI, gold_label)
@@ -192,7 +194,8 @@ class MNLI(Dataset):
                     logger.info('Number of result samples: %d', len(samples))
 
                 return samples
-            elif 'test' in dataset:
+            else:
+                # Loading testing dataset.
                 skipped_sample_count = 0
                 with open(dataset_path, 'r') as tsv_file:
                     # Skip first line.
@@ -200,9 +203,10 @@ class MNLI(Dataset):
                     for sample in tqdm(tsv_file, desc=f'Loading MNLI {dataset}'):
                         # Remove trailing whitespace.
                         sample = sample.strip()
-                        _, _, _, _, _, _, _, _, sentence1, sentence2 = sample.split('\t')
+                        index, _, _, _, _, _, _, _, sentence1, sentence2 = sample.split('\t')
                         samples.append(
                             Sample({
+                                'index': int(index),
                                 'text': sentence1,
                                 'text_pair': sentence2,
                                 'label': -1
@@ -217,8 +221,6 @@ class MNLI(Dataset):
                     logger.info('Number of result samples: %d', len(samples))
 
                 return samples
-            else:
-                raise ValueError(f"Unrecognized dataset: {dataset}")
         except FileNotFoundError as error:
             raise FileNotFoundError(
                 f'RTE dataset file {dataset} does not exist.\n' +

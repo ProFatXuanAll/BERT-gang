@@ -62,6 +62,7 @@ class Sample(TypedDict):
     https://huggingface.co/transformers/main_classes/model.html for
     `transformers.PreTrainedModel.forward` method signature.
     """
+    index: int
     text: str
     text_pair: Optional[str]
     #TODO: which value can represent testing sample? (current: we use `-1`)
