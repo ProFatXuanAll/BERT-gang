@@ -60,7 +60,7 @@ python3.8 run_pkd_distill.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 804 \
---experiment PKD_soft_2_42            \
+--experiment PKD_soft_5_42            \
 --model bert                       \
 --task cola                        \
 --accum_step 1                     \
@@ -77,15 +77,15 @@ python3.8 run_pkd_distill.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 1340                \
+--total_step 2680                \
 --type_vocab_size 2                \
 --seed 42                          \
---warmup_step 402               \
+--warmup_step 804               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --tdevice_id 1                     \
---softmax_temp 10                 \
---mu 500                          \
+--softmax_temp 5                 \
+--mu 1000                          \
 --soft_weight 0.7                 \
 --hard_weight 0.3
 ```
@@ -97,7 +97,7 @@ python3.8 run_pkd_distill.py \
 ```sh
 # Fine-tune evaluation on CoLA dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  PKD_soft_1_42                 \
+--experiment  PKD_soft_5_42                 \
 --model bert                    \
 --task cola                     \
 --dataset train                 \
@@ -108,10 +108,10 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on CoLA dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  PKD_soft_1_42                 \
+--experiment  PKD_soft_5_42                 \
 --model bert                    \
 --task cola                     \
 --dataset dev                 \
 --batch_size 256                \
---device_id 0
+--device_id 1
 ```

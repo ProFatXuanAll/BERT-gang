@@ -51,7 +51,7 @@ python3.8 run_pkd_distill.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 575 \
---experiment PKD_4layer_soft_1_42            \
+--experiment PKD_hugface_soft_3_26            \
 --model bert                       \
 --task mrpc                        \
 --accum_step 1                     \
@@ -67,15 +67,15 @@ python3.8 run_pkd_distill.py \
 --lr 5e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
---total_step 1150                \
+--num_hidden_layers 6              \
+--total_step 2300                \
 --type_vocab_size 2                \
---seed 42                          \
---warmup_step 115               \
+--seed 26                          \
+--warmup_step 690               \
 --weight_decay 0.01                \
 --device_id 0                      \
 --tdevice_id 0                     \
---softmax_temp 20                 \
+--softmax_temp 10                 \
 --mu 500                          \
 --soft_weight 0.7                 \
 --hard_weight 0.3
@@ -90,7 +90,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  575 \
---experiment AKD_4layer_soft_2_42            \
+--experiment AKD_hugface_soft_4_26            \
 --model bert                       \
 --task mrpc                        \
 --accum_step 1                     \
@@ -112,18 +112,18 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --gate_max_norm 1.0                 \
 --type_vocab_size 2                \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
---total_step 1150                \
---warmup_step  115               \
---gate_total_step 1150            \
---gate_warmup_step 115             \
+--num_hidden_layers 6              \
+--total_step 2300                \
+--warmup_step  690               \
+--gate_total_step 2300            \
+--gate_warmup_step 690             \
 --weight_decay 0.01                \
 --gate_weight_decay 0.01           \
 --device_id 1                      \
 --tdevice_id 1                     \
 --gate_device_id 1                 \
---seed 42                          \
---softmax_temp 20                  \
+--seed 26                          \
+--softmax_temp 10                  \
 --soft_weight 0.7                  \
 --hard_weight 0.3                \
 --mu 500
@@ -139,7 +139,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  575 \
---experiment ALP_KD_hidden_v2_soft_2_26            \
+--experiment ALP_KD_hidden_v2_4layer_soft_2_26            \
 --model bert                       \
 --task mrpc                        \
 --accum_step 1                     \
@@ -155,14 +155,14 @@ python3.8 run_alp_distil.py \
 --lr 5e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 1150                \
 --type_vocab_size 2                \
 --seed 26                          \
 --warmup_step  115               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
+--device_id 0                      \
+--tdevice_id 0                     \
 --softmax_temp 20                  \
 --mu 1000                          \
 --soft_weight 0.7                  \
@@ -174,18 +174,18 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment ALP_KD_hidden_v2_soft_2_26  \
+--experiment  PKD_hugface_soft_3_26  \
 --model bert                    \
 --task mrpc                     \
 --dataset train                 \
---batch_size 512                \
+--batch_size 256                \
 --device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on RTE dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment ALP_KD_hidden_v2_soft_2_26  \
+--experiment  PKD_hugface_soft_3_26  \
 --model bert                    \
 --task mrpc                     \
 --dataset dev           \
