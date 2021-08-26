@@ -162,15 +162,15 @@ if __name__ == '__main__':
                 'SST-2.tsv'
             )
     else:
-        if "matched" in args.dataset.lower():
+        if "mismatched" in args.dataset.lower():
             filename = os.path.join(
                 experiment_dir,
-                f'{args.task.upper()}-m.tsv'
+                f'{args.task.upper()}-mm.tsv'
             )
         else:
             filename = os.path.join(
                 experiment_dir,
-                f'{args.task.upper()}-mm.tsv'
+                f'{args.task.upper()}-m.tsv'
             )
 
     logger.info("Write result to %s", filename)

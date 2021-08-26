@@ -327,3 +327,16 @@ python3.8 eval_dev_loss.py \
 --soft_weight 0.5 \
 --hard_weight 0.5
 ```
+
+### Generate prediction result
+
+```sh
+python3.8 generate_test_prediction.py \
+--experiment  AKD_seperate_lrate_2                 \
+--model bert                    \
+--task qnli                     \
+--dataset test                 \
+--batch_size 256                \
+--ckpt 13096 \
+--device_id 0
+```
