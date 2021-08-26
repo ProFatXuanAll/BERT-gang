@@ -54,7 +54,6 @@ class MRPC(Dataset):
     Dataset : string
         Name of MRPC dataset file to be loaded.
     """
-    #TODO: suppport testing dataset.
     allow_dataset: List[str] = [
         'train',
         'dev',
