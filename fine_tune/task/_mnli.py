@@ -227,6 +227,6 @@ class MNLI(Dataset):
                 'You must downloaded previously and put it in the path:\n' +
                 f'{dataset_path}\n' +
                 "See '" +
-                os.path.join(fine_tune.path.DOC, 'fine_tune_rte.md') +
+                os.path.join(fine_tune.path.DOC, 'fine_tune_mnli.md') +
                 "' for downloading details."
             ) from error
