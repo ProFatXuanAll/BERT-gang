@@ -64,6 +64,7 @@ class Sample(TypedDict):
     """
     text: str
     text_pair: Optional[str]
+    #TODO: which value can represent testing sample? (current: we use `-1`)
     label: int
 
 
