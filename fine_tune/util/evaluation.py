@@ -15,6 +15,8 @@ from __future__ import unicode_literals
 
 # Typing
 from typing import Tuple
+from typing import List
+from fine_tune.task._dataset import Label
 
 # 3rd party modules
 
@@ -32,7 +34,6 @@ from tqdm import tqdm
 import fine_tune.config
 import fine_tune.task
 import fine_tune.model
-
 
 @torch.no_grad()
 def evaluate_acc(
@@ -279,3 +280,77 @@ def evaluate_matthews_corrcoef(
     mini_batch_iterator.close()
 
     return mcc
+
+@torch.no_grad()
+def predict_testing_set(
+    config: fine_tune.config.BaseConfig,
+    dataset: fine_tune.task.Dataset,
+    model: fine_tune.model.Model,
+    tokenizer: transformers.PreTrainedTokenizer
+) -> List[Label]:
+    """Generate prediction result of testing set.
+
+    Parameters
+    ----------
+    config:
+        `fine_tune.config.BaseConfig` subclass which attributes are used
+            for experiment setup.
+        dataset:
+            Task specific dataset.
+        model:
+            Model which will be evaluated on `dataset`.
+        tokenizer:
+            Tokenizer paired with `model`.
+
+    Returns
+    -------
+    List[Label]
+        A list of `Label` object.
+    """
+    # Evaluation mode.
+    model.eval()
+
+    # Model running device.
+    device = config.device
+
+    # Create dataloader.
+    dataloader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=config.batch_size,
+        collate_fn=dataset.create_collate_fn(),
+        shuffle=False
+    )
+
+    # Record prediction.
+    all_pred_label = []
+    # Evaluate through mini-batch loop.
+    mini_batch_iterator = tqdm(dataloader)
+
+    for text, text_pair, _ in mini_batch_iterator:
+
+        # Get `input_ids`, `token_type_ids` and `attention_mask` from via tokenizer.
+        batch_encode = tokenizer(
+            text=text,
+            text_pair=text_pair,
+            padding='max_length',
+            max_length=config.max_seq_len,
+            return_tensors='pt',
+            truncation=True
+        )
+        input_ids = batch_encode['input_ids']
+        token_type_ids = batch_encode['token_type_ids']
+        attention_mask = batch_encode['attention_mask']
+
+        # Mini-batch prediction.
+        pred_label = model.predict(
+            input_ids=input_ids.to(device),
+            token_type_ids=token_type_ids.to(device),
+            attention_mask=attention_mask.to(device)
+        ).argmax(dim=-1).to('cpu')
+
+        all_pred_label.extend(pred_label)
+
+    return [
+            fine_tune.task.label_decoder(dataset, label)
+            for label in all_pred_label
+        ]
