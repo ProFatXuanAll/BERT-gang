@@ -202,3 +202,16 @@ python3.8 run_fine_tune_eval.py \
 --batch_size 512 \
 --device_id 1
 ```
+
+### Generate prediction result
+
+```sh
+python3.8 generate_test_prediction.py \
+--experiment  AKD_soft_5_42                 \
+--model bert                    \
+--task qqp                     \
+--dataset test                 \
+--batch_size 256                \
+--ckpt 51000 \
+--device_id 0
+```
