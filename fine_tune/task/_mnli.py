@@ -89,6 +89,8 @@ class MNLI(Dataset):
         'train',
         'dev_matched',
         'dev_mismatched',
+        'test_matched',
+        'test_mismatched'
     ]
 
     allow_labels: List[Label] = [
@@ -99,7 +101,7 @@ class MNLI(Dataset):
 
     task_path: str = os.path.join(
         fine_tune.path.FINE_TUNE_DATA,
-        'mnli'
+        'MNLI'
     )
 
     @staticmethod
@@ -125,51 +127,106 @@ class MNLI(Dataset):
         try:
             dataset_path = os.path.join(
                 MNLI.task_path,
-                f'{dataset}.jsonl'
+                f'{dataset}.tsv'
             )
-            with open(dataset_path, 'r') as jsonl_file:
-                jsonlines = jsonl_file.readlines()
-        except FileNotFoundError:
+            samples = []
+            if 'train' in dataset:
+                skipped_sample_count = 0
+                with open(dataset_path, 'r') as tsv_file:
+                    # Skip first line.
+                    tsv_file.readline()
+                    for sample in tqdm(tsv_file, desc=f'Loading MNLI {dataset}'):
+                        # Remove trailing whitespace.
+                        sample = sample.strip()
+                        index, _, _, _, _, _, _, _, sentence1, sentence2, _, gold_label = sample.split('\t')
+
+                        # Skip sample which label is '-'.
+                        # See MNLI paper for labeling details.
+                        if gold_label == '-':
+                            skipped_sample_count += 1
+                            continue
+                        samples.append(
+                            Sample({
+                                'index': int(index),
+                                'text': sentence1,
+                                'text_pair': sentence2,
+                                'label': label_encoder(MNLI, gold_label)
+                            })
+                        )
+
+                    logger.info(
+                        'Number of origin samples: %d',
+                        len(samples) + skipped_sample_count
+                    )
+                    logger.info('Number of skiped samples: %d', skipped_sample_count)
+                    logger.info('Number of result samples: %d', len(samples))
+
+                return samples
+            elif 'dev' in dataset:
+                skipped_sample_count = 0
+                with open(dataset_path, 'r') as tsv_file:
+                    # Skip first line.
+                    tsv_file.readline()
+                    for sample in tqdm(tsv_file, desc=f'Loading MNLI {dataset}'):
+                        # Remove trailing whitespace.
+                        sample = sample.strip()
+                        index, _, _, _, _, _, _, _, sentence1, sentence2, _, _, _, _, _, gold_label = sample.split('\t')
+
+                        # Skip sample which label is '-'.
+                        # See MNLI paper for labeling details.
+                        if gold_label == '-':
+                            skipped_sample_count += 1
+                            continue
+                        samples.append(
+                            Sample({
+                                'index': int(index),
+                                'text': sentence1,
+                                'text_pair': sentence2,
+                                'label': label_encoder(MNLI, gold_label)
+                            })
+                        )
+
+                    logger.info(
+                        'Number of origin samples: %d',
+                        len(samples) + skipped_sample_count
+                    )
+                    logger.info('Number of skiped samples: %d', skipped_sample_count)
+                    logger.info('Number of result samples: %d', len(samples))
+
+                return samples
+            else:
+                # Loading testing dataset.
+                skipped_sample_count = 0
+                with open(dataset_path, 'r') as tsv_file:
+                    # Skip first line.
+                    tsv_file.readline()
+                    for sample in tqdm(tsv_file, desc=f'Loading MNLI {dataset}'):
+                        # Remove trailing whitespace.
+                        sample = sample.strip()
+                        index, _, _, _, _, _, _, _, sentence1, sentence2 = sample.split('\t')
+                        samples.append(
+                            Sample({
+                                'index': int(index),
+                                'text': sentence1,
+                                'text_pair': sentence2,
+                                'label': -1
+                            })
+                        )
+
+                    logger.info(
+                        'Number of origin samples: %d',
+                        len(samples) + skipped_sample_count
+                    )
+                    logger.info('Number of skiped samples: %d', skipped_sample_count)
+                    logger.info('Number of result samples: %d', len(samples))
+
+                return samples
+        except FileNotFoundError as error:
             raise FileNotFoundError(
-                f'MNLI dataset file {dataset} does not exist.\n' +
+                f'RTE dataset file {dataset} does not exist.\n' +
                 'You must downloaded previously and put it in the path:\n' +
                 f'{dataset_path}\n' +
                 "See '" +
-                os.path.join(fine_tune.path.DOC, 'fine_tune_mnli.md') +
+                os.path.join(fine_tune.path.DOC, 'fine_tune_rte.md') +
                 "' for downloading details."
-            )
-
-        samples = []
-        skipped_sample_count = 0
-        for line in tqdm(jsonlines, desc=f'Loading MNLI {dataset}'):
-            # Skip empty line.
-            if line == '':
-                continue
-
-            sample = json.loads(line)
-
-            # Skip sample which label is '-'. See MNLI paper for labeling
-            # details.
-            if sample['gold_label'] == '-':
-                skipped_sample_count += 1
-                continue
-
-            # Format into `transformer.PreTrainedTokenizer` format. MNLI labels
-            # will be encoded with `label_encoder(MNLI, label)`. `logits`
-            # will be initialized with 3 zeros.
-            samples.append(
-                Sample({
-                    'text': sample['sentence1'],
-                    'text_pair': sample['sentence2'],
-                    'label': label_encoder(MNLI, sample['gold_label'])
-                })
-            )
-
-        logger.info(
-            'Number of origin samples: %d',
-            len(samples) + skipped_sample_count
-        )
-        logger.info('Number of skiped samples: %d', skipped_sample_count)
-        logger.info('Number of result samples: %d', len(samples))
-
-        return samples
+            ) from error

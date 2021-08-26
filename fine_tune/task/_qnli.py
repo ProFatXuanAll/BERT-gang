@@ -54,10 +54,10 @@ class QNLI(Dataset):
     Dataset : string
         Name of QNLI dataset file to be loaded.
     """
-    #TODO: support testing dataset.
     allow_dataset: List[str] = [
         'train',
-        'dev'
+        'dev',
+        'test'
     ]
 
     allow_labels: List[Label] = [
@@ -92,27 +92,52 @@ class QNLI(Dataset):
                 QNLI.task_path,
                 f'{dataset}.tsv'
             )
-            with open(dataset_path, 'r') as tsv_file:
-                # Skip first line.
-                tsv_file.readline()
-                samples = []
-                for sample in tqdm(tsv_file, desc=f'Loading QNLI {dataset}'):
-                    sample = sample.strip()
-                    _, question, sentence, label = sample.split('\t')
-                    samples.append(
-                        Sample({
-                            'text': question,
-                            'text_pair': sentence,
-                            'label': label_encoder(QNLI, label)
-                        })
+            if not 'test' in dataset:
+                with open(dataset_path, 'r') as tsv_file:
+                    # Skip first line.
+                    tsv_file.readline()
+                    samples = []
+                    for sample in tqdm(tsv_file, desc=f'Loading QNLI {dataset}'):
+                        sample = sample.strip()
+                        index, question, sentence, label = sample.split('\t')
+                        samples.append(
+                            Sample({
+                                'index': int(index),
+                                'text': question,
+                                'text_pair': sentence,
+                                'label': label_encoder(QNLI, label)
+                            })
+                        )
+
+                    logger.info(
+                        'Number of samples: %d',
+                        len(samples)
                     )
 
-                logger.info(
-                    'Number of samples: %d',
-                    len(samples)
-                )
+                return samples
+            else:
+                with open(dataset_path, 'r') as tsv_file:
+                    # Skip first line.
+                    tsv_file.readline()
+                    samples = []
+                    for sample in tqdm(tsv_file, desc=f'Loading QNLI {dataset}'):
+                        sample = sample.strip()
+                        index, question, sentence = sample.split('\t')
+                        samples.append(
+                            Sample({
+                                'index': int(index),
+                                'text': question,
+                                'text_pair': sentence,
+                                'label': -1
+                            })
+                        )
 
-            return samples
+                    logger.info(
+                        'Number of samples: %d',
+                        len(samples)
+                    )
+
+                return samples
         except FileNotFoundError as error:
             raise FileNotFoundError(
                 f'QNLI dataset file {dataset} does not exist.\n' +

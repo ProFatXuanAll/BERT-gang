@@ -27,7 +27,7 @@ rm ./data/fine_tune/RTE.zip
 ```sh
 # Fine-tune on RTE.
 python3.8 run_fine_tune.py     \
---experiment teacher_huggingface                 \
+--experiment teacher_huggingface_2                 \
 --model bert                   \
 --ptrain_ver bert-base-uncased \
 --task rte                    \
@@ -46,8 +46,8 @@ python3.8 run_fine_tune.py     \
 --max_seq_len 128              \
 --device_id 1                     \
 --seed 42                      \
---total_step 231             \
---warmup_step  69           \
+--total_step 385             \
+--warmup_step  115           \
 --weight_decay 0.01
 ```
 
@@ -60,7 +60,7 @@ python3.8 run_pkd_distill.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 231 \
---experiment PKD_4layer_soft_42            \
+--experiment PKD_hugface_soft_e20_26            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -76,15 +76,15 @@ python3.8 run_pkd_distill.py \
 --lr 3e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
---total_step 1155                \
+--num_hidden_layers 6              \
+--total_step 1540                \
 --type_vocab_size 2                \
---seed 42                          \
---warmup_step 346               \
+--seed 26                          \
+--warmup_step 462               \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
---softmax_temp 5                 \
+--device_id 0                      \
+--tdevice_id 0                     \
+--softmax_temp 20                 \
 --mu 500                          \
 --soft_weight 0.7                 \
 --hard_weight 0.3
@@ -99,7 +99,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment AKD_4layer_soft_42            \
+--experiment AKD_soft_4_26            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -120,19 +120,19 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
---total_step 1155                \
---warmup_step  346               \
---gate_total_step 1155            \
---gate_warmup_step 346            \
+--num_hidden_layers 6              \
+--total_step 1540                \
+--warmup_step  462               \
+--gate_total_step 1540            \
+--gate_warmup_step 462            \
 --type_vocab_size 2                \
 --weight_decay 0.01                \
 --gate_weight_decay 0.01           \
 --device_id 1                      \
 --tdevice_id 1                     \
 --gate_device_id 1                 \
---seed 42                          \
---softmax_temp 5                  \
+--seed 26                          \
+--softmax_temp 20                  \
 --soft_weight 0.7                  \
 --hard_weight 0.3                \
 --mu 500
@@ -148,7 +148,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment ALP_KD_hidden_v2_soft_1_26            \
+--experiment ALP_KD_hidden_v2_4layer_soft_1_26            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -164,7 +164,7 @@ python3.8 run_alp_distil.py \
 --lr 3e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 1155                \
 --type_vocab_size 2                \
 --seed 26                          \
@@ -185,18 +185,18 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_v2_soft_1_26                 \
+--experiment  AKD_soft_4_26                 \
 --model bert                    \
 --task rte                     \
 --dataset train                 \
---batch_size 512                \
---device_id 1
+--batch_size 256                \
+--device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on RTE dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_v2_soft_1_26                 \
+--experiment  AKD_soft_4_26                 \
 --model bert                    \
 --task rte                     \
 --dataset dev           \

@@ -4,23 +4,16 @@
 
 ```sh
 # Download MNLI dataset.
-wget https://cims.nyu.edu/~sbowman/multinli/multinli_1.0.zip
+wget https://dl.fbaipublicfiles.com/glue/data/MNLI.zip
 
 # Move MNLI into data folder.
-mv multinli_1.0.zip ./data/fine_tune/mnli.zip
+mv MNLI.zip ./data/fine_tune/MNLI.zip
 
 # Extract MNLI from zip.
-unzip ./data/fine_tune/mnli.zip -d ./data/fine_tune/mnli
+unzip ./data/fine_tune/MNLI.zip -d ./data/fine_tune/
 
-# Format file names.
-mv ./data/fine_tune/mnli/multinli_1.0/multinli_1.0_dev_matched.jsonl ./data/fine_tune/mnli/dev_matched.jsonl
-mv ./data/fine_tune/mnli/multinli_1.0/multinli_1.0_dev_mismatched.jsonl ./data/fine_tune/mnli/dev_mismatched.jsonl
-mv ./data/fine_tune/mnli/multinli_1.0/multinli_1.0_train.jsonl ./data/fine_tune/mnli/train.jsonl
-
-# Remove redundant files.
-rm -rf ./data/fine_tune_data/mnli/__MACOSX
-rm -rf ./data/fine_tune_data/mnli/multinli_1.0
-rm ./data/fine_tune/mnli.zip
+# Remove redundant file.
+rm ./data/fine_tune/MNLI.zip
 ```
 
 ## BERT
@@ -149,7 +142,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment ALP_KD_hidden_v2_soft_3_26            \
+--experiment ALP_KD_hidden_v2_4layer_soft_3_26            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -165,14 +158,14 @@ python3.8 run_alp_distil.py \
 --lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 49088                \
 --type_vocab_size 2                \
 --seed 26                          \
 --warmup_step  4908               \
 --weight_decay 0.01                \
---device_id 2                      \
---tdevice_id 2                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --softmax_temp 10                  \
 --mu 100                         \
 --soft_weight 0.5                  \
@@ -197,23 +190,23 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_v2_soft_3_26          \
+--experiment  ALP_KD_hidden_v2_4layer_soft_3_46          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
 --batch_size 512                \
---device_id 2
+--device_id 1
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_v2_soft_3_26          \
+--experiment  ALP_KD_hidden_v2_4layer_soft_3_46          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
 --batch_size 512 \
---device_id 2
+--device_id 1
 ```
 
 ### Plot CLS embedding of last Transformer block

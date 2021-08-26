@@ -99,7 +99,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment AKD_4layer_soft_4_26            \
+--experiment AKD_soft_9_26            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -119,12 +119,12 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
+--num_hidden_layers 6              \
 --type_vocab_size 2                \
---total_step 25260                \
---warmup_step  2526               \
---gate_total_step 25260            \
---gate_warmup_step 2526            \
+--total_step 42100                \
+--warmup_step  12630               \
+--gate_total_step 42100            \
+--gate_warmup_step 12630            \
 --weight_decay 0.01                \
 --gate_weight_decay 0.01           \
 --device_id 0                      \
@@ -132,8 +132,8 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --gate_device_id 0                 \
 --seed 26                          \
 --softmax_temp 20                  \
---soft_weight 0.5                  \
---hard_weight 0.5                \
+--soft_weight 0.7                  \
+--hard_weight 0.3                \
 --mu 1000
 ```
 
@@ -147,7 +147,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment ALP_KD_hidden_v2_soft_1_1_42            \
+--experiment ALP_KD_hidden_v2_soft_4_42            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -160,19 +160,19 @@ python3.8 run_alp_distil.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 100                     \
---lr 1e-4                          \
+--lr 7e-5                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 25260                \
+--total_step 42100                \
 --type_vocab_size 2                \
 --seed 42                          \
---warmup_step  2526               \
+--warmup_step  12630               \
 --weight_decay 0.01                \
 --device_id 1                       \
 --tdevice_id 1                       \
 --softmax_temp 20                  \
---mu 500                          \
+--mu 1000                          \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
@@ -184,21 +184,21 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_v2_soft_1_1_42                 \
+--experiment  AKD_soft_9_46                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 1
+--device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  ALP_KD_hidden_v2_soft_1_1_42                 \
+--experiment  AKD_soft_9_46                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 1
+--device_id 0
 ```

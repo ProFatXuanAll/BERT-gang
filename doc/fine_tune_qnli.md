@@ -150,7 +150,7 @@ python3.8 run_probing.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment PKD_hidden_user_defined_9_42 \
+--experiment PKD_Hidden_user_defined_10_42 \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -167,17 +167,17 @@ python3.8 run_probing.py \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
---total_step 26192                \
+--total_step 32740                \
 --type_vocab_size 2                \
 --seed 42                          \
---warmup_step  2619               \
+--warmup_step  3274               \
 --weight_decay 0.01                \
---device_id 2                      \
---tdevice_id 2                     \
+--device_id 0                      \
+--tdevice_id 0                     \
 --teacher_indices 12,10,8,6,4,2           \
 --student_indices 6,5,4,3,2,1              \
 --softmax_temp 10                  \
---mu 1000                           \
+--mu 100                           \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
@@ -186,11 +186,11 @@ python3.8 run_probing.py \
 
 ```sh
 python3.8 run_probing_akd.py \
---probing_exp akd_user_defined \
+--probing_exp akd_cls_user_defined \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment AKD_user_defined_5_42            \
+--experiment AKD_CLS_user_defined_1_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -210,10 +210,10 @@ python3.8 run_probing_akd.py \
 --num_attention_heads 12           \
 --num_hidden_layers 6              \
 --type_vocab_size 2                \
---total_step 13096                \
---warmup_step  1309               \
---gate_total_step 13096           \
---gate_warmup_step 1309                \
+--total_step 32740                \
+--warmup_step  3274               \
+--gate_total_step 32740           \
+--gate_warmup_step 3274                \
 --weight_decay 0.01                \
 --device_id 1                      \
 --tdevice_id 1                     \
@@ -223,8 +223,8 @@ python3.8 run_probing_akd.py \
 --gate_eps 1e-8                    \
 --gate_weight_decay 0.01           \
 --seed 42                          \
---teacher_indices 12,10,8,6,4          \
---student_indices 6,5,4,3,2              \
+--teacher_indices 12,10,8,6,4,2          \
+--student_indices 6,5,4,3,2,1              \
 --softmax_temp 10                  \
 --soft_weight 0.5                  \
 --hard_weight 0.5                \
@@ -241,7 +241,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment ALP_KD_hidden_v2_soft_4_2_42            \
+--experiment ALP_KD_hidden_v2_4layer_soft_3_2_26            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -254,17 +254,17 @@ python3.8 run_alp_distil.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 100                     \
---lr 5e-4                          \
+--lr 3e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --total_step 13096                \
 --type_vocab_size 2                \
---seed 42                         \
+--seed 26                         \
 --warmup_step  1309               \
 --weight_decay 0.01                \
---device_id 0                      \
---tdevice_id 0                     \
+--device_id 1                      \
+--tdevice_id 1                     \
 --softmax_temp 10                  \
 --mu 5000                          \
 --soft_weight 0.5                  \
@@ -276,23 +276,23 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment   ALP_KD_hidden_v2_soft_4_2_42    \
+--experiment   AKD_hidden_user_defined_1_42    \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment   ALP_KD_hidden_v2_soft_4_2_42    \
+--experiment   AKD_hidden_user_defined_1_42    \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 0
+--device_id 1
 ```
 
 ## Plot CLS embedding of last Transformer block
@@ -312,7 +312,7 @@ python3.8 plot_CLS_embedding.py  \
 
 ```sh
 python3.8 eval_dev_loss.py \
---experiment PKD_hidden_user_defined_9_42 \
+--experiment AKD_CLS_user_defined_1_42 \
 --texperiment teacher_base \
 --model bert \
 --tmodel bert \
@@ -321,8 +321,8 @@ python3.8 eval_dev_loss.py \
 --dataset dev \
 --batch_size 32 \
 --log_step 17 \
---tdevice_id 3 \
---device_id 3 \
+--tdevice_id 1 \
+--device_id 1 \
 --softmax_temp 10 \
 --soft_weight 0.5 \
 --hard_weight 0.5
