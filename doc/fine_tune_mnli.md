@@ -226,11 +226,11 @@ python3.8 plot_CLS_embedding.py  \
 
 ```sh
 python3.8 generate_test_prediction.py \
---experiment  AKD_soft_2                 \
+--experiment  PKD_even_42                 \
 --model bert                    \
 --task mnli                     \
---dataset test_matched                 \
+--dataset test_mismatched                 \
 --batch_size 256                \
---ckpt 42000 \
---device_id 0
+--ckpt 48000 \
+--device_id 1
 ```

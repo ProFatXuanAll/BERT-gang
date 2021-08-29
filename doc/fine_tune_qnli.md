@@ -101,7 +101,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment AKD_soft_4_42            \
+--experiment AKD_4layer_soft_3_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -114,21 +114,21 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 100                     \
---lr 1e-4                          \
+--lr 3e-4                          \
 --gate_lr 5e-7                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                \
 --num_attention_heads 12           \
---num_hidden_layers 6              \
+--num_hidden_layers 4              \
 --type_vocab_size 2                \
---total_step 13096                \
---warmup_step  1309               \
---gate_total_step 13096           \
---gate_warmup_step 1309                \
+--total_step 32740                \
+--warmup_step  9822               \
+--gate_total_step 32740           \
+--gate_warmup_step 9822                \
 --weight_decay 0.01                \
---device_id 3                      \
---tdevice_id 3                     \
---gate_device_id 3                 \
+--device_id 0                      \
+--tdevice_id 0                     \
+--gate_device_id 0                 \
 --gate_beta1 0.9                   \
 --gate_beta2 0.999                 \
 --gate_eps 1e-8                    \
@@ -276,23 +276,23 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment   AKD_hidden_user_defined_1_42    \
+--experiment   AKD_4layer_soft_3_42    \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 1
+--device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment   AKD_hidden_user_defined_1_42    \
+--experiment   AKD_4layer_soft_3_42    \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 1
+--device_id 0
 ```
 
 ## Plot CLS embedding of last Transformer block
@@ -332,11 +332,11 @@ python3.8 eval_dev_loss.py \
 
 ```sh
 python3.8 generate_test_prediction.py \
---experiment  AKD_seperate_lrate_2                 \
+--experiment  PKD_hugface_soft_46                 \
 --model bert                    \
 --task qnli                     \
 --dataset test                 \
 --batch_size 256                \
---ckpt 13096 \
+--ckpt 11000 \
 --device_id 0
 ```

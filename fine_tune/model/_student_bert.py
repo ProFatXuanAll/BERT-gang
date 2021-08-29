@@ -112,7 +112,8 @@ class StudentBert(nn.Module):
             nn.init.zeros_(self.linear_layer.bias)
 
     def init_from_pre_trained(self, teacher_indices: List[int], student_indices = None, pretrain_ver: str = 'bert-base-uncased'):
-        """Given pre-trained model version and number of hidden layer of model,
+        """#TODO: rewrite doc string.
+        Given pre-trained model version and number of hidden layer of model,
         Initialize model parameters from pre-trained model.
         Parameters
         ----------

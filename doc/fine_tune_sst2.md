@@ -99,7 +99,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment AKD_soft_9_26            \
+--experiment AKD_soft_10_42            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -114,7 +114,7 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 100                     \
---lr 1e-4                          \
+--lr 3e-4                          \
 --gate_lr 1e-6                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
@@ -127,13 +127,13 @@ python3.8 run_fine_tune_distill_mgpu.py \
 --gate_warmup_step 12630            \
 --weight_decay 0.01                \
 --gate_weight_decay 0.01           \
---device_id 0                      \
---tdevice_id 0                    \
---gate_device_id 0                 \
---seed 26                          \
+--device_id 1                      \
+--tdevice_id 1                    \
+--gate_device_id 1                 \
+--seed 42                          \
 --softmax_temp 20                  \
---soft_weight 0.7                  \
---hard_weight 0.3                \
+--soft_weight 0.5                  \
+--hard_weight 0.5                \
 --mu 1000
 ```
 
@@ -184,34 +184,34 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  AKD_soft_9_46                 \
+--experiment  AKD_soft_10_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  AKD_soft_9_46                 \
+--experiment  AKD_soft_10_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 0
+--device_id 1
 ```
 
 ### Generate prediction result
 
 ```sh
 python3.8 generate_test_prediction.py \
---experiment  AKD_soft_5_42                 \
+--experiment  PKD_hugface_soft_2_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset test                 \
 --batch_size 256                \
---ckpt 28000 \
---device_id 0
+--ckpt 24000 \
+--device_id 1
 ```
