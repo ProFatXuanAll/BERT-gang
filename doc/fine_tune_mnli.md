@@ -20,6 +20,11 @@ rm ./data/fine_tune/MNLI.zip
 
 ### BERT Fine-Tune Script
 
+- Train dataset: 392702
+  - 1 epoch = 12272 iter (batch size = 32)
+- Dev Matched dataset: 9815
+- Dev Mis Matched dataset: 9832
+
 ```sh
 # Fine-tune on MNLI.
 python3.8 run_fine_tune.py     \
