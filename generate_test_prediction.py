@@ -86,12 +86,21 @@ if __name__ == '__main__':
     if args.device_id is not None:
         logger.info("Use device: %s to run evaluation", args.device_id)
 
-    config = fine_tune.config.StudentConfig.load(
-        experiment=args.experiment,
-        model=args.model,
-        task=args.task,
-        device_id=args.device_id
-    )
+    try:
+        config = fine_tune.config.TeacherConfig.load(
+            experiment=args.experiment,
+            model=args.model,
+            task=args.task,
+            device_id=args.device_id
+        )
+    # Load fine-tune distillation student model configuration.
+    except TypeError:
+        config = fine_tune.config.StudentConfig.load(
+            experiment=args.experiment,
+            model=args.model,
+            task=args.task,
+            device_id=args.device_id
+        )
 
     # Change batch size for faster evaluation.
     if args.batch_size:
@@ -113,13 +122,23 @@ if __name__ == '__main__':
         config=config
     )
 
-    tokenizer = fine_tune.util.load_student_tokenizer_by_config(
-        config=config
-    )
-    model = fine_tune.util.load_student_model_by_config(
-        config=config,
-        tokenizer=tokenizer
-    )
+    # Load teacher tokenizer and model.
+    if isinstance(config, fine_tune.config.TeacherConfig):
+        tokenizer = fine_tune.util.load_teacher_tokenizer_by_config(
+            config=config
+        )
+        model = fine_tune.util.load_teacher_model_by_config(
+            config=config
+        )
+    # Load student tokenizer and model.
+    else:
+        tokenizer = fine_tune.util.load_student_tokenizer_by_config(
+            config=config
+        )
+        model = fine_tune.util.load_student_model_by_config(
+            config=config,
+            tokenizer=tokenizer
+        )
 
     # Get experiment name and path.
     experiment_name = fine_tune.config.BaseConfig.experiment_name(
