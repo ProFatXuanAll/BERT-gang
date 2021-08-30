@@ -1,6 +1,10 @@
-r"""Run some probing experiments on AKD-BERT.
-For example what will happend if we only use last gate networks output as
-training objective.
+r"""Run fine-tune distillation with multi-GPU.
+
+Usage:
+    python run_lad_distil.py ...
+
+Run `python run_lad_distil.py -h` for help, or see 'doc/fine_tune_*.md'
+for more information.
 """
 
 # built-in modules
@@ -18,7 +22,7 @@ import torch
 import fine_tune
 
 # Get main logger.
-logger = logging.getLogger('fine_tune.probing_akd')
+logger = logging.getLogger('fine_tune.distill')
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
     datefmt='%Y/%m/%d %H:%M:%S',
@@ -43,23 +47,7 @@ if __name__ == "__main__":
         type=str,
     )
 
-    parser.add_argument(
-        '--probing_exp',
-        help='What type of probing experiment to be conducted.',
-        required=True,
-        type=str,
-    )
-
     # Arguments of teacher model.
-    parser.add_argument(
-        '--teacher_indices',
-        help='Which teacher layers a student model should learn.' +
-        'For example type in `2 4 6 8 10` mean those teacher layers '+
-        'will be learned by student model.',
-        required=True,
-        type=str
-    )
-
     parser.add_argument(
         '--teacher_exp',
         help='Experiment name of the fine-tuned teacher model',
@@ -80,14 +68,6 @@ if __name__ == "__main__":
     )
 
     # Arguments of student model.
-    parser.add_argument(
-        '--student_indices',
-        help='Which student layers will be updated.'+
-        'For example type in `1 2 3 4 5` means params '+
-        'of those student layers will be updated.',
-        required=True,
-        type=str
-    )
     parser.add_argument(
         '--experiment',
         help='Name of the current distillation experiment.',
@@ -323,12 +303,6 @@ if __name__ == "__main__":
     # Parse arguments.
     args = parser.parse_args()
 
-    # Parse student and teacher indices.
-    teacher_indices = [int(index)-1 for index in args.teacher_indices.split(',')]
-    student_indices = [int(index)-1 for index in args.student_indices.split(',')]
-    logger.info("Teacher indices: %s", teacher_indices)
-    logger.info("Student indices: %s", student_indices)
-
     # Load fine-tune teacher model configuration.
     teacher_config = fine_tune.config.TeacherConfig.load(
         experiment=args.teacher_exp,
@@ -490,28 +464,23 @@ if __name__ == "__main__":
         warmup_step=gate_config.warmup_step
     )
 
-    if args.probing_exp.lower() == 'akd_user_defined':
-        logger.info("Run probing experiments: `akd_user_defined`")
-        fine_tune.util.train_akd_user_defined(
-            teacher_config=teacher_config,
-            student_config=student_config,
-            gate_config=gate_config,
-            dataset=dataset,
-            teacher_model=teacher_model,
-            student_model=student_model,
-            gate_networks=gate_networks,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            gates_optimizer=gates_optimizer,
-            gates_scheduler=gates_scheduler,
-            teacher_tokenizer=teacher_tokenizer,
-            student_tokenizer=student_tokenizer,
-            highway_indices=teacher_indices,
-            student_indices=student_indices,
-            alpha=args.soft_weight,
-            gamma=args.hard_weight,
-            mu=args.mu,
-            softmax_temp=args.softmax_temp,
-        )
-    else:
-        raise ValueError(f"Unsupported probing experiments: {args.probing_exp}")
+    logger.info("Train LAD with Gate Networks")
+    fine_tune.util.train_LAD(
+        teacher_config=teacher_config,
+        student_config=student_config,
+        gate_config=gate_config,
+        dataset=dataset,
+        teacher_model=teacher_model,
+        student_model=student_model,
+        gate_networks=gate_networks,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        gates_optimizer=gates_optimizer,
+        gates_scheduler=gates_scheduler,
+        teacher_tokenizer=teacher_tokenizer,
+        student_tokenizer=student_tokenizer,
+        alpha=args.soft_weight,
+        gamma=args.hard_weight,
+        mu=args.mu,
+        softmax_temp=args.softmax_temp,
+    )

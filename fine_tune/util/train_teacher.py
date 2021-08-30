@@ -34,7 +34,7 @@ import fine_tune.model
 import fine_tune.path
 
 
-def train(
+def train_teacher(
         config: fine_tune.config.BaseConfig,
         dataset: fine_tune.task.Dataset,
         model: fine_tune.model.Model,

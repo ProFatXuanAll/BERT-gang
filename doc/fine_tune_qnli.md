@@ -94,10 +94,10 @@ python3.8 run_pkd_distill.py \
 --hard_weight 0.5
 ```
 
-## AKD-BERT Fine-Tune Distillation Scripts with Multi-GPU
+## LAD Fine-Tune Distillation Scripts with Multi-GPU
 
 ```sh
-python3.8 run_fine_tune_distill_mgpu.py \
+python3.8 run_lad_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
@@ -182,11 +182,11 @@ python3.8 run_probing.py \
 --hard_weight 0.5
 ```
 
-### AKD with user defined mapping strategy
+### LAD with user defined mapping strategy
 
 ```sh
-python3.8 run_probing_akd.py \
---probing_exp akd_cls_user_defined \
+python3.8 run_probing_lad.py \
+--probing_exp lad_user_defined \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \

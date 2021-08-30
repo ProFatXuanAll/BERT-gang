@@ -13,11 +13,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-# Typing
-from typing import Tuple
-from typing import List
-from fine_tune.task._dataset import Label
-
 # 3rd party modules
 
 import torch
@@ -28,6 +23,11 @@ import transformers
 
 from sklearn.metrics import accuracy_score, f1_score, matthews_corrcoef
 from tqdm import tqdm
+
+# Typing
+from typing import Tuple
+from typing import List
+from fine_tune.task._dataset import Label
 
 # my own modules
 

@@ -79,12 +79,6 @@ if __name__ == '__main__':
         type=int,
     )
     parser.add_argument(
-        '--amp',
-        default=False,
-        help='Use automatic mixed precision during training.',
-        action='store_true'
-    )
-    parser.add_argument(
         '--batch_size',
         default=32,
         help='Training batch size.',
@@ -181,7 +175,6 @@ if __name__ == '__main__':
     # Construct configuration.
     config = fine_tune.config.TeacherConfig(
         accum_step=args.accum_step,
-        amp=args.amp,
         batch_size=args.batch_size,
         beta1=args.beta1,
         beta2=args.beta2,
@@ -243,23 +236,11 @@ if __name__ == '__main__':
         optimizer=optimizer
     )
 
-    # Fine-tune model.
-    if args.amp:
-        # Use automatic mixed precision training
-        fine_tune.util.amp_train(
-            config=config,
-            dataset=dataset,
-            model=model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            tokenizer=tokenizer
-        )
-    else:
-        fine_tune.util.train(
-            config=config,
-            dataset=dataset,
-            model=model,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            tokenizer=tokenizer
-        )
+    fine_tune.util.train_teacher(
+        config=config,
+        dataset=dataset,
+        model=model,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        tokenizer=tokenizer
+    )

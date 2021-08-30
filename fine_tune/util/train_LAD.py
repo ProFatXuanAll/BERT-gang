@@ -35,7 +35,7 @@ import fine_tune.task
 import fine_tune.model
 import fine_tune.path
 
-def distill_mgpu(
+def train_LAD(
         teacher_config: fine_tune.config.TeacherConfig,
         student_config: fine_tune.config.StudentConfig,
         gate_config: fine_tune.config.GateConfig,

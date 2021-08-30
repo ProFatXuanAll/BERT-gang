@@ -657,7 +657,7 @@ def train_pkd_hidden_user_defined(
         os.path.join(experiment_dir, f'model-{step}.pt')
     )
 
-def train_akd_user_defined(
+def train_lad_user_defined(
     teacher_config: fine_tune.config.TeacherConfig,
     student_config: fine_tune.config.StudentConfig,
     gate_config: fine_tune.config.GateConfig,
@@ -678,7 +678,7 @@ def train_akd_user_defined(
     mu: int = 100,
     softmax_temp: float = 1.0
 ):
-    """Probing AKD-BERT with user-defined gate network mapping strategy.
+    """Probing LAD with user-defined gate network mapping strategy.
 
     Parameters
     ----------

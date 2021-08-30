@@ -247,28 +247,15 @@ if __name__ == '__main__':
                 ckpt
             )
         else:
-            if config.amp:
-                #TODO: remove amp evaluation?
-                print("amp evaluation could be deprecated in future version!")
-                acc = fine_tune.util.amp_evaluation(
-                    config=config,
-                    dataset=dataset,
-                    model=model,
-                    tokenizer=tokenizer
-                )
-                if max_acc <= acc:
-                    max_acc = acc
-                    max_acc_ckpt = ckpt
-            else:
-                acc = fine_tune.util.evaluate_acc(
-                    config=config,
-                    dataset=dataset,
-                    model=model,
-                    tokenizer=tokenizer
-                )
-                if max_acc <= acc:
-                    max_acc = acc
-                    max_acc_ckpt = ckpt
+            acc = fine_tune.util.evaluate_acc(
+                config=config,
+                dataset=dataset,
+                model=model,
+                tokenizer=tokenizer
+            )
+            if max_acc <= acc:
+                max_acc = acc
+                max_acc_ckpt = ckpt
 
             writer.add_scalar(
                 f'{config.task}/{config.dataset}/accuracy',

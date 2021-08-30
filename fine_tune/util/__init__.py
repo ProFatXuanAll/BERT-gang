@@ -20,13 +20,11 @@ from __future__ import unicode_literals
 
 # my own modules
 
-from fine_tune.util.amp_distill_mgpu import amp_distill_mgpu
-from fine_tune.util.distill_mgpu import distill_mgpu
+from fine_tune.util.train_LAD import train_LAD
 from fine_tune.util.train_PKD import train_PKD
 from fine_tune.util.evaluation import evaluate_acc, evaluate_acc_and_f1
 from fine_tune.util.evaluation import evaluate_matthews_corrcoef
 from fine_tune.util.evaluation import predict_testing_set
-from fine_tune.util.amp_evaluation import amp_evaluation
 from fine_tune.util.task import load_dataset
 from fine_tune.util.task import load_dataset_by_config
 from fine_tune.util.optimizer import load_optimizer
@@ -44,14 +42,13 @@ from fine_tune.util.tokenizer import load_student_tokenizer
 from fine_tune.util.tokenizer import load_student_tokenizer_by_config
 from fine_tune.util.tokenizer import load_teacher_tokenizer
 from fine_tune.util.tokenizer import load_teacher_tokenizer_by_config
-from fine_tune.util.train import train
-from fine_tune.util.amp_train import amp_train
+from fine_tune.util.train_teacher import train_teacher
 from fine_tune.util.scheduler import load_scheduler
 from fine_tune.util.scheduler import load_scheduler_by_config
 from fine_tune.util.scheduler import load_gate_networks_scheduler
 from fine_tune.util.probing import train_pkd_cls_user_defined
 from fine_tune.util.probing import train_pkd_hidden_user_defined
-from fine_tune.util.probing import train_akd_user_defined
+from fine_tune.util.probing import train_lad_user_defined
 from fine_tune.util.train_ALP import train_alp_kd
 from fine_tune.util.train_ALP import train_alp_kd_hidden
 from fine_tune.util.train_ALP import train_alp_kd_hidden_v2
