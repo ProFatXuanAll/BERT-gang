@@ -178,6 +178,57 @@ python3.8 run_alp_distil.py \
 --hard_weight 0.3
 ```
 
+## Probing Experiments
+
+### LAD with user defined mapping strategy
+
+```sh
+python3.8 run_probing_lad.py \
+--probing_exp lad_user_defined \
+--teacher_exp teacher_huggingface                \
+--tmodel bert                      \
+--tckpt  231 \
+--experiment LAD_user_defined_1            \
+--model bert                       \
+--task rte                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 100                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 10                     \
+--lr 3e-4                          \
+--gate_lr 3e-6                     \
+--max_norm 1.0                     \
+--gate_max_norm 1.0                \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--type_vocab_size 2                \
+--total_step 1540                \
+--warmup_step  462               \
+--gate_total_step 1540           \
+--gate_warmup_step 462                \
+--weight_decay 0.01                \
+--device_id 1                      \
+--tdevice_id 1                     \
+--gate_device_id 1                 \
+--gate_beta1 0.9                   \
+--gate_beta2 0.999                 \
+--gate_eps 1e-8                    \
+--gate_weight_decay 0.01           \
+--seed 42                          \
+--teacher_indices 12          \
+--student_indices 6              \
+--softmax_temp 5                  \
+--soft_weight 0.7                  \
+--hard_weight 0.3                \
+--mu 500
+```
+
 ## Evaluation
 
 ### BERT Fine-Tune Evaluation Scripts

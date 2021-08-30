@@ -492,7 +492,7 @@ if __name__ == "__main__":
 
     if args.probing_exp.lower() == 'lad_user_defined':
         logger.info("Run probing experiments: `lad_user_defined`")
-        fine_tune.util.train_akd_user_defined(
+        fine_tune.util.train_lad_user_defined(
             teacher_config=teacher_config,
             student_config=student_config,
             gate_config=gate_config,
