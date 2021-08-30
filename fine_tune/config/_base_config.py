@@ -46,9 +46,6 @@ class BaseConfig:
             Gradient accumulation step. Used when GPU memory cannot fit in
             whole batch. `accum_step` must be bigger than or equal to `1`;
             `accum_step` must be smaller than or equal to `batch_size`.
-        amp:
-            A boolean flag to indicate whether using `torch.cuda.amp` package
-            in both train and inference.
         batch_size:
             Training batch size. `batch_size` must be bigger than or equal to
             `1`; `batch_size` must be greater than or equal to `accum_step`.
@@ -120,7 +117,6 @@ class BaseConfig:
     def __init__(
             self,
             accum_step: int = 1,
-            amp: bool = False,
             batch_size: int = 32,
             beta1: float = 0.9,
             beta2: float = 0.999,
@@ -144,7 +140,6 @@ class BaseConfig:
     ):
 
         self.__class__.type_check(accum_step, 'accum_step', int)
-        self.__class__.type_check(amp, 'amp', bool)
         self.__class__.type_check(batch_size, 'batch_size', int)
         self.__class__.type_check(beta1, 'beta1', float)
         self.__class__.type_check(beta2, 'beta2', float)
@@ -285,7 +280,6 @@ class BaseConfig:
             )
 
         self.accum_step = accum_step
-        self.amp = amp
         self.batch_size = batch_size
         self.beta1 = beta1
         self.beta2 = beta2
@@ -336,7 +330,6 @@ class BaseConfig:
             Tuple[str, Union[bool, float, int, str]], None, None
     ]:
         yield 'accum_step', self.accum_step
-        yield 'amp', self.amp
         yield 'batch_size', self.batch_size
         yield 'beta1', self.beta1
         yield 'beta2', self.beta2
