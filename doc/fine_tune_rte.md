@@ -188,7 +188,7 @@ python3.8 run_probing_lad.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment LAD_user_defined_1            \
+--experiment LAD_user_defined_2            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -221,8 +221,8 @@ python3.8 run_probing_lad.py \
 --gate_eps 1e-8                    \
 --gate_weight_decay 0.01           \
 --seed 42                          \
---teacher_indices 12          \
---student_indices 6              \
+--teacher_indices 12,10          \
+--student_indices 6,5              \
 --softmax_temp 5                  \
 --soft_weight 0.7                  \
 --hard_weight 0.3                \
@@ -236,7 +236,7 @@ python3.8 run_probing_lad.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  AKD_4layer_soft_7_42                 \
+--experiment  LAD_user_defined_1                 \
 --model bert                    \
 --task rte                     \
 --dataset train                 \
@@ -247,7 +247,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  AKD_4layer_soft_7_42                 \
+--experiment  LAD_user_defined_1                 \
 --model bert                    \
 --task rte                     \
 --dataset dev           \
