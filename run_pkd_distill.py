@@ -16,7 +16,7 @@ import torch
 import fine_tune
 
 # Get main logger.
-logger = logging.getLogger('fine_tune.pkd_distill')
+logger = logging.getLogger('fine_tune.pkd_distil')
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
     datefmt='%Y/%m/%d %H:%M:%S',
