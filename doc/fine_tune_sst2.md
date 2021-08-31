@@ -187,7 +187,7 @@ python3.8 run_probing_lad.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment LAD_user_defined_1            \
+--experiment LAD_user_defined_5            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -212,16 +212,16 @@ python3.8 run_probing_lad.py \
 --gate_total_step 42100           \
 --gate_warmup_step 12630                \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
---gate_device_id 1                 \
+--device_id 0                      \
+--tdevice_id 0                     \
+--gate_device_id 0                 \
 --gate_beta1 0.9                   \
 --gate_beta2 0.999                 \
 --gate_eps 1e-8                    \
 --gate_weight_decay 0.01           \
 --seed 42                          \
---teacher_indices 12          \
---student_indices 6              \
+--teacher_indices 12,10,8,6,4          \
+--student_indices 6,5,4,3,2              \
 --softmax_temp 20                  \
 --soft_weight 0.5                  \
 --hard_weight 0.5                \
@@ -235,23 +235,23 @@ python3.8 run_probing_lad.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  AKD_soft_10_42                 \
+--experiment  LAD_user_defined_5                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 1
+--device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  AKD_soft_10_42                 \
+--experiment  LAD_user_defined_5                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 1
+--device_id 0
 ```
 
 ### Generate prediction result

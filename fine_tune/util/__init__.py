@@ -20,7 +20,7 @@ from __future__ import unicode_literals
 
 # my own modules
 
-from fine_tune.util.train_LAD import train_LAD
+from fine_tune.util.train_LAD import train_LAD, train_LAD_NO
 from fine_tune.util.train_PKD import train_PKD
 from fine_tune.util.evaluation import evaluate_acc, evaluate_acc_and_f1
 from fine_tune.util.evaluation import evaluate_matthews_corrcoef

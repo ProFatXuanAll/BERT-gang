@@ -138,6 +138,54 @@ python3.8 run_lad_distil.py \
 --mu 1000
 ```
 
+## LAD-NO
+
+### LAD-NO Fine-Tune Distillation Scripts with Multi-GPU
+
+```sh
+python3.8 run_lad_no_distil.py \
+--teacher_exp teacher_huggingface                \
+--tmodel bert                      \
+--tckpt  231 \
+--experiment LAD_NO_soft_2_42            \
+--model bert                       \
+--task rte                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--gate_beta1 0.9                   \
+--gate_beta2 0.999                 \
+--ckpt_step 100                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--gate_eps 1e-8                    \
+--log_step 10                     \
+--lr 5e-4                          \
+--gate_lr 3e-5                     \
+--max_norm 1.0                     \
+--gate_max_norm 1.0                 \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 1540                \
+--warmup_step  462               \
+--gate_total_step 1540            \
+--gate_warmup_step 462            \
+--type_vocab_size 2                \
+--weight_decay 0.01                \
+--gate_weight_decay 0.01           \
+--device_id 1                      \
+--tdevice_id 1                     \
+--gate_device_id 1                 \
+--seed 42                          \
+--softmax_temp 5                  \
+--soft_weight 0.7                  \
+--hard_weight 0.3                \
+--mu 1000
+```
+
 ## ALP-KD
 
 ### ALP-KD implementation scripts
@@ -188,7 +236,7 @@ python3.8 run_probing_lad.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment LAD_user_defined_2            \
+--experiment LAD_user_defined_6            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -221,8 +269,8 @@ python3.8 run_probing_lad.py \
 --gate_eps 1e-8                    \
 --gate_weight_decay 0.01           \
 --seed 42                          \
---teacher_indices 12,10          \
---student_indices 6,5              \
+--teacher_indices 12,10,8,6,4,2          \
+--student_indices 6,5,4,3,2,1              \
 --softmax_temp 5                  \
 --soft_weight 0.7                  \
 --hard_weight 0.3                \
@@ -236,23 +284,23 @@ python3.8 run_probing_lad.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  LAD_user_defined_1                 \
+--experiment  LAD_NO_soft_1_42                 \
 --model bert                    \
 --task rte                     \
 --dataset train                 \
 --batch_size 256                \
---device_id 1
+--device_id 0
 ```
 
 ```sh
 # Fine-tune evaluation on RTE dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  LAD_user_defined_1                 \
+--experiment  LAD_NO_soft_1_42                 \
 --model bert                    \
 --task rte                     \
 --dataset dev           \
 --batch_size 256 \
---device_id 1
+--device_id 0
 ```
 
 ### Generate prediction result
