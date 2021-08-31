@@ -147,7 +147,7 @@ python3.8 run_lad_no_distil.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment LAD_NO_soft_2_42            \
+--experiment LAD_NO_soft_4_42            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -163,7 +163,7 @@ python3.8 run_lad_no_distil.py \
 --eps 1e-8                         \
 --gate_eps 1e-8                    \
 --log_step 10                     \
---lr 5e-4                          \
+--lr 7e-4                          \
 --gate_lr 3e-5                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
@@ -284,7 +284,7 @@ python3.8 run_probing_lad.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  LAD_NO_soft_1_42                 \
+--experiment  LAD_NO_soft_3_42                 \
 --model bert                    \
 --task rte                     \
 --dataset train                 \
@@ -295,7 +295,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  LAD_NO_soft_1_42                 \
+--experiment  LAD_NO_soft_3_42                 \
 --model bert                    \
 --task rte                     \
 --dataset dev           \
