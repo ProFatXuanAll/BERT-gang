@@ -57,14 +57,14 @@ python3.8 run_fine_tune.py     \
 --weight_decay 0.01
 ```
 
-## BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
+## BERT-PKD Fine-Tune Distillation Scripts
 
 ```sh
 python3.8 run_pkd_distill.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment PKD_4layer_soft_2_26            \
+--experiment PKD_soft_1_46            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -80,28 +80,28 @@ python3.8 run_pkd_distill.py \
 --lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
+--num_hidden_layers 6              \
 --total_step 13096                \
 --type_vocab_size 2                \
---seed 26                          \
+--seed 46                          \
 --warmup_step  1309               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --tdevice_id 1                     \
 --softmax_temp 10                  \
---mu 1000                           \
+--mu 100                           \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
 
-## LAD Fine-Tune Distillation Scripts with Multi-GPU
+## LAD Fine-Tune Distillation Scripts
 
 ```sh
 python3.8 run_lad_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment AKD_4layer_soft_3_42            \
+--experiment LAD_soft_2_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -114,17 +114,17 @@ python3.8 run_lad_distil.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 100                     \
---lr 3e-4                          \
---gate_lr 5e-7                     \
+--lr 1e-4                          \
+--gate_lr 1e-7                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
+--num_hidden_layers 6              \
 --type_vocab_size 2                \
---total_step 32740                \
---warmup_step  9822               \
---gate_total_step 32740           \
---gate_warmup_step 9822                \
+--total_step 13096                \
+--warmup_step  1309               \
+--gate_total_step 13096           \
+--gate_warmup_step 1309                \
 --weight_decay 0.01                \
 --device_id 0                      \
 --tdevice_id 0                     \
@@ -142,7 +142,7 @@ python3.8 run_lad_distil.py \
 
 ## LAD-NO
 
-### LAD-NO Fine-Tune Distillation Scripts with Multi-GPU
+### LAD-NO Fine-Tune Distillation Scripts
 
 ```sh
 python3.8 run_lad_no_distil.py \
@@ -279,9 +279,47 @@ python3.8 run_probing_lad.py \
 --mu 1000
 ```
 
-## ALP-KD implementation
+## ALP-KD
 
-### ALP-KD implementation scripts
+### ALP-KD Fine-Tune Distillation Scripts
+
+```sh
+python3.8 run_alp_distil.py \
+--alp_exp alp-kd-hidden \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt  9822 \
+--experiment ALP_KD_hidden_soft_5_2_42            \
+--model bert                       \
+--task qnli                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 1000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 1e-4                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 13096                \
+--type_vocab_size 2                \
+--seed 42                         \
+--warmup_step  1309               \
+--weight_decay 0.01                \
+--device_id 1                      \
+--tdevice_id 1                     \
+--softmax_temp 10                  \
+--mu 1000                          \
+--soft_weight 0.5                  \
+--hard_weight 0.5
+```
+
+### ALP-KD-v2 Fine-Tune Distillation Scripts
 
 ```sh
 python3.8 run_alp_distil.py \
@@ -289,7 +327,7 @@ python3.8 run_alp_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment ALP_KD_hidden_v2_4layer_soft_3_2_26            \
+--experiment ALP_KD_hidden_v2_soft_3_2_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -305,10 +343,10 @@ python3.8 run_alp_distil.py \
 --lr 3e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
+--num_hidden_layers 6              \
 --total_step 13096                \
 --type_vocab_size 2                \
---seed 26                         \
+--seed 42                         \
 --warmup_step  1309               \
 --weight_decay 0.01                \
 --device_id 1                      \
@@ -324,7 +362,7 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment   AKD_4layer_soft_3_42    \
+--experiment   LAD_NO_soft_1_42    \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -335,7 +373,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment   AKD_4layer_soft_3_42    \
+--experiment   LAD_NO_soft_1_42    \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \
@@ -347,8 +385,8 @@ python3.8 run_fine_tune_eval.py \
 
 ```sh
 python3.8 plot_CLS_embedding.py  \
---ckpt 6548                     \
---experiment SCL_6_ce             \
+--ckpt 11000                     \
+--experiment LAD_NO_soft_1_42             \
 --model bert                     \
 --task qnli                      \
 --dataset dev            \
@@ -361,7 +399,7 @@ python3.8 plot_CLS_embedding.py  \
 ```sh
 python3.8 eval_dev_loss.py \
 --experiment AKD_CLS_user_defined_1_42 \
---texperiment teacher_base \
+--texperiment LAD_NO_soft_1_42 \
 --model bert \
 --tmodel bert \
 --tckpt 9822 \
@@ -376,11 +414,11 @@ python3.8 eval_dev_loss.py \
 --hard_weight 0.5
 ```
 
-### Generate prediction result
+## Generate prediction result
 
 ```sh
 python3.8 generate_test_prediction.py \
---experiment  PKD_hugface_soft_46                 \
+--experiment  LAD_NO_soft_1_42                 \
 --model bert                    \
 --task qnli                     \
 --dataset test                 \
