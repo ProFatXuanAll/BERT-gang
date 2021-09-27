@@ -1292,11 +1292,11 @@ def train_partial_lad(
 
             # Learn from teacher layers.
             begin = len(gate_indices)
-            step = len(teacher_hiddens) // len(student_hiddens)
+            skip = len(teacher_hiddens) // len(student_hiddens)
             teacher_indices = list(range(
-                max(gate_indices)+step,
+                max(gate_indices)+skip,
                 len(teacher_hiddens),
-                step
+                skip
             ))
 
             for t_index, s_index in zip(teacher_indices, student_indices[begin:]):
@@ -1354,6 +1354,8 @@ def train_partial_lad(
 
                 # Log loss and learning rate for each `student_config.log_step`.
                 if step % student_config.log_step == 0:
+                    print('Write to tfboard')
+                    input("Press any key")
                     writer.add_scalar(
                         f'{student_config.task}/{student_config.dataset}/{student_config.model}'+
                         '/loss',
@@ -1394,6 +1396,8 @@ def train_partial_lad(
 
                 # Save model for each `student_config.ckpt_step` step.
                 if step % student_config.ckpt_step == 0:
+                    print('Save ckpt')
+                    input("Press any key")
                     torch.save(
                         student_model.state_dict(),
                         os.path.join(experiment_dir, f'model-{step}.pt')
