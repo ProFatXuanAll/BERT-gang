@@ -52,9 +52,9 @@ if __name__ == "__main__":
 
     # Arguments of teacher model.
     parser.add_argument(
-        '--teacher_indices',
-        help='Which teacher layers a student model should learn.' +
-        'For example type in `2 4 6 8 10` mean those teacher layers '+
+        '--gate_indices',
+        help='Which gate layers a student model should learn.' +
+        'For example type in `2 4 6 8 10` mean those gate layers '+
         'will be learned by student model.',
         required=True,
         type=str
@@ -324,9 +324,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Parse student and teacher indices.
-    teacher_indices = [int(index)-1 for index in args.teacher_indices.split(',')]
+    gate_indices = [int(index)-1 for index in args.gate_indices.split(',')]
     student_indices = [int(index)-1 for index in args.student_indices.split(',')]
-    logger.info("Teacher indices: %s", teacher_indices)
+    logger.info("Teacher indices: %s", gate_indices)
     logger.info("Student indices: %s", student_indices)
 
     # Load fine-tune teacher model configuration.
@@ -466,31 +466,31 @@ if __name__ == "__main__":
         )
     )
 
-    # Load gate networks.
-    logger.info("Load gate networks by teacher and student config.")
-    gate_networks = fine_tune.util.load_gate_networks_by_config(
-        teacher_config=teacher_config,
-        gate_config=gate_config
-    )
-
-    logger.info("Load gate networks' optimizer and scheduler")
-    # Load optimizer.
-    gates_optimizer = fine_tune.util.load_gate_networks_optimizer(
-        betas=gate_config.betas,
-        eps=gate_config.eps,
-        lr=gate_config.lr,
-        weight_decay=gate_config.weight_decay,
-        gate_networks=gate_networks
-    )
-
-    # Load scheduler
-    gates_scheduler = fine_tune.util.load_gate_networks_scheduler(
-        optimizer=gates_optimizer,
-        total_step=gate_config.total_step,
-        warmup_step=gate_config.warmup_step
-    )
-
     if args.probing_exp.lower() == 'lad_user_defined':
+        # Load gate networks.
+        logger.info("Load gate networks by teacher and student config.")
+        gate_networks = fine_tune.util.load_gate_networks_by_config(
+            teacher_config=teacher_config,
+            gate_config=gate_config
+        )
+
+        logger.info("Load gate networks' optimizer and scheduler")
+        # Load optimizer.
+        gates_optimizer = fine_tune.util.load_gate_networks_optimizer(
+            betas=gate_config.betas,
+            eps=gate_config.eps,
+            lr=gate_config.lr,
+            weight_decay=gate_config.weight_decay,
+            gate_networks=gate_networks
+        )
+
+        # Load scheduler
+        gates_scheduler = fine_tune.util.load_gate_networks_scheduler(
+            optimizer=gates_optimizer,
+            total_step=gate_config.total_step,
+            warmup_step=gate_config.warmup_step
+        )
+
         logger.info("Run probing experiments: `lad_user_defined`")
         fine_tune.util.train_lad_user_defined(
             teacher_config=teacher_config,
@@ -506,7 +506,56 @@ if __name__ == "__main__":
             gates_scheduler=gates_scheduler,
             teacher_tokenizer=teacher_tokenizer,
             student_tokenizer=student_tokenizer,
-            highway_indices=teacher_indices,
+            gate_indices=gate_indices,
+            student_indices=student_indices,
+            alpha=args.soft_weight,
+            gamma=args.hard_weight,
+            mu=args.mu,
+            softmax_temp=args.softmax_temp,
+        )
+    elif args.probing_exp.lower() == 'partial_lad':
+        # Load gate networks.
+        logger.info("Load gate networks.")
+        gate_networks = fine_tune.util.load_gate_networks(
+            num_layers=max(gate_indices)+1,
+            dimension=gate_config.dimension,
+            seq_length=gate_config.max_seq_length,
+            device=gate_config.device
+        )
+
+        logger.info("Load gate networks' optimizer and scheduler")
+        # Load optimizer.
+        gates_optimizer = fine_tune.util.load_gate_networks_optimizer(
+            betas=gate_config.betas,
+            eps=gate_config.eps,
+            lr=gate_config.lr,
+            weight_decay=gate_config.weight_decay,
+            gate_networks=gate_networks
+        )
+
+        # Load scheduler
+        gates_scheduler = fine_tune.util.load_gate_networks_scheduler(
+            optimizer=gates_optimizer,
+            total_step=gate_config.total_step,
+            warmup_step=gate_config.warmup_step
+        )
+
+        logger.info("Run probing experiments: `partial_lad`")
+        fine_tune.util.train_partial_lad(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            gate_config=gate_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            gate_networks=gate_networks,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            gates_optimizer=gates_optimizer,
+            gates_scheduler=gates_scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
+            gate_indices=gate_indices,
             student_indices=student_indices,
             alpha=args.soft_weight,
             gamma=args.hard_weight,

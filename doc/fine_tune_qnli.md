@@ -271,8 +271,57 @@ python3.8 run_probing_lad.py \
 --gate_eps 1e-8                    \
 --gate_weight_decay 0.01           \
 --seed 42                          \
---teacher_indices 12,10,8,6,4,2          \
---student_indices 6,5,4,3,2,1              \
+--gate_indices 2,4,6,8,10,12          \
+--student_indices 1,2,3,4,5,6             \
+--softmax_temp 10                  \
+--soft_weight 0.5                  \
+--hard_weight 0.5                \
+--mu 1000
+```
+
+### Partial LAD
+
+```sh
+python3.8 run_probing_lad.py \
+--probing_exp partial_lad \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt  9822 \
+--experiment partial_LAD_1_42            \
+--model bert                       \
+--task qnli                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 1000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 1e-4                          \
+--gate_lr 1e-6                     \
+--max_norm 1.0                     \
+--gate_max_norm 1.0                \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--type_vocab_size 2                \
+--total_step 13096                \
+--warmup_step  1309               \
+--gate_total_step 13096           \
+--gate_warmup_step 1309                \
+--weight_decay 0.01                \
+--device_id 3                      \
+--tdevice_id 3                     \
+--gate_device_id 3                 \
+--gate_beta1 0.9                   \
+--gate_beta2 0.999                 \
+--gate_eps 1e-8                    \
+--gate_weight_decay 0.01           \
+--seed 42                          \
+--gate_indices 2          \
+--student_indices 1,2,3,4,5,6             \
 --softmax_temp 10                  \
 --soft_weight 0.5                  \
 --hard_weight 0.5                \

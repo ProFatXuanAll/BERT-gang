@@ -279,6 +279,9 @@ def load_gate_networks_by_config(
     """Given teacher and student model config,
     return a list of `HighwayGate`.
 
+    #TODO: Refactor this utility functions:
+        Can we just pass in `num_of_gates` instead?
+
     Parameters
     ----------
     teacher_config : fine_tune.config.TeacherConfig

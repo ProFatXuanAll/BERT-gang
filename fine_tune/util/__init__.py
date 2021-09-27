@@ -49,6 +49,7 @@ from fine_tune.util.scheduler import load_gate_networks_scheduler
 from fine_tune.util.probing import train_pkd_cls_user_defined
 from fine_tune.util.probing import train_pkd_hidden_user_defined
 from fine_tune.util.probing import train_lad_user_defined
+from fine_tune.util.probing import train_partial_lad
 from fine_tune.util.train_ALP import train_alp_kd
 from fine_tune.util.train_ALP import train_alp_kd_hidden
 from fine_tune.util.train_ALP import train_alp_kd_hidden_v2
