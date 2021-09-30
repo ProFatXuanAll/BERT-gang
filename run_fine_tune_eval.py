@@ -229,23 +229,6 @@ if __name__ == '__main__':
                 f1,
                 ckpt
             )
-        elif config.task == 'cola':
-            mcc = fine_tune.util.evaluate_matthews_corrcoef(
-                config=config,
-                dataset=dataset,
-                model=model,
-                tokenizer=tokenizer
-            )
-
-            if max_mcc <= mcc:
-                max_mcc = mcc
-                max_mcc_ckpt = ckpt
-
-            writer.add_scalar(
-                f'{config.task}/{config.dataset}/MCC',
-                mcc,
-                ckpt
-            )
         else:
             acc = fine_tune.util.evaluate_acc(
                 config=config,
@@ -272,10 +255,6 @@ if __name__ == '__main__':
         logger.info('max accuracy checkpoint: %d', max_acc_ckpt)
         logger.info('max f1 score:        %f', max_f1)
         logger.info('max f1 score checkpoint: %d', max_f1_ckpt)
-
-    elif config.task == 'cola':
-        logger.info('max Matthews correlation coefficient:        %f', max_mcc)
-        logger.info('max Matthews correlation coefficient checkpoint: %d', max_mcc_ckpt)
     else:
         logger.info('max accuracy:            %f', max_acc)
         logger.info('max accuracy checkpoint: %d', max_acc_ckpt)
