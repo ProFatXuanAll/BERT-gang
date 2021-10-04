@@ -44,7 +44,7 @@ python run_fine_tune.py \
 
 ## BERT-PKD
 
-### BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
+### BERT-PKD Fine-Tune Distillation Scripts
 
 ```sh
 python3.8 run_pkd_distill.py \
@@ -83,14 +83,14 @@ python3.8 run_pkd_distill.py \
 
 ## LAD
 
-### LAD Fine-Tune Distillation Scripts with Multi-GPU
+### LAD Fine-Tune Distillation Scripts
 
 ```sh
 python3.8 run_lad_distil.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  575 \
---experiment AKD_4layer_soft_6_42            \
+--experiment LAD_soft_4_42            \
 --model bert                       \
 --task mrpc                        \
 --accum_step 1                     \
@@ -112,11 +112,11 @@ python3.8 run_lad_distil.py \
 --gate_max_norm 1.0                 \
 --type_vocab_size 2                \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
---total_step 3450                \
---warmup_step  1035               \
---gate_total_step 3450            \
---gate_warmup_step 1035             \
+--num_hidden_layers 6              \
+--total_step 2300                \
+--warmup_step  690               \
+--gate_total_step 2300            \
+--gate_warmup_step 690             \
 --weight_decay 0.01                \
 --gate_weight_decay 0.01           \
 --device_id 0                      \
@@ -129,9 +129,146 @@ python3.8 run_lad_distil.py \
 --mu 1000
 ```
 
+## Probing Experiments
+
+### Partial LAD
+
+```sh
+python3.8 run_probing_lad.py \
+--probing_exp partial_lad \
+--teacher_exp teacher_huggingface                \
+--tmodel bert                      \
+--tckpt  575 \
+--experiment partial_LAD_5_42            \
+--model bert                       \
+--task mrpc                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 100                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 10                     \
+--lr 5e-4                          \
+--gate_lr 5e-6                     \
+--max_norm 1.0                     \
+--gate_max_norm 1.0                \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--type_vocab_size 2                \
+--total_step 2300                \
+--warmup_step  690               \
+--gate_total_step 2300           \
+--gate_warmup_step 690            \
+--weight_decay 0.01                \
+--device_id 3                      \
+--tdevice_id 3                     \
+--gate_device_id 3                 \
+--gate_beta1 0.9                   \
+--gate_beta2 0.999                 \
+--gate_eps 1e-8                    \
+--gate_weight_decay 0.01           \
+--seed 42                          \
+--gate_indices 2,4,6,8,10                 \
+--student_indices 1,2,3,4,5,6      \
+--softmax_temp 10                  \
+--soft_weight 0.7                  \
+--hard_weight 0.3                \
+--mu 500
+```
+
+## LAD-NO
+
+### LAD-NO Fine-Tune Distillation Scripts
+
+```sh
+python3.8 run_lad_no_distil.py \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt  575 \
+--experiment LAD_NO_soft_1_42            \
+--model bert                       \
+--task mrpc                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--gate_beta1 0.9                   \
+--gate_beta2 0.999                 \
+--ckpt_step 100                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--gate_eps 1e-8                    \
+--log_step 10                     \
+--lr 5e-4                          \
+--gate_lr 5e-6                     \
+--max_norm 1.0                     \
+--gate_max_norm 1.0                 \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 2300                \
+--warmup_step  690               \
+--gate_total_step 2300            \
+--gate_warmup_step 690            \
+--type_vocab_size 2                \
+--weight_decay 0.01                \
+--gate_weight_decay 0.01           \
+--device_id 0                      \
+--tdevice_id 0                     \
+--gate_device_id 0                 \
+--seed 42                          \
+--softmax_temp 10                  \
+--soft_weight 0.7                  \
+--hard_weight 0.3                \
+--mu 500
+```
+
 ## ALP-KD
 
-### ALP-KD implementation scripts
+### ALP-KD Fine-Tune Distillation Scripts
+
+```sh
+python3.8 run_alp_distil.py \
+--alp_exp alp-kd-hidden \
+--teacher_exp teacher_huggingface                \
+--tmodel bert                      \
+--tckpt  575 \
+--experiment ALP_KD_hidden_4layer_soft_2_26            \
+--model bert                       \
+--task mrpc                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 100                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 10                     \
+--lr 5e-4                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 4              \
+--total_step 1150                \
+--type_vocab_size 2                \
+--seed 26                          \
+--warmup_step  115               \
+--weight_decay 0.01                \
+--device_id 0                      \
+--tdevice_id 0                     \
+--softmax_temp 20                  \
+--mu 1000                          \
+--soft_weight 0.7                  \
+--hard_weight 0.3
+```
+
+### ALP-KD-v2 Fine-Tune Distillation Scripts
 
 ```sh
 python3.8 run_alp_distil.py \
@@ -169,31 +306,31 @@ python3.8 run_alp_distil.py \
 --hard_weight 0.3
 ```
 
-### BERT Fine-Tune Evaluation Scripts
+## BERT Fine-Tune Evaluation Scripts
 
 ```sh
 # Fine-tune evaluation on RTE dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  AKD_4layer_soft_6_42  \
+--experiment  partial_LAD_4_42  \
 --model bert                    \
 --task mrpc                     \
 --dataset train                 \
 --batch_size 256                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on RTE dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  AKD_4layer_soft_6_42  \
+--experiment  partial_LAD_4_42  \
 --model bert                    \
 --task mrpc                     \
 --dataset dev           \
 --batch_size 128 \
---device_id 0
+--device_id 1
 ```
 
-### Generate prediction result
+## Generate prediction result
 
 ```sh
 python3.8 generate_test_prediction.py \

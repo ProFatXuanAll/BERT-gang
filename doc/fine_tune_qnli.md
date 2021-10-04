@@ -287,7 +287,7 @@ python3.8 run_probing_lad.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  9822 \
---experiment partial_LAD_1_42            \
+--experiment partial_LAD_5_42            \
 --model bert                       \
 --task qnli                        \
 --accum_step 1                     \
@@ -320,7 +320,7 @@ python3.8 run_probing_lad.py \
 --gate_eps 1e-8                    \
 --gate_weight_decay 0.01           \
 --seed 42                          \
---gate_indices 2          \
+--gate_indices 2,4,6,8,10          \
 --student_indices 1,2,3,4,5,6             \
 --softmax_temp 10                  \
 --soft_weight 0.5                  \
@@ -411,7 +411,7 @@ python3.8 run_alp_distil.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment   LAD_NO_soft_1_42    \
+--experiment   partial_LAD_4_42    \
 --model bert                    \
 --task qnli                     \
 --dataset train                 \
@@ -422,7 +422,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment   LAD_NO_soft_1_42    \
+--experiment   partial_LAD_4_42    \
 --model bert                    \
 --task qnli                     \
 --dataset dev           \

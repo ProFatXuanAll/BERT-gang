@@ -228,6 +228,55 @@ python3.8 run_probing_lad.py \
 --mu 1000
 ```
 
+### Partial LAD
+
+```sh
+python3.8 run_probing_lad.py \
+--probing_exp partial_lad \
+--teacher_exp teacher_huggingface                \
+--tmodel bert                      \
+--tckpt  6315 \
+--experiment partial_LAD_5_42            \
+--model bert                       \
+--task sst2                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 1000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 1e-4                          \
+--gate_lr 1e-6                     \
+--max_norm 1.0                     \
+--gate_max_norm 1.0                \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--type_vocab_size 2                \
+--total_step 42100                \
+--warmup_step  12630               \
+--gate_total_step 42100           \
+--gate_warmup_step 12630                \
+--weight_decay 0.01                \
+--device_id 1                      \
+--tdevice_id 1                     \
+--gate_device_id 1                 \
+--gate_beta1 0.9                   \
+--gate_beta2 0.999                 \
+--gate_eps 1e-8                    \
+--gate_weight_decay 0.01           \
+--seed 42                          \
+--gate_indices 2,4,6,8,10          \
+--student_indices 1,2,3,4,5,6             \
+--softmax_temp 20                  \
+--soft_weight 0.5                  \
+--hard_weight 0.5                \
+--mu 1000
+```
+
 ## Evaluation
 
 ### BERT Fine-Tune Evaluation Scripts
@@ -235,7 +284,7 @@ python3.8 run_probing_lad.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  LAD_user_defined_5                 \
+--experiment  partial_LAD_5_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
@@ -246,7 +295,7 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  LAD_user_defined_5                 \
+--experiment  partial_LAD_5_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
