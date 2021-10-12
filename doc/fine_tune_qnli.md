@@ -21,15 +21,12 @@ rm ./data/fine_tune/qnli.zip
 - binary classification
 - train: 104743
 - dev: 5463
+- test: 5463
 
 ## Fine-Tune Script of BERT Teacher
 
-- Batch Size: 16, 32
-- Learning Rate: 5e-5, 3e-5, 2e-5
-- Number of epochs: 2, 3, 4
-- Dropout: 0.1
 - 1 epochs = 3274 iters
-  - under batch size 32
+  - batch size = 32
 
 ```sh
 python3.8 run_fine_tune.py     \
@@ -252,13 +249,13 @@ python3.8 run_lad_no_distil.py \
 --beta2 0.999                      \
 --gate_beta1 0.9                   \
 --gate_beta2 0.999                 \
---ckpt_step 100                   \
+--ckpt_step 1000                   \
 --d_ff 3072                        \
 --d_model 768                      \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --gate_eps 1e-8                    \
---log_step 10                     \
+--log_step 100                     \
 --lr 1e-4                          \
 --gate_lr 1e-6                     \
 --max_norm 1.0                     \
@@ -500,8 +497,9 @@ python3.8 run_probing.py \
 
 ## BERT Fine-Tune Evaluation Scripts
 
+### Fine-tune evaluation on QNLI dataset `train`.
+
 ```sh
-# Fine-tune evaluation on QNLI dataset `train`.
 python3.8 run_fine_tune_eval.py \
 --experiment   LAD_soft_42    \
 --model bert                    \
@@ -511,8 +509,9 @@ python3.8 run_fine_tune_eval.py \
 --device_id 0
 ```
 
+### Fine-tune evaluation on QNLI dataset `dev`.
+
 ```sh
-# Fine-tune evaluation on QNLI dataset `dev`.
 python3.8 run_fine_tune_eval.py \
 --experiment   LAD_soft_42    \
 --model bert                    \
