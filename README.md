@@ -42,6 +42,11 @@ python --version
 ## Environment information of our experiments results
 Note that the [reproducible results are not guaranteed across PyTorch releases, individual commits, or different platforms](https://pytorch.org/docs/stable/notes/randomness.html).
 
-- torch version: `1.9.0`
-- cuda version: `cu111`
-- GPU: `RTX 3090`
+- For `QNLI`, `MRPC`, `SST-2`, `QQP` and `MNLI`
+  - torch version: `1.9.0`
+  - cuda version: `cu111`
+  - GPU: `RTX 3090`
+- For `RTE`
+  - torch version: `1.6.0`
+  - cuda version: `cu111`
+  - GPU: `RTX 2080`
