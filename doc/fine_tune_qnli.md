@@ -164,6 +164,8 @@ python3.8 run_probing_lad.py \
 ### Aggregated hidden states vs. aggregated [CLS] embedding
 > Please refer to Section 5.2 in Analysis.
 
+#### Train a student with aggregated [CLS] embedding
+
 ```sh
 python3.8 run_probing_lad.py \
 --probing_exp lad_cls \
@@ -208,6 +210,30 @@ python3.8 run_probing_lad.py \
 --hard_weight 0.5                \
 --mu 1000
 ```
+
+#### Log evaluation loss on Tensorboard
+- Rember to set the `softmax_temp`, `soft_weight` and `hard_weight`
+
+```sh
+python3.8 eval_dev_loss.py \
+--experiment AKD_CLS_user_defined_1_42 \
+--texperiment LAD_NO_soft_1_42 \
+--model bert \
+--tmodel bert \
+--tckpt 9822 \
+--task qnli \
+--dataset dev \
+--batch_size 32 \
+--log_step 17 \
+--tdevice_id 1 \
+--device_id 1 \
+--softmax_temp 10 \
+--soft_weight 0.5 \
+--hard_weight 0.5
+```
+
+#### Plot the loss curve (Optional)
+- Follow the steps of `plot_loss.ipynb`
 
 ### Fine-Tune Distillation Scripts of LAD-NO
 > Please refer to Section 5.4 in Analysis.
@@ -494,26 +520,6 @@ python3.8 run_fine_tune_eval.py \
 --dataset dev           \
 --batch_size 512 \
 --device_id 0
-```
-
-## Evaluate validation loss
-
-```sh
-python3.8 eval_dev_loss.py \
---experiment AKD_CLS_user_defined_1_42 \
---texperiment LAD_NO_soft_1_42 \
---model bert \
---tmodel bert \
---tckpt 9822 \
---task qnli \
---dataset dev \
---batch_size 32 \
---log_step 17 \
---tdevice_id 1 \
---device_id 1 \
---softmax_temp 10 \
---soft_weight 0.5 \
---hard_weight 0.5
 ```
 
 ## Generate prediction result
