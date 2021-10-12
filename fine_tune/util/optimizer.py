@@ -17,6 +17,7 @@ from __future__ import unicode_literals
 # Typing
 from typing import Tuple
 from typing import List
+from typing import Union
 
 # 3rd party modules
 
@@ -110,7 +111,10 @@ def load_gate_networks_optimizer(
     eps: float,
     lr: float,
     weight_decay: float,
-    gate_networks: List[fine_tune.model.HighwayGate]
+    gate_networks: Union[
+        List[fine_tune.model.HighwayGate],
+        List[fine_tune.model.HighwayGate_CLS]
+    ]
 ) -> torch.optim.AdamW:
     """Load `torch.optim.AdamW` optimizer.
 
