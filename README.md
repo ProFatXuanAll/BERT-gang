@@ -4,7 +4,7 @@ Using Knowledge Distillation to learn from BERT-like models.
 
 ## Setup
 
-You need `Ubuntu18.04+` and `python3.8+` to run all the code.  
+You need `Ubuntu18.04+` and `python3.8+` to run all the code.
 We will use `pipenv` to replace `venv` and `pip`.
 
 - [Pipenv documentation](https://pipenv.pypa.io/en/latest/)
@@ -38,3 +38,10 @@ python --version
   - You need to install `cuda` driver first.
   - Required `cuda10+`.
 - Use `tensorboard --logdir='./data/fine_tune_experiment/log'` to monitor loss, learning rate and accuracy.
+
+## Environment information of our experiments results
+Note that the [reproducible results are not guaranteed across PyTorch releases, individual commits, or different platforms](https://pytorch.org/docs/stable/notes/randomness.html).
+
+- torch version: `1.9.0`
+- cuda version: `cu111`
+- GPU: `RTX 3090`

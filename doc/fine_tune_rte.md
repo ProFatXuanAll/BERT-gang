@@ -99,7 +99,7 @@ python3.8 run_lad_distil.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment AKD_4layer_soft_7_42            \
+--experiment LAD_4layer_soft_10_42            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -115,7 +115,7 @@ python3.8 run_lad_distil.py \
 --eps 1e-8                         \
 --gate_eps 1e-8                    \
 --log_step 10                     \
---lr 5e-4                          \
+--lr 3e-4                          \
 --gate_lr 3e-5                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
@@ -123,19 +123,19 @@ python3.8 run_lad_distil.py \
 --num_hidden_layers 4              \
 --total_step 2310                \
 --warmup_step  693               \
---gate_total_step 2310            \
+--gate_total_step 2310             \
 --gate_warmup_step 693            \
 --type_vocab_size 2                \
 --weight_decay 0.01                \
 --gate_weight_decay 0.01           \
---device_id 0                      \
---tdevice_id 0                     \
---gate_device_id 0                 \
+--device_id 1                      \
+--tdevice_id 1                     \
+--gate_device_id 1                 \
 --seed 42                          \
 --softmax_temp 5                  \
 --soft_weight 0.7                  \
 --hard_weight 0.3                \
---mu 1000
+--mu 500
 ```
 
 ## LAD-NO
@@ -147,7 +147,7 @@ python3.8 run_lad_no_distil.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment LAD_NO_soft_4_42            \
+--experiment LAD_NO_soft_5_42            \
 --model bert                       \
 --task rte                        \
 --accum_step 1                     \
@@ -163,7 +163,7 @@ python3.8 run_lad_no_distil.py \
 --eps 1e-8                         \
 --gate_eps 1e-8                    \
 --log_step 10                     \
---lr 7e-4                          \
+--lr 9e-4                          \
 --gate_lr 3e-5                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
@@ -183,7 +183,7 @@ python3.8 run_lad_no_distil.py \
 --softmax_temp 5                  \
 --soft_weight 0.7                  \
 --hard_weight 0.3                \
---mu 1000
+--mu 500
 ```
 
 ## ALP-KD
@@ -236,9 +236,9 @@ python3.8 run_probing_lad.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  231 \
---experiment partial_LAD_2_42            \
+--experiment partial_LAD_1_42            \
 --model bert                       \
---task mrpc                        \
+--task rte                        \
 --accum_step 1                     \
 --batch_size 32                    \
 --beta1 0.9                        \
@@ -250,7 +250,7 @@ python3.8 run_probing_lad.py \
 --eps 1e-8                         \
 --log_step 10                     \
 --lr 3e-4                          \
---gate_lr 3e-6                     \
+--gate_lr 3e-5                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                \
 --num_attention_heads 12           \
@@ -261,15 +261,15 @@ python3.8 run_probing_lad.py \
 --gate_total_step 1155           \
 --gate_warmup_step 346            \
 --weight_decay 0.01                \
---device_id 1                      \
---tdevice_id 1                     \
---gate_device_id 1                 \
+--device_id 2                      \
+--tdevice_id 2                     \
+--gate_device_id 2                 \
 --gate_beta1 0.9                   \
 --gate_beta2 0.999                 \
 --gate_eps 1e-8                    \
 --gate_weight_decay 0.01           \
 --seed 42                          \
---gate_indices 2,4                 \
+--gate_indices 2                 \
 --student_indices 1,2,3,4,5,6      \
 --softmax_temp 5                  \
 --soft_weight 0.7                  \
@@ -333,34 +333,34 @@ python3.8 run_probing_lad.py \
 ```sh
 # Fine-tune evaluation on RTE dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  LAD_NO_soft_3_42                 \
+--experiment  LAD_4layer_soft_10_42                 \
 --model bert                    \
 --task rte                     \
 --dataset train                 \
 --batch_size 256                \
---device_id 0
+--device_id 1
 ```
 
 ```sh
 # Fine-tune evaluation on RTE dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  LAD_NO_soft_3_42                 \
+--experiment  LAD_4layer_soft_10_42                 \
 --model bert                    \
 --task rte                     \
 --dataset dev           \
 --batch_size 256 \
---device_id 0
+--device_id 1
 ```
 
 ### Generate prediction result
 
 ```sh
 python3.8 generate_test_prediction.py \
---experiment  PKD_hugface_soft_e20_46                 \
+--experiment  LAD_soft_1_26_torch1_6                 \
 --model bert                    \
 --task rte                     \
 --dataset test                 \
 --batch_size 256                \
---ckpt 1300 \
+--ckpt 1100 \
 --device_id 0
 ```

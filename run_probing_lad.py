@@ -51,14 +51,6 @@ if __name__ == "__main__":
     )
 
     # Arguments of teacher model.
-    parser.add_argument(
-        '--gate_indices',
-        help='Which gate layers a student model should learn.' +
-        'For example type in `2 4 6 8 10` mean those gate layers '+
-        'will be learned by student model.',
-        required=True,
-        type=str
-    )
 
     parser.add_argument(
         '--teacher_exp',
@@ -79,15 +71,16 @@ if __name__ == "__main__":
         type=int,
     )
 
-    # Arguments of student model.
     parser.add_argument(
-        '--student_indices',
-        help='Which student layers will be updated.'+
-        'For example type in `1 2 3 4 5` means params '+
-        'of those student layers will be updated.',
-        required=True,
+        '--gate_indices',
+        help='Which gate layers a student model should learn.' +
+        'For example type in `2 4 6 8 10` mean those gate layers '+
+        'will be learned by student model.',
+        default='',
         type=str
     )
+
+    # Arguments of student model.
     parser.add_argument(
         '--experiment',
         help='Name of the current distillation experiment.',
@@ -105,6 +98,14 @@ if __name__ == "__main__":
         help='Device ID of student model.',
         required=True,
         type=int,
+    )
+    parser.add_argument(
+        '--student_indices',
+        help='Which student layers will be updated.'+
+        'For example type in `1 2 3 4 5` means params '+
+        'of those student layers will be updated.',
+        default='',
+        type=str
     )
 
     # Arguments of gate networks.
@@ -324,10 +325,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Parse student and teacher indices.
-    gate_indices = [int(index)-1 for index in args.gate_indices.split(',')]
-    student_indices = [int(index)-1 for index in args.student_indices.split(',')]
-    logger.info("Teacher indices: %s", gate_indices)
-    logger.info("Student indices: %s", student_indices)
+    if args.gate_indices:
+        gate_indices = [int(index)-1 for index in args.gate_indices.split(',')]
+        logger.info("Teacher indices: %s", gate_indices)
+    if args.student_indices:
+        student_indices = [int(index)-1 for index in args.student_indices.split(',')]
+        logger.info("Student indices: %s", student_indices)
 
     # Load fine-tune teacher model configuration.
     teacher_config = fine_tune.config.TeacherConfig.load(
@@ -468,10 +471,17 @@ if __name__ == "__main__":
 
     if args.probing_exp.lower() == 'lad_user_defined':
         # Load gate networks.
-        logger.info("Load gate networks by teacher and student config.")
-        gate_networks = fine_tune.util.load_gate_networks_by_config(
-            teacher_config=teacher_config,
-            gate_config=gate_config
+        logger.info("Load gate networks by teacher and gate config.")
+        if 'bert-base' in teacher_config.ptrain_ver:
+            num_layers = 12
+        if 'bert-large' in teacher_config.ptrain_ver:
+            num_layers = 24
+
+        gate_networks = fine_tune.util.load_gate_networks(
+            num_layers=num_layers,
+            dimension=gate_config.dimension,
+            seq_length=gate_config.max_seq_length,
+            device=gate_config.device
         )
 
         logger.info("Load gate networks' optimizer and scheduler")
@@ -514,6 +524,9 @@ if __name__ == "__main__":
             softmax_temp=args.softmax_temp,
         )
     elif args.probing_exp.lower() == 'partial_lad':
+        # Set student indices.
+        student_indices = list(range(student_config.num_hidden_layers))
+        logger.info("Student indices: %s", student_indices)
         # Load gate networks.
         logger.info("Load gate networks.")
         gate_networks = fine_tune.util.load_gate_networks(
@@ -557,6 +570,56 @@ if __name__ == "__main__":
             student_tokenizer=student_tokenizer,
             gate_indices=gate_indices,
             student_indices=student_indices,
+            alpha=args.soft_weight,
+            gamma=args.hard_weight,
+            mu=args.mu,
+            softmax_temp=args.softmax_temp,
+        )
+    elif args.probing_exp.lower() == 'lad_cls':
+        logger.info("Load [CLS] gate networks by teacher and gate config.")
+        if 'bert-base' in teacher_config.ptrain_ver:
+            num_layers = 12
+        if 'bert-large' in teacher_config.ptrain_ver:
+            num_layers = 24
+        gate_networks = [
+            fine_tune.model.HighwayGate_CLS(
+                dimension = gate_config.dimension
+            ).to(gate_config.device)
+            for _ in range(num_layers)
+        ]
+
+        logger.info("Load gate networks' optimizer and scheduler")
+        # Load optimizer.
+        gates_optimizer = fine_tune.util.load_gate_networks_optimizer(
+            betas=gate_config.betas,
+            eps=gate_config.eps,
+            lr=gate_config.lr,
+            weight_decay=gate_config.weight_decay,
+            gate_networks=gate_networks
+        )
+
+        # Load scheduler
+        gates_scheduler = fine_tune.util.load_gate_networks_scheduler(
+            optimizer=gates_optimizer,
+            total_step=gate_config.total_step,
+            warmup_step=gate_config.warmup_step
+        )
+
+        logger.info("Run probing experiments: `train_lad_cls`")
+        fine_tune.util.train_lad_cls(
+            teacher_config=teacher_config,
+            student_config=student_config,
+            gate_config=gate_config,
+            dataset=dataset,
+            teacher_model=teacher_model,
+            student_model=student_model,
+            gate_networks=gate_networks,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            gates_optimizer=gates_optimizer,
+            gates_scheduler=gates_scheduler,
+            teacher_tokenizer=teacher_tokenizer,
+            student_tokenizer=student_tokenizer,
             alpha=args.soft_weight,
             gamma=args.hard_weight,
             mu=args.mu,

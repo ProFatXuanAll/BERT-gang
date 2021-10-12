@@ -62,7 +62,7 @@ python3.8 run_pkd_distill.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  36816 \
---experiment PKD_4layer_soft_65            \
+--experiment partial_LAD_0_42            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -75,19 +75,19 @@ python3.8 run_pkd_distill.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 200                     \
---lr 5e-5                          \
+--lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
+--num_hidden_layers 6              \
 --total_step 49088                \
 --type_vocab_size 2                \
---seed 65                          \
+--seed 42                          \
 --warmup_step  4908               \
 --weight_decay 0.01                \
 --device_id 3                      \
 --tdevice_id 3                     \
 --softmax_temp 10                  \
---mu 100                           \
+--mu 500                           \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
@@ -101,7 +101,7 @@ python3.8 run_lad_distil.py \
 --tmodel bert                      \
 --teacher_exp teacher_base                \
 --tckpt  36816 \
---experiment AKD_soft_2_26            \
+--experiment LAD_soft_4_8            \
 --model bert                       \
 --task mnli                        \
 --accum_step 1                     \
@@ -116,8 +116,8 @@ python3.8 run_lad_distil.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 200                     \
---lr 5e-5                          \
---gate_lr 1e-6                     \
+--lr 1e-4                          \
+--gate_lr 1e-7                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                \
 --num_attention_heads 12           \
@@ -129,10 +129,10 @@ python3.8 run_lad_distil.py \
 --gate_warmup_step 4908            \
 --weight_decay 0.01                \
 --gate_weight_decay 0.01           \
---seed 26                           \
---device_id 1                      \
---tdevice_id 1                     \
---gate_device_id 1                 \
+--seed 42                           \
+--device_id 2                      \
+--tdevice_id 2                     \
+--gate_device_id 2                 \
 --softmax_temp 10                  \
 --soft_weight 0.5                  \
 --hard_weight 0.5                \
@@ -247,23 +247,23 @@ python3.8 run_fine_tune_eval.py \
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_matched`.
 python3.8 run_fine_tune_eval.py \
---experiment  partial_LAD_4_42          \
+--experiment  LAD_soft_4_7          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_matched           \
 --batch_size 512                \
---device_id 0
+--device_id 3
 ```
 
 ```sh
 # Fine-tune distillation evaluation on MNLI dataset `dev_mismatched`.
 python3.8 run_fine_tune_eval.py \
---experiment  partial_LAD_4_42          \
+--experiment  LAD_soft_4_7          \
 --model bert                    \
 --task mnli                     \
 --dataset dev_mismatched        \
 --batch_size 512 \
---device_id 0
+--device_id 3
 ```
 
 ### Plot CLS embedding of last Transformer block
@@ -283,11 +283,11 @@ python3.8 plot_CLS_embedding.py  \
 
 ```sh
 python3.8 generate_test_prediction.py \
---experiment  PKD_even_42                 \
+--experiment  LAD_soft_4                 \
 --model bert                    \
 --task mnli                     \
 --dataset test_mismatched                 \
 --batch_size 256                \
---ckpt 48000 \
---device_id 1
+--ckpt 42000 \
+--device_id 3
 ```

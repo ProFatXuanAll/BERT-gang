@@ -1,8 +1,5 @@
 r"""Task-Specific Distillation: LAD_NO
 This experiment is used to compare with ALP_NO
-Note:
-    It may be temporary scripts!.
-    TODO: Should we keep this scripts?
 """
 
 # built-in modules
@@ -439,6 +436,7 @@ if __name__ == "__main__":
     )
 
     # Load gate networks.
+    # TODO: call utility function here!
     logger.info("Load gate networks by teacher and student config.")
     gate_networks = [
         fine_tune.model.HighwayGate(

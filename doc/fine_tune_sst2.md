@@ -60,7 +60,7 @@ python3.8 run_pkd_distill.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt 6315 \
---experiment PKD_4layer_soft_2_26            \
+--experiment partial_LAD_0_42            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -76,16 +76,16 @@ python3.8 run_pkd_distill.py \
 --lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
---total_step 25260                \
+--num_hidden_layers 6              \
+--total_step 42100                \
 --type_vocab_size 2                \
---seed 26                          \
---warmup_step 2526               \
+--seed 42                          \
+--warmup_step 12630               \
 --weight_decay 0.01                \
 --device_id 1                      \
 --tdevice_id 1                     \
 --softmax_temp 20                  \
---mu 100                           \
+--mu 1000                           \
 --soft_weight 0.5                  \
 --hard_weight 0.5
 ```
@@ -99,7 +99,7 @@ python3.8 run_lad_distil.py \
 --teacher_exp teacher_huggingface                \
 --tmodel bert                      \
 --tckpt  6315 \
---experiment AKD_soft_10_42            \
+--experiment LAD_soft_5_42            \
 --model bert                       \
 --task sst2                        \
 --accum_step 1                     \
@@ -114,7 +114,7 @@ python3.8 run_lad_distil.py \
 --dropout 0.1                      \
 --eps 1e-8                         \
 --log_step 100                     \
---lr 3e-4                          \
+--lr 1e-4                          \
 --gate_lr 1e-6                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
@@ -284,34 +284,34 @@ python3.8 run_probing_lad.py \
 ```sh
 # Fine-tune evaluation on SST2 dataset `train`.
 python3.8 run_fine_tune_eval.py \
---experiment  partial_LAD_5_42                 \
+--experiment  partial_LAD_0_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset train                 \
 --batch_size 512                \
---device_id 0
+--device_id 2
 ```
 
 ```sh
 # Fine-tune evaluation on SST2 dataset `dev`.
 python3.8 run_fine_tune_eval.py \
---experiment  partial_LAD_5_42                 \
+--experiment  partial_LAD_0_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset dev           \
 --batch_size 512 \
---device_id 0
+--device_id 2
 ```
 
 ### Generate prediction result
 
 ```sh
 python3.8 generate_test_prediction.py \
---experiment  PKD_hugface_soft_2_42                 \
+--experiment  LAD_soft_5_42                 \
 --model bert                    \
 --task sst2                     \
 --dataset test                 \
 --batch_size 256                \
---ckpt 24000 \
+--ckpt 28000 \
 --device_id 1
 ```

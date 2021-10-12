@@ -441,6 +441,7 @@ if __name__ == "__main__":
     )
 
     # Load gate networks.
+    # TODO: call another utility function here!
     logger.info("Load gate networks by teacher and student config.")
     gate_networks = fine_tune.util.load_gate_networks_by_config(
         teacher_config=teacher_config,
