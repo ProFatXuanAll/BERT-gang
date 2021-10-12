@@ -57,9 +57,8 @@ class Sample(TypedDict):
     We structured each sample data as a `dict` which is compatible with method
     `transformers.PreTrainedModel.forward`. `text_pair` is only used when input
     text consist of 2 sequences. `text_pair` must be `None` if input text
-    consist of only 1 sequence. `logits` is only used when perform distillation
-    and must remain all zeors when not used. See
-    https://huggingface.co/transformers/main_classes/model.html for
+    consist of only 1 sequence.
+    See https://huggingface.co/transformers/main_classes/model.html for
     `transformers.PreTrainedModel.forward` method signature.
     """
     index: int

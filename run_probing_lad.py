@@ -66,7 +66,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '--tckpt',
-        help='Checkpoint of teacher model to generate logits, hidden states and attentions',
+        help='Checkpoint of teacher model to generate logits and hidden states',
         required=True,
         type=int,
     )

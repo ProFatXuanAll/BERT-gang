@@ -37,7 +37,6 @@ from fine_tune.util.model import load_student_model_by_config
 from fine_tune.util.model import load_teacher_model
 from fine_tune.util.model import load_teacher_model_by_config
 from fine_tune.util.model import load_gate_networks
-from fine_tune.util.model import load_gate_networks_by_config
 from fine_tune.util.tokenizer import load_student_tokenizer
 from fine_tune.util.tokenizer import load_student_tokenizer_by_config
 from fine_tune.util.tokenizer import load_teacher_tokenizer

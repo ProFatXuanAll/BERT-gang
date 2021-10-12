@@ -111,17 +111,25 @@ class StudentBert(nn.Module):
             )
             nn.init.zeros_(self.linear_layer.bias)
 
-    def init_from_pre_trained(self, teacher_indices: List[int], student_indices = None, pretrain_ver: str = 'bert-base-uncased'):
-        """#TODO: rewrite doc string.
-        Given pre-trained model version and number of hidden layer of model,
-        Initialize model parameters from pre-trained model.
+    def init_from_pre_trained(
+        self,
+        teacher_indices: List[int],
+        student_indices: List[int] = None,
+        pretrain_ver: str = 'bert-base-uncased'
+    ):
+        """Given pre-trained model version and
+        indices of the Transformer layers of the teacher and the student.
+        Initialize model parameters from the given pre-trained model.
+
         Parameters
         ----------
         teacher_indices : List[int]
             Specify teacher layer to load pre-trained weight for initialization.
+        student_indices : List[int], optional
+            Specify which student layer will be initialized.
+            If not given, the even student layer will be initialized, by default None
         pretrain_ver : str, optional
-            pre-trained version string.
-            Now we only support `bert-base-uncased`.
+            pre-trained version string, by default 'bert-base-uncased'
         """
         pretrain_model = BertModel.from_pretrained(pretrain_ver)
 

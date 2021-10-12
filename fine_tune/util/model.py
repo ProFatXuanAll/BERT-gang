@@ -252,36 +252,3 @@ def load_gate_networks(
     ]
 
     return gate_networks
-
-def load_gate_networks_by_config(
-    teacher_config: fine_tune.config.TeacherConfig,
-    gate_config: fine_tune.config.GateConfig
-) -> List[fine_tune.model.HighwayGate]:
-    """Given teacher and student model config,
-    return a list of `HighwayGate`.
-
-    #TODO: Remove this function
-
-    Parameters
-    ----------
-    teacher_config : fine_tune.config.TeacherConfig
-        Teacher model configuration
-    gate_config : fine_tune.config.GateConfig
-        `HighwayGate` configuration
-
-    Returns
-    -------
-    List[fine_tune.model.HighwayGate]
-        A list of `HighwayGate`
-    """
-    if 'bert-base' in teacher_config.ptrain_ver:
-        num_layers = 12
-    if 'bert-large' in teacher_config.ptrain_ver:
-        num_layers = 24
-
-    return load_gate_networks(
-        num_layers=num_layers,
-        dimension=gate_config.dimension,
-        seq_length=gate_config.max_seq_length,
-        device=gate_config.device
-    )

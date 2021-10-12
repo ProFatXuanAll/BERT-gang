@@ -62,7 +62,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '--tckpt',
-        help='Checkpoint of teacher model to generate logits, hidden states and attentions',
+        help='Checkpoint of teacher model to generate logits and hidden states',
         required=True,
         type=int,
     )
@@ -97,49 +97,49 @@ if __name__ == "__main__":
     parser.add_argument(
         '--gate_beta1',
         default=0.9,
-        help="Optimizer `torch.optim.AdamW`'s beta coefficients.",
+        help="Gate Network's optimizer `torch.optim.AdamW`'s beta coefficients.",
         type=float
     )
     parser.add_argument(
         '--gate_beta2',
         default=0.999,
-        help="Optimizer `torch.optim.AdamW`'s beta coefficients.",
+        help="Gate Network's optimizer `torch.optim.AdamW`'s beta coefficients.",
         type=float,
     )
     parser.add_argument(
         '--gate_eps',
         default=1e-8,
-        help="Optimizer `torch.optim.AdamW`'s epsilon.",
+        help="Gate Network's optimizer `torch.optim.AdamW`'s epsilon.",
         type=float,
     )
     parser.add_argument(
         '--gate_lr',
         default=1e-5,
-        help="Optimizer `torch.optim.AdamW`'s learning rate.",
+        help="Gate Network's optimizer `torch.optim.AdamW`'s learning rate.",
         type=float,
     )
     parser.add_argument(
         '--gate_max_norm',
         default=1.0,
-        help='Maximum norm of gradient.',
+        help='Maximum norm of gradient of Gate Network.',
         type=float,
     )
     parser.add_argument(
         '--gate_total_step',
         required=True,
-        help='Total number of step to train gate.',
+        help='Total number of step to train Gate Network.',
         type=int,
     )
     parser.add_argument(
         '--gate_warmup_step',
         required=True,
-        help='Linear scheduler warmup step of gate network scheduler.',
+        help="Linear scheduler warmup step of Gate Network's scheduler.",
         type=int,
     )
     parser.add_argument(
         '--gate_weight_decay',
         default=0.01,
-        help="Optimizer `torch.optim.AdamW` weight decay regularization.",
+        help="Gate Network's optimizer `torch.optim.AdamW` weight decay regularization.",
         type=float,
     )
 
@@ -441,11 +441,16 @@ if __name__ == "__main__":
     )
 
     # Load gate networks.
-    # TODO: call another utility function here!
-    logger.info("Load gate networks by teacher and student config.")
-    gate_networks = fine_tune.util.load_gate_networks_by_config(
-        teacher_config=teacher_config,
-        gate_config=gate_config
+    logger.info("Load gate networks by teacher and gate config.")
+    if 'bert-base' in teacher_config.ptrain_ver:
+        num_layers = 12
+    if 'bert-large' in teacher_config.ptrain_ver:
+        num_layers = 24
+    gate_networks = fine_tune.util.load_gate_networks(
+        num_layers=num_layers,
+        dimension=gate_config.dimensionm,
+        seq_length = gate_config.max_seq_length,
+        device=gate_config.device
     )
 
     logger.info("Load gate networks' optimizer and scheduler")

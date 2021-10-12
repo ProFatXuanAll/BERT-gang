@@ -57,7 +57,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '--tckpt',
-        help='Checkpoint of teacher model to generate logits, hidden states and attentions',
+        help='Checkpoint of teacher model to generate logits and hidden states',
         required=True,
         type=int,
     )
@@ -436,15 +436,13 @@ if __name__ == "__main__":
     )
 
     # Load gate networks.
-    # TODO: call utility function here!
-    logger.info("Load gate networks by teacher and student config.")
-    gate_networks = [
-        fine_tune.model.HighwayGate(
-            dimension=gate_config.dimension,
-            seq_length=gate_config.max_seq_length
-        ).to(gate_config.device)
-        for _ in range(student_config.num_hidden_layers)
-    ]
+    logger.info("Load gate networks by student and gate config.")
+    gate_networks = fine_tune.util.load_gate_networks(
+        num_layers=student_config.num_hidden_layers,
+        dimension=gate_config.dimension,
+        seq_length=gate_config.max_seq_length,
+        device=gate_config.device
+    )
 
     logger.info("Load gate networks' optimizer and scheduler")
     # Load optimizer.
