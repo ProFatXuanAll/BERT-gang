@@ -90,32 +90,32 @@ if __name__ == "__main__":
     # Arguments of gate networks.
     parser.add_argument(
         '--gate_device_id',
-        help='Device ID of gate networks.',
+        help='Device ID of Gate Network.',
         required=True,
         type=int
     )
     parser.add_argument(
         '--gate_beta1',
         default=0.9,
-        help="Gate Network's optimizer `torch.optim.AdamW`'s beta coefficients.",
+        help="Gate Network's optimizer: `torch.optim.AdamW`'s beta coefficients.",
         type=float
     )
     parser.add_argument(
         '--gate_beta2',
         default=0.999,
-        help="Gate Network's optimizer `torch.optim.AdamW`'s beta coefficients.",
+        help="Gate Network's optimizer: `torch.optim.AdamW`'s beta coefficients.",
         type=float,
     )
     parser.add_argument(
         '--gate_eps',
         default=1e-8,
-        help="Gate Network's optimizer `torch.optim.AdamW`'s epsilon.",
+        help="Gate Network's optimizer: `torch.optim.AdamW`'s epsilon.",
         type=float,
     )
     parser.add_argument(
         '--gate_lr',
         default=1e-5,
-        help="Gate Network's optimizer `torch.optim.AdamW`'s learning rate.",
+        help="Gate Network's optimizer: `torch.optim.AdamW`'s learning rate.",
         type=float,
     )
     parser.add_argument(
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--gate_weight_decay',
         default=0.01,
-        help="Gate Network's optimizer `torch.optim.AdamW` weight decay regularization.",
+        help="Gate Network's optimizer: `torch.optim.AdamW` weight decay regularization.",
         type=float,
     )
 

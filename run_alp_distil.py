@@ -43,7 +43,8 @@ if __name__ == "__main__":
 
     parser.add_argument(
         '--alp_exp',
-        help='What type of ALP experiment to be conducted.',
+        help='Which type of ALP experiment to be conducted.'+
+        'ALP-KD, ALP-KD-Hidden or ALP-KD-v2',
         required=True,
         type=str,
     )

@@ -45,7 +45,8 @@ if __name__ == "__main__":
 
     parser.add_argument(
         '--probing_exp',
-        help='What type of probing experiment to be conducted.',
+        help='Which type of probing experiment to be conducted.'+
+        '`pkd_cls_user_defined` or `pkd_hidden_user_defined`',
         required=True,
         type=str,
     )
