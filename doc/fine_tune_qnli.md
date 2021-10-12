@@ -104,6 +104,7 @@ python3.8 run_lad_distil.py \
 ## Analysis on LAD
 
 ### LAD with user defined mapping strategy
+
 > Please refer to Section 5.1 in Analysis.
 
 - `gate_indices`: which Gate block's aggregated knowledge the student will learn.
@@ -233,6 +234,7 @@ python3.8 eval_dev_loss.py \
 - Follow the steps of `plot_loss.ipynb`
 
 ### Fine-Tune Distillation Scripts of LAD-NO
+
 > Please refer to Section 5.4 in Analysis.
 
 ```sh
@@ -412,6 +414,7 @@ python3.8 run_alp_distil.py \
 
 ## Our implementation of BERT-PKD
 ### Fine-Tune Distillation Scripts of BERT-PKD
+
 > Please refer to Section 7.1 in Appendix.
 
 ```sh

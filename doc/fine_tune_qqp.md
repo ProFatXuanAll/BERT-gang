@@ -16,13 +16,17 @@ unzip ./data/fine_tune/QQP-clean.zip -d ./data/fine_tune/
 rm ./data/fine_tune/QQP-clean.zip
 ```
 
-## BERT Fine-Tune
+## Data Information
 
-### BERT Fine-Tune Script
+- binary classification
+- train: 363846
+- dev: 40430
+- test: 390965
 
-- Train dataset: 363846
-  - 1 epoch = 11370 iter (batch size = 32)
-- Dev dataset: 40430
+## Fine-Tune Script of BERT Teacher
+
+- 1 epoch = 11370 iter
+  - batch size = 32
 
 ```sh
 python run_fine_tune.py   \
@@ -50,55 +54,14 @@ python run_fine_tune.py   \
 --weight_decay 0.01
 ```
 
-## BERT-PKD
-
-### BERT-PKD Fine-Tune Distillation Scripts with Multi-GPU
-
-```sh
-python3.8 run_pkd_distill.py \
---teacher_exp teacher_base                \
---tmodel bert                      \
---tckpt 34110 \
---experiment partial_LAD_0_42            \
---model bert                       \
---task qqp                        \
---accum_step 1                     \
---batch_size 32                    \
---beta1 0.9                        \
---beta2 0.999                      \
---ckpt_step 3000                   \
---d_ff 3072                        \
---d_model 768                      \
---dropout 0.1                      \
---eps 1e-8                         \
---log_step 100                     \
---lr 1e-4                          \
---max_norm 1.0                     \
---num_attention_heads 12           \
---num_hidden_layers 6              \
---total_step 56850                \
---type_vocab_size 2                \
---seed 42                          \
---warmup_step 5685               \
---weight_decay 0.01                \
---device_id 2                      \
---tdevice_id 2                     \
---softmax_temp 20                  \
---mu 500                           \
---soft_weight 0.7                  \
---hard_weight 0.3
-```
-
-## LAD
-
-### LAD Fine-Tune Distillation Scripts with Multi-GPU
+## Fine-Tune Distillation Scripts of LAD
 
 ```sh
 python3.8 run_lad_distil.py \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  34110 \
---experiment LAD_4layer_soft_7_42            \
+--experiment LAD_soft_1_42            \
 --model bert                       \
 --task qqp                        \
 --accum_step 1                     \
@@ -114,12 +77,12 @@ python3.8 run_lad_distil.py \
 --eps 1e-8                         \
 --gate_eps 1e-8                    \
 --log_step 100                     \
---lr 3e-4                          \
+--lr 1e-4                          \
 --gate_lr 5e-7                     \
 --max_norm 1.0                     \
 --gate_max_norm 1.0                 \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
+--num_hidden_layers 6              \
 --total_step 56850                \
 --warmup_step  5685               \
 --gate_total_step 56850            \
@@ -127,9 +90,9 @@ python3.8 run_lad_distil.py \
 --weight_decay 0.01                \
 --gate_weight_decay 0.01           \
 --type_vocab_size 2                \
---device_id 3                      \
---tdevice_id 3                     \
---gate_device_id 3                 \
+--device_id 0                      \
+--tdevice_id 0                     \
+--gate_device_id 0                 \
 --seed 42                          \
 --softmax_temp 20                  \
 --soft_weight 0.7                  \
@@ -137,9 +100,11 @@ python3.8 run_lad_distil.py \
 --mu 500
 ```
 
-## LAD-NO
+## Analysis on LAD
 
-### LAD-NO Fine-Tune Distillation Scripts
+### Fine-Tune Distillation Scripts of LAD-NO
+
+> Please refer to Section 5.4 in Analysis.
 
 ```sh
 python3.8 run_lad_no_distil.py \
@@ -185,9 +150,11 @@ python3.8 run_lad_no_distil.py \
 --mu 500
 ```
 
-## Probing Experiments
-
 ### Partial LAD
+
+> Please refer to Section 5.5 in Analysis.
+
+- `gate_indices`: which Gate block's aggregated knowledge the student will learn.
 
 ```sh
 python3.8 run_probing_lad.py \
@@ -236,17 +203,19 @@ python3.8 run_probing_lad.py \
 --mu 500
 ```
 
-## ALP-KD
+## Analysis on ALP-KD
 
-### ALP-KD training scripts
+> Please refer to Section 5.3 in Analysis.
+
+### ALP-KD Fine-Tune Distillation Scripts
 
 ```sh
 python3.8 run_alp_distil.py \
---alp_exp alp-kd-hidden-v2 \
+--alp_exp alp-kd-hidden \
 --teacher_exp teacher_base                \
 --tmodel bert                      \
 --tckpt  34110 \
---experiment ALP_KD_hidden_v2_4layer_soft_2_1_26            \
+--experiment ALP_KD_hidden_soft_2_42            \
 --model bert                       \
 --task qqp                        \
 --accum_step 1                     \
@@ -262,10 +231,48 @@ python3.8 run_alp_distil.py \
 --lr 1e-4                          \
 --max_norm 1.0                     \
 --num_attention_heads 12           \
---num_hidden_layers 4              \
+--num_hidden_layers 6              \
 --total_step 45480                \
 --type_vocab_size 2                \
---seed 26                          \
+--seed 42                          \
+--warmup_step  4548               \
+--weight_decay 0.01                \
+--device_id 0                      \
+--tdevice_id 0                     \
+--softmax_temp 10                  \
+--mu 500                         \
+--soft_weight 0.5                  \
+--hard_weight 0.5
+```
+
+### ALP-KD-v2 Fine-Tune Distillation Scripts
+
+```sh
+python3.8 run_alp_distil.py \
+--alp_exp alp-kd-hidden-v2 \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt  34110 \
+--experiment ALP_KD_hidden_v2_soft_2_1_65            \
+--model bert                       \
+--task qqp                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 2000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 1e-4                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 45480                \
+--type_vocab_size 2                \
+--seed 65                          \
 --warmup_step  4548               \
 --weight_decay 0.01                \
 --device_id 0                      \
@@ -276,12 +283,52 @@ python3.8 run_alp_distil.py \
 --hard_weight 0.3
 ```
 
-## Evaluation
+## Our implementation of BERT-PKD
 
-### BERT Fine-Tune Evaluation Scripts
+## Fine-Tune Distillation Scripts of BERT-PKD
+
+> Please refer to Section 7.1 in Appendix.
 
 ```sh
-# Fine-tune evaluation on QQP dataset `train`.
+python3.8 run_pkd_distill.py \
+--teacher_exp teacher_base                \
+--tmodel bert                      \
+--tckpt 34110 \
+--experiment PKD_soft_1_65            \
+--model bert                       \
+--task qqp                        \
+--accum_step 1                     \
+--batch_size 32                    \
+--beta1 0.9                        \
+--beta2 0.999                      \
+--ckpt_step 3000                   \
+--d_ff 3072                        \
+--d_model 768                      \
+--dropout 0.1                      \
+--eps 1e-8                         \
+--log_step 100                     \
+--lr 5e-5                          \
+--max_norm 1.0                     \
+--num_attention_heads 12           \
+--num_hidden_layers 6              \
+--total_step 45480                \
+--type_vocab_size 2                \
+--seed 42                          \
+--warmup_step 4548               \
+--weight_decay 0.01                \
+--device_id 0                      \
+--tdevice_id 0                     \
+--softmax_temp 20                  \
+--mu 100                           \
+--soft_weight 0.7                  \
+--hard_weight 0.3
+```
+
+## BERT Fine-Tune Evaluation Scripts
+
+### Fine-tune evaluation on QQP dataset `train`.
+
+```sh
 python3.8 run_fine_tune_eval.py \
 --experiment AKD_soft_9_42                     \
 --model bert                    \
@@ -291,8 +338,9 @@ python3.8 run_fine_tune_eval.py \
 --device_id 0
 ```
 
+### Fine-tune evaluation on QQP dataset `dev`.
+
 ```sh
-# Fine-tune evaluation on QQP dataset `dev`.
 python3.8 run_fine_tune_eval.py \
 --experiment partial_LAD_0_42                     \
 --model bert                    \
@@ -302,7 +350,7 @@ python3.8 run_fine_tune_eval.py \
 --device_id 3
 ```
 
-### Generate prediction result
+## Generate prediction result
 
 ```sh
 python3.8 generate_test_prediction.py \
