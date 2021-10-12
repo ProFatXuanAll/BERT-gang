@@ -66,3 +66,51 @@ class HighwayGate(nn.Module):
         output = input2 * transform_gate + input1 * (1-transform_gate)
 
         return self.layernorm(output)
+
+class HighwayGate_CLS(nn.Module):
+    r"""Gate network implementation with [CLS] embedding.
+    Given two [CLS] embedding tensor (from two different teacher layer),
+    Return aggregate [CLS] embedding tensor.
+    Our implementation refer to `Highway Network`[1].
+
+    This module is used for analysis !
+
+    Notes
+    ----------
+    [1]Srivastava, R. K., Greff, K., & Schmidhuber, J. (2015).
+    Highway networks. arXiv preprint arXiv:1505.00387.
+
+    Parameters
+    ----------
+    dimension : int
+        [CLS] embedding dimension
+    """
+    def __init__(self, dimension: int):
+        super().__init__()
+        self.linear = nn.Linear(in_features=dimension, out_features=dimension)
+        self.activation = nn.Sigmoid()
+        self.layernorm = nn.LayerNorm(normalized_shape = [dimension])
+
+        # Xavier norm init.
+        nn.init.xavier_uniform_(self.linear.weight)
+
+    def forward(self, input1: torch.Tensor, input2: torch.Tensor):
+        """Calculate aggregate [CLS] embedding tensor.
+
+        Parameters
+        ----------
+        input1 : torch.Tensor
+            [CLS] embedding of i-th transformer layer
+        input2 : torch.Tensor
+            [CLS] embedding of (i+1)-th transformer layer
+        """
+        if input1.shape != input2.shape:
+            raise ValueError("Shape of two input dosen't match")
+
+        if torch.all(torch.eq(input1, 0)):
+            return input2
+        transform_gate = self.activation(self.linear(input1))
+
+        output = input2 * transform_gate + input1 * (1-transform_gate)
+
+        return self.layernorm(output)

@@ -20,27 +20,21 @@ from typing import Union
 
 # my own modules
 
-from fine_tune.model._student_albert import StudentAlbert
 from fine_tune.model._student_bert import StudentBert
-from fine_tune.model._teacher_albert import TeacherAlbert
 from fine_tune.model._teacher_bert import TeacherBert
-from fine_tune.model._gate import HighwayGate
+from fine_tune.model._gate import HighwayGate, HighwayGate_CLS
 
 # Define types for type annotation.
 
 Model = Union[
-    StudentAlbert,
     StudentBert,
-    TeacherAlbert,
     TeacherBert
 ]
 
 StudentModel = Union[
-    StudentAlbert,
     StudentBert,
 ]
 
 TeacherModel = Union[
-    TeacherAlbert,
     TeacherBert,
 ]
