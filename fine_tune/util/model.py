@@ -83,19 +83,6 @@ def load_student_model(
         `fine_tune.model.StudentBert`:
             If `config.student` is 'bert'.
     """
-    if model == 'albert':
-        return fine_tune.model.StudentAlbert(
-            d_emb=d_emb,
-            d_ff=d_ff,
-            d_model=d_model,
-            dropout=dropout,
-            max_seq_len=max_seq_len,
-            num_attention_heads=num_attention_heads,
-            num_class=num_class,
-            num_hidden_layers=num_hidden_layers,
-            type_vocab_size=type_vocab_size,
-            vocab_size=vocab_size
-        ).to(device)
 
     if model == 'bert':
         return fine_tune.model.StudentBert(
@@ -189,12 +176,6 @@ def load_teacher_model(
         `fine_tune.model.TeacherBert`:
             If `config.model` is 'bert'.
     """
-    if model == 'albert':
-        return fine_tune.model.TeacherAlbert(
-            dropout=dropout,
-            num_class=num_class,
-            ptrain_ver=ptrain_ver
-        ).to(device)
 
     if model == 'bert':
         return fine_tune.model.TeacherBert(
@@ -279,8 +260,7 @@ def load_gate_networks_by_config(
     """Given teacher and student model config,
     return a list of `HighwayGate`.
 
-    #TODO: Refactor this utility functions:
-        Can we just pass in `num_of_gates` instead?
+    #TODO: Remove this function
 
     Parameters
     ----------
