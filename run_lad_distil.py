@@ -186,7 +186,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--tdevice_id',
         help='Device ID of teacher model. If not specified then load from config',
-        default=-1,
+        default=None,
         type=int
     )
 
@@ -307,17 +307,14 @@ if __name__ == "__main__":
     teacher_config = fine_tune.config.TeacherConfig.load(
         experiment=args.teacher_exp,
         model=args.tmodel,
-        task=args.task
+        task=args.task,
+        device_id=args.device_id
     )
 
     # Sync batch size and accumulation steps.
     teacher_config.seed = args.seed
     teacher_config.batch_size = args.batch_size
     teacher_config.accum_step = args.accum_step
-
-    # Set new device ID for teacher model if needed.
-    if args.tdevice_id > -1:
-        teacher_config.device_id = args.tdevice_id
 
     # Construct student model configuration.
     student_config = fine_tune.config.StudentConfig(
