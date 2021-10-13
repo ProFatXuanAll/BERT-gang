@@ -448,7 +448,7 @@ if __name__ == "__main__":
         num_layers = 24
     gate_networks = fine_tune.util.load_gate_networks(
         num_layers=num_layers,
-        dimension=gate_config.dimensionm,
+        dimension=gate_config.dimension,
         seq_length = gate_config.max_seq_length,
         device=gate_config.device
     )
