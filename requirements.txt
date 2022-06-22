@@ -2,7 +2,7 @@ autopep8==1.5.3
 GPUtil==1.4.0
 matplotlib==3.2.2
 mypy==0.782
-numpy==1.19.0
+numpy==1.22.0
 pandas==1.0.5
 pylint==2.5.3
 scikit-learn==0.22.1
